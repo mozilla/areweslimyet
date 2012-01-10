@@ -13,7 +13,7 @@ def fail(err):
   sys.stderr.write("%s\n" % err)
   sys.exit(1)
 def stat(msg):
-  sys.stdout.write("%s\n" % msg)
+  sys.stderr.write("%s\n" % msg)
   
 if len(sys.argv) != 2:
   fail("Requires one argument: Date (YYYY-MM-DD)")
