@@ -38,6 +38,11 @@ echo ":: Starting VNC"
 vncserver :9
 export DISPLAY=:9
 
+echo ":: Nuking objdir"
+# We use ccache so the extra time it saves us to keep this
+# isn't worth the probability of random build fails
+rm -rf ./slimtest-build
+
 echo ":: Running test"
 # Use py2 binary on systems that have python -> python 3.x
 which python2 &>/dev/null && PYTHON=python2 || PYTHON=python
