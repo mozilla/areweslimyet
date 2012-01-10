@@ -11,7 +11,7 @@ set -e
 
 skip=0
 for year in 2010 2011; do
-  month=3
+  month=1
   while [ $month -le 12 ]; do
     day=1
     while [ $day -le 31 ]; do
