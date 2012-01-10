@@ -9,7 +9,7 @@ set -e
 
 >test_months.err
 
-skip=$(( $step - 1 ))
+skip=0
 for year in 2010 2011; do
   month=3
   while [ $month -le 12 ]; do
