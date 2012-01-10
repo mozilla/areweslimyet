@@ -1,0 +1,3 @@
+[submodule "benchtester"]
+	path = benchtester
+	url = git://github.com/Nephyrin/MozBenchtester.git
