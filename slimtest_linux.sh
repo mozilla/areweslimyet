@@ -42,9 +42,9 @@ echo ":: Running test"
 export PYTHON=python2
 python2 ./run_slimtest.py --logfile "logs/$(date +%Y%m%d_%H%M%S.log)" \
                           --autobuild-commit "$commit" \
-                          --autobuild-repo ../mozilla-central \
-                          --autobuild-objdir ../ff-dbg \
-                          --autobuild-mozconfig ../m-ff-dbg.mzc \
+                          --autobuild-repo ./mozilla-central \
+                          --autobuild-objdir ./slimtest-build \
+                          --autobuild-mozconfig ./slimtest.mozconfig \
                           --autobuild-pull \
                           $timestamp \
                           --sqlitedb slimtest.sqlite
