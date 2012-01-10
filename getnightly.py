@@ -94,9 +94,9 @@ def readfile(line):
 ftp.retrlines('RETR %s' % infofile, readfile)
 stat("Got build info: %s" % filedat)
 
-m = re.search('[0-9]{14}', filedat)
+m = re.search('^[0-9]{14}', filedat)
 timestamp = int(time.mktime(time.strptime(m.group(0), '%Y%m%d%H%M%S')))
-m = re.search('([0-9a-zA-Z]{12})( |$)', filedat)
+m = re.search('([0-9a-z]{12})$', filedat)
 rev = m.group(1)
 
-print("%s\n%s" % (rev, timestamp))
+print("%s\n%s" % (timestamp, rev))
