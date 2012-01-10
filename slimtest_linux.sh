@@ -39,8 +39,10 @@ vncserver :9
 export DISPLAY=:9
 
 echo ":: Running test"
-export PYTHON=python2
-python2 ./run_slimtest.py --logfile "logs/$(date +%Y%m%d_%H%M%S.log)" \
+# Use py2 binary on systems that have python -> python 3.x
+which python2 &>/dev/null && PYTHON=python2 || PYTHON=python
+export PYTHON
+$PYTHON ./run_slimtest.py --logfile "logs/$(date +%Y%m%d_%H%M%S.log)" \
                           --autobuild-commit "$commit" \
                           --autobuild-repo ./mozilla-central \
                           --autobuild-objdir ./slimtest-build \
