@@ -4,7 +4,9 @@ set -e
 cd "$(dirname "$0")"
 startdir="$PWD"
 commit="$1"
+timestamp="$2"
 
+[ ! -z "$timestamp" ] && timestamp="--buildtime $timestamp"
 [ -z "$commit" ] && commit="tip"
 
 [ -d "logs" ] || mkdir -v logs
@@ -44,4 +46,5 @@ python2 ./run_slimtest.py --logfile "logs/$(date +%Y%m%d_%H%M%S.log)" \
                           --autobuild-objdir ../ff-dbg \
                           --autobuild-mozconfig ../m-ff-dbg.mzc \
                           --autobuild-pull \
+                          $timestamp \
                           --sqlitedb slimtest.sqlite
