@@ -32,7 +32,7 @@ for year in 2010 2011; do
           done <<< "$ret"
           echo ":: $month/$day/$year -- Building: $timestamp, $rev" | tee -a test_months.log
           if ! ./slimtest_linux.sh "$rev" "$timestamp"; then
-            echo "!! Build failed, see benchtester log for $rev"
+            echo "!! Build failed, see benchtester log for $rev" | tee -a test_months.log
           fi
         else
           cat test_months.tmp >> test_months.err
