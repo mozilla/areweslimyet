@@ -2,9 +2,8 @@
 
 set -e
 cd "$(dirname "$0")"
+args="$@"
 startdir="$PWD"
-commit="$1"
-timestamp="$2"
 
 [ ! -z "$timestamp" ] && timestamp="--buildtime $timestamp"
 [ -z "$commit" ] && commit="tip"
@@ -47,12 +46,4 @@ echo ":: Running test"
 # Use py2 binary on systems that have python -> python 3.x
 which python2 &>/dev/null && PYTHON=python2 || PYTHON=python
 export PYTHON
-$PYTHON ./run_slimtest.py --logfile "logs/$(date +%Y%m%d_%H%M%S)_$commit.log" \
-                          --autobuild-log "logs/$(date +%Y%m%d_%H%M%S)_$commit.build.log" \
-                          --autobuild-commit "$commit" \
-                          --autobuild-repo ./mozilla-central \
-                          --autobuild-objdir ./slimtest-build \
-                          --autobuild-mozconfig ./slimtest.mozconfig \
-                          --autobuild-pull \
-                          $timestamp \
-                          --sqlitedb slimtest.sqlite
+$PYTHON ./run_slimtest.py "$args"
