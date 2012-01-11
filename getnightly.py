@@ -30,7 +30,8 @@ stat("Looking up nightly for %s/%s, %s" % (month, day, year))
 #
 ftp = ftplib.FTP('ftp.mozilla.org')
 ftp.login()
-ftp.voidcmd('CWD /pub/firefox/nightly/%i/%02i/' % (year, month))
+nightlydir = 'pub/firefox/nightly/%i/%02i' % (year, month)
+ftp.voidcmd('CWD %s' % nightlydir)
 
 # 
 # Find the appropriate YYYY-MM-DD-??-mozilla-central directory. There may be
@@ -74,11 +75,13 @@ def checknightlydir(dirname):
 
 for x in nightlydirs:
   infofile = checknightlydir(x)
-  if infofile: break
+  if infofile:
+    nightlyfile = "ftp://ftp.mozilla.org/%s/%s/%s" % (nightlydir, x, infofile[:-4] + ".tar.bz2")
+    break
 
 if not infofile:
   fail("Couldn't find any directory with info on this build :(")
-
+  
 #
 # read and parse info file
 #
@@ -99,4 +102,4 @@ timestamp = int(time.mktime(time.strptime(m.group(0), '%Y%m%d%H%M%S')))
 m = re.search('([0-9a-z]{12})$', filedat)
 rev = m.group(1)
 
-print("%s\n%s" % (timestamp, rev))
+print("%s\n%s\n%s" % (timestamp, rev, nightlyfile))
