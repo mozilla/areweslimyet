@@ -29,6 +29,7 @@ for year in 2010 2011; do
         if [ -z "$ret" ]; then
           cat test_months.tmp >> test_months.err
           echo "!! $month/$day/$year -- No build, see test_months.err" | tee -a test_months.log
+          continue
         fi
 
         read -ar reta <<< $ret
