@@ -64,7 +64,7 @@ def checknightlydir(dirname):
   infofile = False
   def findinfofile(line):
     global infofile
-    if line.endswith('linux-x86_64.txt'):
+    if line.startswith('firefox') and line.endswith('linux-x86_64.txt'):
       infofile = line
   
   ftp.voidcmd('CWD %s' % dirname)
