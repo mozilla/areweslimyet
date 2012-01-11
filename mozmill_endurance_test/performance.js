@@ -74,30 +74,6 @@ function PerfTracer(name) {
 }
 
 PerfTracer.prototype = {
-  // UTILITY METHODS
-
-  /**
-   * Format a single result for printing
-   *
-   * @param {object} result
-   *        Result as created by addCheckpoint()
-   *        Elements: timestamp {Date}   - date/time
-   *                  explicit {number} - explicit memory allocated
-   *                  resident {number} - resident memory allocated
-   *                  label {string}     - label for result
-   *
-   * @returns Result string formatted for output
-   * @type {string}
-   */
-  _formatResult : function PerfTracer_formatResult(result) {
-    var resultString = result.timestamp.toUTCString() + " | " +
-                       result.explicit + " | " +
-                       result.resident + " | " +
-                       result.label + "\n";
-
-    return resultString;
-  },
-
   // PUBLIC INTERFACE
 
   /**
@@ -124,30 +100,6 @@ PerfTracer.prototype = {
 
     this._log.push(result);
   },
-
-  /**
-   * Prints all results to console.
-   * XXX: make this work with output files
-   */
-  finish : function PerfTracer_finish() {
-    // Title
-    var title = "Performance Trace (" + this._name + ")";
-    
-    // Separator
-    var sep = "";
-    for(var i = 0; i < title.length; i++) {
-      sep += "=";
-    }
-
-    dump(sep + "\n");
-    dump(title + "\n");
-    dump(sep + "\n");
-
-    // Log
-    for(i = 0; i < this._log.length; i++) {
-      dump(this._formatResult(this._log[i]));
-    }
-  }
 }
 
 // Exported class
