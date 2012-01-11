@@ -2,7 +2,6 @@
 
 set -e
 cd "$(dirname "$0")"
-args="$@"
 startdir="$PWD"
 
 [ ! -z "$timestamp" ] && timestamp="--buildtime $timestamp"
@@ -46,4 +45,4 @@ echo ":: Running test"
 # Use py2 binary on systems that have python -> python 3.x
 which python2 &>/dev/null && PYTHON=python2 || PYTHON=python
 export PYTHON
-$PYTHON ./run_slimtest.py "$args"
+$PYTHON ./run_slimtest.py "$@"

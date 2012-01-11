@@ -32,10 +32,11 @@ for year in 2010 2011; do
           day=$(( $day + 1 )) && continue
         fi
 
-        read -ar reta <<< $ret
-        timestamp=${reta[0]}
-        rev=${reta[1]}
-        url=${reta[2]}
+        {
+          read timestamp
+          read rev
+          read url
+        } <<< "$ret"
         echo ":: $month/$day/$year -- Building: $timestamp, $rev" | tee -a test_months.log
         
         # Get full commit ID from repo
@@ -59,10 +60,10 @@ for year in 2010 2011; do
         
         # Run test
         if ! ./slimtest_linux.sh --logfile "logs/$(date +%Y%m%d_%H%M%S)_$commit.log" \
-                                 --binary firefox/firefox
+                                 --binary firefox/firefox \
                                  --buildname "$rev" \
                                  --buildtime "$timestamp" \
-                                 --sqlitedb slimtest.sqlite"$rev" "$timestamp"; then
+                                 --sqlitedb slimtest.sqlite; then
           echo "!! Build failed, see benchtester log for $rev" | tee -a test_months.log
         fi
       else
