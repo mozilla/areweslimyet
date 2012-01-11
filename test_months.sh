@@ -29,7 +29,7 @@ for year in 2010 2011; do
         if [ -z "$ret" ]; then
           cat test_months.tmp >> test_months.err
           echo "!! $month/$day/$year -- No build, see test_months.err" | tee -a test_months.log
-          continue
+          day=$(( $day + 1 )) && continue
         fi
 
         read -ar reta <<< $ret
@@ -46,6 +46,7 @@ for year in 2010 2011; do
         )
         if [ -z "$fullrev" ]; then
           echo "!! Couldn't lookup commit info for nightly build $rev" | tee -a test_months.log
+          day=$(( $day + 1 )) && continue
         fi
         
         # Download and extract build
@@ -53,6 +54,7 @@ for year in 2010 2011; do
         echo ":: Downloading build..."
         if ! (curl -# "$url" | tar xj) || [ ! -d "firefox" ]; then
           echo "!! Failed to download build from '$url'" | tee -a test_months.log
+          day=$(( $day + 1 )) && continue
         fi
         
         # Run test
@@ -65,9 +67,8 @@ for year in 2010 2011; do
         fi
       else
         skip=$(( $skip - 1 ))
+        day=$(( $day + 1 ))
       fi
-      # Increment day
-      day=$(( $day + 1 ))
     done
     # Increment month
     month=$(( $month + 1 ))
