@@ -34,10 +34,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-var endurance = require("../../../../lib/endurance");
-var modalDialog = require("../../../../lib/modal-dialog");
-var prefs = require("../../../../lib/prefs");
-var tabs = require("../../../../lib/tabs");
+var endurance = require("endurance");
+var modalDialog = require("modal-dialog");
+var prefs = require("prefs");
+var tabs = require("tabs");
 
 // Talos Standalone v2.1 Test Bundle
   // Broken - reference some external broken wikia-ads garbage
