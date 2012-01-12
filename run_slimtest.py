@@ -11,7 +11,7 @@ AreWeSlimYetTests = {
     'type': "EnduranceTest",
     'vars':
       {
-        'test': [ 'reserved', 'slimtest' ],
+        'test': [ 'mozmill_endurance_test' ],
         'entities': 21,
         'iterations': 5,
         'delay': 0
