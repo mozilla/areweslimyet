@@ -61,7 +61,7 @@ while [ $month -le 12 ]; do
       # Run test
       if ! ./slimtest_linux.sh --logfile "logs/$(date +%Y%m%d_%H%M%S)_$commit.log" \
                                 --binary firefox/firefox \
-                                --buildname "$rev" \
+                                --buildname "$fullrev" \
                                 --buildtime "$timestamp" \
                                 --sqlitedb slimtest.sqlite; then
         echo "!! Build failed, see benchtester log for $rev" | tee -a test_months.log
