@@ -94,10 +94,17 @@ PerfTracer.prototype = {
     var result = {
       label : aLabel,
       timestamp : new Date(),
-      explicit : memMgr.explicit,
-      resident : memMgr.resident
+      memory : {}
     };
-
+    var reporters = memMgr.enumerateReporters();
+    while (reporters.hasMoreElements()) {
+      var r = reporters.getNext();
+      r instanceof Ci.nsIMemoryReporter;
+      if (r.path.length) {
+        // memoryUsed was renamed to amount in gecko7
+        result['memory'][r.path] = (r.amount !== undefined) ? r.amount : r.memoryUsed;
+      }
+    }
     this._log.push(result);
   },
 }
