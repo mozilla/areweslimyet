@@ -64,7 +64,7 @@ while [ $month -le 12 ]; do
                                 --buildname "$fullrev" \
                                 --buildtime "$timestamp" \
                                 --sqlitedb slimtest.sqlite; then
-        echo "!! Build failed, see benchtester log for $rev" | tee -a test_months.log
+        echo "!! Test failed, see benchtester log for $rev" | tee -a test_months.log
       fi
     else
       skip=$(( $skip - 1 ))
