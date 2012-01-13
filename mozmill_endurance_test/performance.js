@@ -138,7 +138,7 @@ PerfTracer.prototype = {
             // This is how about:memory calculates derived value heap-unclassified, which
             // is necessary to get a proper explicit value.
             if (knownHeap && result['memory']['heap-allocated'])
-              result['memory']['heap-unclassified'] = result['memory']['heap-allocated'] - knownHeap;
+              result['memory']['explicit/heap-unclassified'] = result['memory']['heap-allocated'] - knownHeap;
             
             // FIXME the result wont be pushed onto the log until all data
             // is ready. Add a callback to addCheckpoint?
