@@ -84,7 +84,10 @@ PerfTracer.prototype = {
   },
 
   /**
-   * Adds a checkpoint to the tracker log, with time and performance info
+   * Adds a checkpoint to the tracker log, with time and performance info.
+   * 
+   * NOTE: The checkpoint is not added to the log immediately, but rather
+   *       once all memory reporters have returned.
    *
    * @param {string} aLabel
    *        Label attached to performance results. Typically should be
@@ -96,6 +99,9 @@ PerfTracer.prototype = {
       timestamp : new Date(),
       memory : {}
     };
+    
+    var knownHeap = 0;
+    
     var reporters = memMgr.enumerateReporters();
     while (reporters.hasMoreElements()) {
       var r = reporters.getNext();
@@ -103,22 +109,46 @@ PerfTracer.prototype = {
       if (r.path.length) {
         // memoryUsed was renamed to amount in gecko7
         result['memory'][r.path] = (r.amount !== undefined) ? r.amount : r.memoryUsed;
+        if (r.kind == Ci.nsIMemoryReporter.KIND_HEAP)
+          knownHeap += result['memory'][r.path];
       }
     }
     // Also record multireporters if they exist
     if (memMgr.enumerateMultiReporters) {
       var multireporters = memMgr.enumerateMultiReporters();
+      var pendingReports = 0;
+      
+      if (!multireporters.hasMoreElements())
+        this._log.push(result);
+      
       while (multireporters.hasMoreElements()) {
         var mr = multireporters.getNext();
         mr instanceof Ci.nsIMemoryMultiReporter;
+        pendingReports++;
+        
+        var self = this;
         mr.collectReports({ callback: function (proc, path, kind, units, amount, description, closure) {
-          // FIXME these wont appear in the log until the callbacks show up,
-          // add a callback to addCheckpoint?
           result['memory'][path] = amount;
+          if (kind == Ci.nsIMemoryReporter.KIND_HEAP)
+            knownHeap += amount;
+          
+          if (--pendingReports == 0) {
+            // All callbacks complete
+            
+            // This is how about:memory calculates derived value heap-unclassified, which
+            // is necessary to get a proper explicit value.
+            if (knownHeap && result['memory']['heap-allocated'])
+              result['memory']['heap-unclassified'] = result['memory']['heap-allocated'] - knownHeap;
+            
+            // FIXME the result wont be pushed onto the log until all data
+            // is ready. Add a callback to addCheckpoint?
+            self._log.push(result);
+          }
         }}, null);
       }
+    } else {
+      this._log.push(result);
     }
-    this._log.push(result);
   },
 }
 
