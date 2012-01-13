@@ -1,0 +1,60 @@
+
+html, body {
+  background-color: #2D2A27;
+  color: #EEE;
+  text-align: center;
+}
+
+h1 {
+  font-family: serif;
+  margin: 30px;
+  font-size: 4em;
+  text-shadow: #000 2px 2px 1px;
+}
+
+a {
+  text-decoration: none;
+}
+
+a:link {
+  color: #FAA;
+}
+
+a:hover {
+  color: #FCC;
+}
+
+a:active {
+  color: #FFF;
+}
+
+a:visited {
+  color: #AFA;
+}
+
+.emph {
+  font-style: italic;
+  color: #955;
+}
+
+#tooltip {
+  text-align: left;
+  position: absolute;
+  padding: 15px;
+  display: none;
+  width: auto;
+  height: 100px;
+}
+
+#tooltipInner {
+  font-family: sans-serif;
+  color: #EEE;
+  background-color: rgba(0, 0, 0, 0.7);
+  border-radius: 5px;
+  padding: 15px;
+}
+
+#tooltip h2, p {
+  line-height: inherit;
+  margin: inherit;
+}
