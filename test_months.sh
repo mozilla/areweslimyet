@@ -59,7 +59,7 @@ while [ $month -le 12 ]; do
       fi
       
       # Run test
-      if ! ./slimtest_linux.sh --logfile "logs/$(date +%Y%m%d_%H%M%S)_$commit.log" \
+      if ! ./slimtest_linux.sh --logfile "logs/$(date +%Y%m%d_%H%M%S)_$rev.log" \
                                 --binary firefox/firefox \
                                 --buildname "$fullrev" \
                                 --buildtime "$timestamp" \
