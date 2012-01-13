@@ -2,14 +2,14 @@
 
 # Utility script to test every Xth nightly since 2010
 step="$1"
-
+skip="$2"
 [ ! -z "$step" ] || step=1
+[ ! -z "$skip" ] || skip=0
 
 set -e
 
 >test_months.err
 
-skip=0
 month=1
 year=2011
 while [ $month -le 12 ]; do
