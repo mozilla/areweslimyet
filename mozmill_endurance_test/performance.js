@@ -105,6 +105,19 @@ PerfTracer.prototype = {
         result['memory'][r.path] = (r.amount !== undefined) ? r.amount : r.memoryUsed;
       }
     }
+    // Also record multireporters if they exist
+    if (memMgr.enumerateMultiReporters) {
+      var multireporters = memMgr.enumerateMultiReporters();
+      while (multireporters.hasMoreElements()) {
+        var mr = multireporters.getNext();
+        mr instanceof Ci.nsIMemoryMultiReporter;
+        mr.collectReports({ callback: function (proc, path, kind, units, amount, description, closure) {
+          // FIXME these wont appear in the log until the callbacks show up,
+          // add a callback to addCheckpoint?
+          result['memory'][path] = amount;
+        }}, null);
+      }
+    }
     this._log.push(result);
   },
 }
