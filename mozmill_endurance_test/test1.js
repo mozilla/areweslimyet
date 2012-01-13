@@ -39,6 +39,54 @@ var modalDialog = require("modal-dialog");
 var prefs = require("prefs");
 var tabs = require("tabs");
 
+var domWindowUtils = (function () {
+  var wm = Cc["@mozilla.org/appshell/window-mediator;1"]
+           .getService(Ci.nsIWindowMediator);
+           
+  var e = wm.getEnumerator("navigator:browser");
+  if (!e.hasMoreElements()) return null;
+  
+  var window = e.getNext();
+  window instanceof Ci.nsIDOMWindow;
+  
+  return window.QueryInterface(Components.interfaces.nsIInterfaceRequestor)
+               .getInterface(Components.interfaces.nsIDOMWindowUtils);
+})();
+
+var obsService = Cc["@mozilla.org/observer-service;1"]
+                 .getService(Ci.nsIObserverService);
+var threadMan = Cc["@mozilla.org/thread-manager;1"]
+                .getService(Ci.nsIThreadManager);
+
+// Helper that triggers a GC/CC/Memory-pressure
+// event through returning to the event loop
+// to fully cleanup any unneeded resources.
+// See about:memory and bug 610166 for why
+// it works this way.
+function doMinimizeMemory(callback) {
+  function runSoon(f)
+  {
+    threadMan.mainThread.dispatch({ run: f }, Ci.nsIThread.DISPATCH_NORMAL);
+  }
+
+  function minimizeInner()
+  {
+    Components.utils.forceGC();
+    domWindowUtils.cycleCollect();
+    obsService.notifyObservers(null, "child-cc-request", null);
+    obsService.notifyObservers(null, "child-gc-request", null);
+    obsService.notifyObservers(null, "memory-pressure", "heap-minimize");
+
+    if (++j < 3)
+      runSoon(minimizeInner);
+    else
+      runSoon(callback);
+  }
+
+  var j = 0;
+  minimizeInner();
+}
+
 // Talos Standalone v2.1 Test Bundle
   // Broken - reference some external broken wikia-ads garbage
   // "http://localhost:8001/talos_pages_2.1/uncyclopedia.org_wiki_Main_Page/uncyclopedia.org/wiki/Main_Page.html",
@@ -97,6 +145,7 @@ function setupModule() {
  **/
 function testMemBuster() {
   enduranceManager.run(function () {
+    doMinimizeMemory(function () { enduranceManager.addCheckpoint("Start"); });
     enduranceManager.loop(function () {
       var currentEntity = enduranceManager.currentEntity;
 
@@ -120,11 +169,11 @@ function testMemBuster() {
     }
     // Settle
     controller.sleep(5000);
-    enduranceManager.addCheckpoint("TabsOpen");
+    doMinimizeMemory(function () { enduranceManager.addCheckpoint("TabsOpen"); });
     tabBrowser.closeAllTabs();
     controller.waitForPageLoad(controller.tabs.activeTab);
     controller.sleep(5000);
-    enduranceManager.addCheckpoint("TabsClosed");
+    doMinimizeMemory(function () { enduranceManager.addCheckpoint("TabsClosed"); });
   });
 }
 
