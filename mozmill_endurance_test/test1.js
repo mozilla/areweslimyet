@@ -144,7 +144,6 @@ function setupModule() {
  **/
 function testMemBuster() {
   enduranceManager.run(function () {
-    doMinimizeMemory(function () { enduranceManager.addCheckpoint("Start"); });
     enduranceManager.loop(function () {
       var currentEntity = enduranceManager.currentEntity;
 
