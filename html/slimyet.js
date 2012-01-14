@@ -32,9 +32,6 @@ function formatBytes(raw) {
 }
 
 function addGraph(axis) {
-  if (!(axis instanceof Array))
-    axis = [ axis ];
-  
   var seriesData = [];
   var seriesDataPoints = [];
   
@@ -45,7 +42,7 @@ function addGraph(axis) {
       datapoints.push([ data[i].time, data[i].value ]);
     }
     seriesData.push(data);
-    seriesDataPoints.push({ label: axis[x], data: datapoints });
+    seriesDataPoints.push({ label: x, data: datapoints });
   }
   
   var plotbox = $.new('div', { 'id' : 'testgraph' }, { width: '1000px', height: '500px', margin: 'auto' }).appendTo(document.body);
@@ -132,4 +129,8 @@ function addGraph(axis) {
   });
 }
 
-$(function () { addGraph(['Fourth Iteration, All Tabs Open -- Resident Memory', 'Fresh Start -- Resident Memory']); });
+$(function () { addGraph({
+    'MaxMemory' : "Peak memory usage",
+    'StartMemory' : "Fresh start memory",
+    'EndMemory' : "After test memory (zero tabs)"
+  });});

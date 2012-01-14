@@ -18,16 +18,21 @@ gDatabase = sys.argv[1]
 gOutfile = sys.argv[2]
 
 gPullData = {
-  "Fourth Iteration, All Tabs Open -- Resident Memory" : {
+  "MaxMemory" : {
     "test": "Slimtest-Talos2.1-Standalone",
     "datapoint": "Iteration 4.TabsOpen.mem.explicit/%" ,
     "nicename": "Fresh Start Resident Memory",
   },
-  "Fresh Start -- Resident Memory" : {
+  "StartMemory" : {
     "test": "Slimtest-Talos2.1-Standalone",
     "datapoint": "Iteration 0.Start iteration.mem.explicit/%" ,
     "nicename": "Fresh Start Resident Memory",
-  }
+  },
+  "EndMemory" : {
+    "test": "Slimtest-Talos2.1-Standalone",
+    "datapoint": "Iteration 4.End iteration.mem.explicit/%" ,
+    "nicename": "Fresh Start Resident Memory",
+  },
 }
 
 sql = sqlite3.connect(gDatabase)
