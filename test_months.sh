@@ -67,10 +67,9 @@ while [ $month -le 12 ]; do
         echo "!! Test failed, see benchtester log for $rev" | tee -a test_months.log
       fi
     else
-      skip=$(( $skip - 1 ))
-      day=$(( $day + 1 ))
+      skip=$(( skip - 1 ))
     fi
+    day=$(( day + 1 ))
   done
-  # Increment month
-  month=$(( $month + 1 ))
+  month=$(( month + 1 ))
 done
