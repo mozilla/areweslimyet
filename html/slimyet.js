@@ -35,14 +35,14 @@ function addGraph(axis) {
   var seriesData = [];
   var seriesDataPoints = [];
   
-  for (x in axis) {
-    var data = gSlimGraphSeries[axis[x]];
+  for (var x in axis) {
+    var data = gSlimGraphSeries[x];
     var datapoints = [];
     for (var i in data) {
       datapoints.push([ data[i].time, data[i].value ]);
     }
     seriesData.push(data);
-    seriesDataPoints.push({ label: x, data: datapoints });
+    seriesDataPoints.push({ label: axis[x], data: datapoints });
   }
   
   var plotbox = $.new('div', { 'id' : 'testgraph' }, { width: '1000px', height: '500px', margin: 'auto' }).appendTo(document.body);
