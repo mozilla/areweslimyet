@@ -117,10 +117,10 @@ function addGraph(axis) {
     var c = tooltip.find('p').empty();
     c.append($.new('p').text(new Date(item.datapoint[0] * 1000).toDateString()));
     c.append($.new('p').text(formatBytes(item.datapoint[1])));
-    var rev = seriesData[item.seriesIndex][item.dataIndex].build;
+    var rev = seriesData[item.seriesIndex][item.dataIndex].build.slice(0,12);
     c.append($.new('a', {
         target: '_blank',
-        href: 'https://hg.mozilla.org/mozilla-central/rev/' + rev.slice(0,12)
+        href: 'https://hg.mozilla.org/mozilla-central/rev/'
       }).text(rev));
     
     // Show tooltip
