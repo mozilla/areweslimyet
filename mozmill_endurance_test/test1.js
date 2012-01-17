@@ -82,7 +82,7 @@ function doMinimizeMemory(callback) {
     obsService.notifyObservers(null, "child-gc-request", null);
     obsService.notifyObservers(null, "memory-pressure", "heap-minimize");
 
-    if (++j < 3)
+    if (++j < 5)
       runSoon(minimizeInner);
     else
       runSoon(callback);
