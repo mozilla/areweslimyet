@@ -36,11 +36,11 @@ gPullData = {
   },
   "EndMemory" : {
     "test": "Slimtest-Talos2.1-Standalone",
-    "datapoint": "Iteration 4.End iteration.mem.explicit/%"
+    "datapoint": "Iteration 4.TabsClosed.mem.explicit/%"
   },
   "EndMemoryResident" : {
     "test": "Slimtest-Talos2.1-Standalone",
-    "datapoint": "Iteration 4.End iteration.mem.resident"
+    "datapoint": "Iteration 4.TabsClosed.mem.resident"
   },
 }
 
