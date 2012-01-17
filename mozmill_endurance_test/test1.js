@@ -144,6 +144,8 @@ function setupModule() {
  **/
 function testMemBuster() {
   enduranceManager.run(function () {
+    doMinimizeMemory(function () { enduranceManager.addCheckpoint("PreTabs"); });
+    controller.sleep(5000);
     enduranceManager.loop(function () {
       var currentEntity = enduranceManager.currentEntity;
 
