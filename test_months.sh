@@ -19,12 +19,14 @@ while [ $month -le 12 ]; do
     date --date="$month/$day $year" &>/dev/null || break
     
     if [ "$skip" -eq 0 ]; then
+      skip=$step
+      
       [ $day -ge 10 ] && nday=$day || nday="0$day"
       [ $month -ge 10 ] && nmonth=$month || nmonth="0$month"
       
       datestr="$year-$nmonth-$nday"
       echo ":: Testing $datestr" | tee -a test_months.log
-      if ! ./test_nightly.sh "$datestr" | tee test_months.tmp; then
+      if ! (./test_nightly.sh "$datestr" | tee test_months.tmp); then
         echo "!! Test failed for $month/$day, $year: $(cat test_months.tmp)" | tee -a test_months.log
       fi
       
