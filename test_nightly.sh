@@ -29,10 +29,22 @@ if [ -z "$fullrev" ]; then
 fi
 
 # Download and extract build
-rm -rf firefox
 echo ":: Downloading build..."
-if ! (curl -# "$url" | tar xj) || [ ! -d "firefox" ]; then
-  echo "!! Failed to download build from '$url'"
+mkdir nightlycache &>/dev/null || true
+file="nightlycache/$fullrev.tar.bz2"
+if [ ! -f "$file" ]; then
+  echo ":: Not in cache, downloading"
+  if ! curl -# "$url" > "$file"; then
+    echo "!! Failed to download $url"
+    exit 1
+  fi
+  echo ""
+else
+  echo ":: Build in download cache"
+fi
+
+if ! tar xjf "$file" || [ ! -d "firefox" ]; then
+  echo "!! Failed to extract build from '$file'"
   exit 1
 fi
 
