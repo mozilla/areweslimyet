@@ -19,56 +19,18 @@ while [ $month -le 12 ]; do
     date --date="$month/$day $year" &>/dev/null || break
     
     if [ "$skip" -eq 0 ]; then
-      skip=$(( $step - 1 ))
-      
       [ $day -ge 10 ] && nday=$day || nday="0$day"
       [ $month -ge 10 ] && nmonth=$month || nmonth="0$month"
       
-      # Use getnightly.py to find this build on ftp.mozilla.org
-      ret=$(./getnightly.py "$year-$nmonth-$nday" 2>test_months.tmp || true)
-      if [ -z "$ret" ]; then
-        cat test_months.tmp >> test_months.err
-        echo "!! $month/$day/$year -- No build, see test_months.err" | tee -a test_months.log
-        day=$(( $day + 1 )) && continue
-      fi
-
-      {
-        read timestamp
-        read rev
-        read url
-      } <<< "$ret"
-      echo ":: $month/$day/$year -- Building: $timestamp, $rev" | tee -a test_months.log
-      
-      # Get full commit ID from repo
-      fullrev=$(
-        cd mozilla-central
-        hg pull &>/dev/null
-        hg log -r "$rev" --template "{node}" || true
-      )
-      if [ -z "$fullrev" ]; then
-        echo "!! Couldn't lookup commit info for nightly build $rev" | tee -a test_months.log
-        day=$(( $day + 1 )) && continue
+      datestr="$year-$nmonth-$nday"
+      echo ":: Testing $datestr" | tee -a test_months.log
+      if ! ./test_nightly.sh "$datestr" | tee test_months.tmp; then
+        echo "!! Test failed for $month/$day, $year: $(cat test_months.tmp)" | tee -a test_months.log
       fi
       
-      # Download and extract build
-      rm -rf firefox
-      echo ":: Downloading build..."
-      if ! (curl -# "$url" | tar xj) || [ ! -d "firefox" ]; then
-        echo "!! Failed to download build from '$url'" | tee -a test_months.log
-        day=$(( $day + 1 )) && continue
-      fi
-      
-      # Run test
-      if ! ./slimtest_linux.sh --logfile "logs/$(date +%Y%m%d_%H%M%S)_$rev.log" \
-                                --binary firefox/firefox \
-                                --buildname "$fullrev" \
-                                --buildtime "$timestamp" \
-                                --sqlitedb slimtest.sqlite; then
-        echo "!! Test failed, see benchtester log for $rev" | tee -a test_months.log
-      fi
-    else
-      skip=$(( skip - 1 ))
     fi
+    
+    skip=$(( skip - 1 ))
     day=$(( day + 1 ))
   done
   month=$(( month + 1 ))
