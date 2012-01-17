@@ -115,6 +115,7 @@ function addGraph(axis) {
     // Fill tooltip
     tooltip.find('h2').text('Nightly');
     var c = tooltip.find('p').empty();
+    c.append($.new('p').text(seriesDataPoints[item.seriesIndex]['label']));
     c.append($.new('p').text(new Date(item.datapoint[0] * 1000).toDateString()));
     c.append($.new('p').text(formatBytes(item.datapoint[1])));
     var rev = seriesData[item.seriesIndex][item.dataIndex].build.slice(0,12);
