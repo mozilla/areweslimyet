@@ -130,7 +130,10 @@ function addGraph(axis) {
 }
 
 $(function () { addGraph({
-    'MaxMemory' : "Peak memory usage",
-    'StartMemory' : "Fresh start memory",
+    'MaxMemory' : "Peak memory usage (explicit)",
+    'MaxMemoryResident' : "Peak memory usage (resident)",
+    'StartMemory' : "Fresh start memory (explicit)",
+    'StartMemoryResident' : "Fresh start memory (resident)",
     'EndMemory' : "After test memory (zero tabs)"
+    'EndMemoryResident' : "After test memory (zero tabs) (resident)"
   });});
