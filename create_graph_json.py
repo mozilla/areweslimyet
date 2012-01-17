@@ -70,8 +70,6 @@ for build in builds:
     while row:
       if row['value']:
         value += row['value']
-      else:
-        print("Warning: Null Value for datapoint '%s' for test %u" % (row['datapoint'], test_ids[dinfo['test']]))
       row = cur.fetchone()
     if value:
       if not data.has_key(dname): data[dname] = []
