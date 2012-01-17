@@ -71,7 +71,13 @@ function doMinimizeMemory(callback) {
 
   function minimizeInner()
   {
-    domWindowUtils.garbageCollect();
+    if (domWindowUtils.garbageCollect)
+      domWindowUtils.garbageCollect();
+    if (domWindowUtils.cycleCollect)
+      domWindowUtils.cycleCollect();
+    if (Cu.forceGC)
+      Cu.forceGC();
+    
     obsService.notifyObservers(null, "child-cc-request", null);
     obsService.notifyObservers(null, "child-gc-request", null);
     obsService.notifyObservers(null, "memory-pressure", "heap-minimize");
