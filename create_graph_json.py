@@ -20,17 +20,17 @@ gOutfile = sys.argv[2]
 gPullData = {
   "MaxMemory" : {
     "test": "Slimtest-Talos2.1-Standalone",
-    "datapoint": "Iteration 4.TabsOpen.mem.explicit/%" ,
+    "datapoint": "Iteration 4.TabsOpen.mem.resident" ,
     "nicename": "Fresh Start Resident Memory",
   },
   "StartMemory" : {
     "test": "Slimtest-Talos2.1-Standalone",
-    "datapoint": "Iteration 0.Start iteration.mem.explicit/%" ,
+    "datapoint": "Iteration 0.Start iteration.mem.resident" ,
     "nicename": "Fresh Start Resident Memory",
   },
   "EndMemory" : {
     "test": "Slimtest-Talos2.1-Standalone",
-    "datapoint": "Iteration 4.End iteration.mem.explicit/%" ,
+    "datapoint": "Iteration 4.End iteration.mem.resident" ,
     "nicename": "Fresh Start Resident Memory",
   },
 }
@@ -59,7 +59,10 @@ for build in builds:
     row = cur.fetchone()
     value = 0
     while row:
-      value += row['value']
+      if row['value']:
+        value += row['value']
+      else:
+        print("Warning: Null Value for datapoint '%s' for test %u" % (row['datapoint'], test_ids[dinfo['test']]))
       row = cur.fetchone()
     if value:
       if not data.has_key(dname): data[dname] = []
