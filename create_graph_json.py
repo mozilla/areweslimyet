@@ -59,7 +59,7 @@ for build in builds:
   test_ids = {}
   for n in test_names:
     # Find ID of latest testrun for this test on this build
-    cur.execute('''SELECT * FROM `benchtester_tests` WHERE `name` = ? AND `build_id` = ? ORDER BY `time` ASC LIMIT 1''', [n, build['id']])
+    cur.execute('''SELECT * FROM `benchtester_tests` WHERE `name` = ? AND `build_id` = ? ORDER BY `time` DESC LIMIT 1''', [n, build['id']])
     test_ids[n] = cur.fetchone()['id']
   
   # Pull data
