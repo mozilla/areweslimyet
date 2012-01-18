@@ -76,16 +76,19 @@ function doMinimizeMemory(callback) {
     // In order of preference: schedulePreciseShrinkingGC, schedulePreciseGC
     // garbageCollect
     if (++j <= 3) {
-      if (domWindowUtils.cycleCollect)
-        domWindowUtils.cycleCollect();
-          
       var schedGC = Cu.schedulePreciseShrinkingGC;
       if (!schedGC) shedGC = Cu.schedulePreciseGC;
       if (schedGC) {
-        schedGC.call(Cu, { callback: function () { runSoon(minimizeInner); } });
+        schedGC.call(Cu, { callback: function () {
+          if (domWindowUtils.cycleCollect)
+            domWindowUtils.cycleCollect();
+          runSoon(minimizeInner);
+        } });
       } else {
         if (domWindowUtils.garbageCollect)
           domWindowUtils.garbageCollect();
+        if (domWindowUtils.cycleCollect)
+          domWindowUtils.cycleCollect();
         runSoon(minimizeInner);
       }
     } else {
