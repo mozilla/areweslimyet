@@ -41,65 +41,6 @@ var modalDialog = require("modal-dialog");
 var prefs = require("prefs");
 var tabs = require("tabs");
 
-var domWindowUtils = (function () {
-  var wm = Cc["@mozilla.org/appshell/window-mediator;1"]
-           .getService(Ci.nsIWindowMediator);
-           
-  var e = wm.getEnumerator("navigator:browser");
-  if (!e.hasMoreElements()) return null;
-  
-  var window = e.getNext();
-  window instanceof Ci.nsIDOMWindow;
-  
-  return window.QueryInterface(Components.interfaces.nsIInterfaceRequestor)
-               .getInterface(Components.interfaces.nsIDOMWindowUtils);
-})();
-
-var obsService = Cc["@mozilla.org/observer-service;1"]
-                 .getService(Ci.nsIObserverService);
-var threadMan = Cc["@mozilla.org/thread-manager;1"]
-                .getService(Ci.nsIThreadManager);
-
-// Helper that triggers a GC/CC/Memory-pressure
-// event through returning to the event loop
-// to fully cleanup any unneeded resources.
-// See about:memory and bug 610166 for why
-// it works this way.
-function doMinimizeMemory(callback) {
-  function runSoon(f)
-  {
-    threadMan.mainThread.dispatch({ run: f }, Ci.nsIThread.DISPATCH_NORMAL);
-  }
-
-  function minimizeInner()
-  {
-    // In order of preference: schedulePreciseShrinkingGC, schedulePreciseGC
-    // garbageCollect
-    if (++j <= 3) {
-      var schedGC = Cu.schedulePreciseShrinkingGC;
-      if (!schedGC) schedGC = Cu.schedulePreciseGC;
-      if (schedGC) {
-        schedGC.call(Cu, { callback: function () {
-          if (domWindowUtils.cycleCollect)
-            domWindowUtils.cycleCollect();
-          runSoon(minimizeInner);
-        } });
-      } else {
-        if (domWindowUtils.garbageCollect)
-          domWindowUtils.garbageCollect();
-        if (domWindowUtils.cycleCollect)
-          domWindowUtils.cycleCollect();
-        runSoon(minimizeInner);
-      }
-    } else {
-      runSoon(callback);
-    }
-  }
-
-  var j = 0;
-  minimizeInner();
-}
-
 // Talos TP5
 const TEST_SITES = [
   "http://localhost:8001/tp5/thesartorialist.blogspot.com/thesartorialist.blogspot.com/index.html",
@@ -230,9 +171,17 @@ function setupModule() {
  * Run Mem Test
  **/
 function testMemoryUsage() {
+  function memoryCheckpoint(name) {
+    var complete = false;
+    enduranceManager.doFullGC(function () {
+      enduranceManager.addCheckpoint(name, function () {
+        complete = true;
+      });
+    });
+    controller.waitFor(function () { return complete; });
+  }
   enduranceManager.run(function () {
-    doMinimizeMemory(function () { enduranceManager.addCheckpoint("PreTabs"); });
-    controller.sleep(10000);
+    memoryCheckpoint("PreTabs");
     enduranceManager.loop(function () {
       var currentEntity = enduranceManager.currentEntity;
 
@@ -256,11 +205,11 @@ function testMemoryUsage() {
     }
     // Settle
     controller.sleep(10000);
-    doMinimizeMemory(function () { enduranceManager.addCheckpoint("TabsOpen"); });
+    memoryCheckpoint("TabsOpen");
     tabBrowser.closeAllTabs();
     controller.waitForPageLoad(controller.tabs.activeTab);
     controller.sleep(10000);
-    doMinimizeMemory(function () { enduranceManager.addCheckpoint("TabsClosed"); });
+    memoryCheckpoint("TabsClosed");
   });
 }
 
