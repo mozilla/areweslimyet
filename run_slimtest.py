@@ -6,7 +6,7 @@ import sys
 sys.path.append(os.path.abspath(os.path.join(".", "benchtester")))
 
 AreWeSlimYetTests = {
-  "Slimtest-Talos2.1-Standalone":
+  "Slimtest-TalosTP5":
   {
     'type': "EnduranceTest",
     'vars':
