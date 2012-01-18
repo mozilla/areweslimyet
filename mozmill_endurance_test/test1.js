@@ -34,7 +34,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-use strict;
+"use strict";
 
 var endurance = require("endurance");
 var modalDialog = require("modal-dialog");
@@ -77,7 +77,7 @@ function doMinimizeMemory(callback) {
     // garbageCollect
     if (++j <= 3) {
       var schedGC = Cu.schedulePreciseShrinkingGC;
-      if (!schedGC) shedGC = Cu.schedulePreciseGC;
+      if (!schedGC) schedGC = Cu.schedulePreciseGC;
       if (schedGC) {
         schedGC.call(Cu, { callback: function () {
           if (domWindowUtils.cycleCollect)
@@ -205,6 +205,11 @@ const TEST_SITES = [
 ];
 
 const TAB_MODAL = "prompts.tab_modal.enabled";
+
+var controller;
+var enduranceManager;
+var tabBrowser;
+var md;
 
 function setupModule() {
   controller = mozmill.getBrowserController();
