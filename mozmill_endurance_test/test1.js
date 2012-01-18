@@ -71,21 +71,23 @@ function doMinimizeMemory(callback) {
 
   function minimizeInner()
   {
-    if (domWindowUtils.garbageCollect)
-      domWindowUtils.garbageCollect();
-    if (domWindowUtils.cycleCollect)
-      domWindowUtils.cycleCollect();
-    if (Cu.forceGC)
-      Cu.forceGC();
-    
-    obsService.notifyObservers(null, "child-cc-request", null);
-    obsService.notifyObservers(null, "child-gc-request", null);
-    obsService.notifyObservers(null, "memory-pressure", "heap-minimize");
-
-    if (++j < 5)
-      runSoon(minimizeInner);
-    else
+    // In order of preference: schedulePreciseShrinkingGC, schedulePreciseGC, cycleCollect/garbageCollect
+    if (++j <= 3) {
+      if (domWindowUtils.cycleCollect)
+        domWindowUtils.cycleCollect();
+          
+      var schedGC = Cu.schedulePreciseShrinkingGC;
+      if (!schedGC) shedGC = Cu.schedulePreciseGC;
+      if (shedGC) {
+        shedGC.call(Cu, { callback: function () { runSoon(minimizeInner); } });
+      } else {
+        if (domWindowUtils.garbageCollect)
+          domWindowUtils.garbageCollect();
+        runSoon(minimizeInner);
+      }
+    } else {
       runSoon(callback);
+    }
   }
 
   var j = 0;
@@ -219,7 +221,7 @@ function setupModule() {
 function testMemoryUsage() {
   enduranceManager.run(function () {
     doMinimizeMemory(function () { enduranceManager.addCheckpoint("PreTabs"); });
-    controller.sleep(5000);
+    controller.sleep(10000);
     enduranceManager.loop(function () {
       var currentEntity = enduranceManager.currentEntity;
 
@@ -242,11 +244,11 @@ function testMemoryUsage() {
       controller.assert(function () { return tab.readyState == "complete"; });
     }
     // Settle
-    controller.sleep(5000);
+    controller.sleep(10000);
     doMinimizeMemory(function () { enduranceManager.addCheckpoint("TabsOpen"); });
     tabBrowser.closeAllTabs();
     controller.waitForPageLoad(controller.tabs.activeTab);
-    controller.sleep(5000);
+    controller.sleep(10000);
     doMinimizeMemory(function () { enduranceManager.addCheckpoint("TabsClosed"); });
   });
 }
