@@ -107,13 +107,13 @@ function EnduranceManager(controller) {
  */
 EnduranceManager.prototype = {
 
-  /* 
+  /**
    * Run a complete GC -> CC cycle to attempt to minimize memory usage
    * 
    * @param {function} callback
    *        Callback to call when GC/CC cycles have completed
    */
-  function doFullGC(callback) {
+  doFullGC: function endurance_doFullGC(callback) {
     function runSoon(f)
     {
       threadMan.mainThread.dispatch({ run: f }, Ci.nsIThread.DISPATCH_NORMAL);
@@ -152,7 +152,7 @@ EnduranceManager.prototype = {
 
     var j = 0;
     minimizeInner();
-  }
+  },
   /**
    * Get the number of entities
    *
