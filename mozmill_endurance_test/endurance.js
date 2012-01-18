@@ -153,11 +153,13 @@ EnduranceManager.prototype = {
    *
    * @param {string} label
    *        Label for checkpoint
+   * @param {function} callback
+   *        Callback function to call when complete
    */
-  addCheckpoint : function endurance_addCheckpoint(label) {
+  addCheckpoint : function endurance_addCheckpoint(label, callback) {
     this._perfTracer.addCheckpoint(label +
                                    " [i:" + this._currentIteration +
-                                   " e:" + this._currentEntity + "]");
+                                   " e:" + this._currentEntity + "]", callback);
   }
 
 }

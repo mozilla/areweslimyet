@@ -85,15 +85,16 @@ PerfTracer.prototype = {
 
   /**
    * Adds a checkpoint to the tracker log, with time and performance info.
-   * 
-   * NOTE: The checkpoint is not added to the log immediately, but rather
-   *       once all memory reporters have returned.
    *
    * @param {string} aLabel
    *        Label attached to performance results. Typically should be
    *        whatever the test just did.
+   * 
+   * @param {function} aCallback
+   *        Callback to call when this checkpoint finishes (the memory reporters
+   *        do not return immediately)
    */
-  addCheckpoint : function PerfTracer_addCheckpoint(aLabel) {
+  addCheckpoint : function PerfTracer_addCheckpoint(aLabel, aCallback) {
     var result = {
       label : aLabel,
       timestamp : new Date(),
@@ -147,9 +148,8 @@ PerfTracer.prototype = {
             if (knownHeap && heapAllocated)
               result['memory']['explicit/heap-unclassified'] = result['memory']['heap-allocated'] - knownHeap;
             
-            // FIXME the result wont be pushed onto the log until all data
-            // is ready. Add a callback to addCheckpoint?
             self._log.push(result);
+            if (aCallback) aCallback();
           }
         }}, null);
       }
