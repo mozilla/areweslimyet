@@ -34,6 +34,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+use strict;
+
 var endurance = require("endurance");
 var modalDialog = require("modal-dialog");
 var prefs = require("prefs");
@@ -71,15 +73,16 @@ function doMinimizeMemory(callback) {
 
   function minimizeInner()
   {
-    // In order of preference: schedulePreciseShrinkingGC, schedulePreciseGC, cycleCollect/garbageCollect
+    // In order of preference: schedulePreciseShrinkingGC, schedulePreciseGC
+    // garbageCollect
     if (++j <= 3) {
       if (domWindowUtils.cycleCollect)
         domWindowUtils.cycleCollect();
           
       var schedGC = Cu.schedulePreciseShrinkingGC;
       if (!schedGC) shedGC = Cu.schedulePreciseGC;
-      if (shedGC) {
-        shedGC.call(Cu, { callback: function () { runSoon(minimizeInner); } });
+      if (schedGC) {
+        schedGC.call(Cu, { callback: function () { runSoon(minimizeInner); } });
       } else {
         if (domWindowUtils.garbageCollect)
           domWindowUtils.garbageCollect();
