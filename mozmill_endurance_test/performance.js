@@ -102,6 +102,9 @@ PerfTracer.prototype = {
     
     var knownHeap = 0;
     
+    result['memory']['explicit'] = memMgr.explicit;
+    result['memory']['resident'] = memMgr.resident;
+    
     var reporters = memMgr.enumerateReporters();
     while (reporters.hasMoreElements()) {
       var r = reporters.getNext();
