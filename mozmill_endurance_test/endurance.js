@@ -122,12 +122,10 @@ EnduranceManager.prototype = {
     for (var i = 0; i < this._iterations; i++) {
       this._currentIteration = i + 1;
       this._controller.sleep(this._delay);
-      this._perfTracer.addCheckpoint("Start iteration");
 
       // Run the main test method
       callback();
 
-      this._perfTracer.addCheckpoint("End iteration");
       _testResults.iterations.push({"checkpoints" : this._perfTracer._log});
       this._perfTracer.clearLog();
     }
