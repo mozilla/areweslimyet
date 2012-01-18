@@ -19,27 +19,27 @@ gOutfile = sys.argv[2]
 
 gPullData = {
   "MaxMemory" : {
-    "test": "Slimtest-Talos2.1-Standalone",
+    "test": "Slimtest-TalosTP5",
     "datapoint": "Iteration 4.TabsOpen.mem.explicit/%"
   },
   "MaxMemoryResident" : {
-    "test": "Slimtest-Talos2.1-Standalone",
+    "test": "Slimtest-TalosTP5",
     "datapoint": "Iteration 4.TabsOpen.mem.resident"
   },
   "StartMemory" : {
-    "test": "Slimtest-Talos2.1-Standalone",
+    "test": "Slimtest-TalosTP5",
     "datapoint": "Iteration 0.PreTabs.mem.explicit/%"
   },
   "StartMemoryResident" : {
-    "test": "Slimtest-Talos2.1-Standalone",
+    "test": "Slimtest-TalosTP5",
     "datapoint": "Iteration 0.PreTabs.mem.resident"
   },
   "EndMemory" : {
-    "test": "Slimtest-Talos2.1-Standalone",
+    "test": "Slimtest-TalosTP5",
     "datapoint": "Iteration 4.TabsClosed.mem.explicit/%"
   },
   "EndMemoryResident" : {
-    "test": "Slimtest-Talos2.1-Standalone",
+    "test": "Slimtest-TalosTP5",
     "datapoint": "Iteration 4.TabsClosed.mem.resident"
   },
 }
