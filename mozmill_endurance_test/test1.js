@@ -192,7 +192,7 @@ function testMemoryUsage() {
         complete = true;
       });
     });
-    controller.waitFor(function () { return complete; });
+    controller.waitFor(function () { return complete; }, null, 60000, 500);
   }
   enduranceManager.run(function () {
     memoryCheckpoint("PreTabs");
