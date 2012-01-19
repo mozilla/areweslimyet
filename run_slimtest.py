@@ -12,7 +12,7 @@ AreWeSlimYetTests = {
     'vars':
       {
         'test': [ 'mozmill_endurance_test' ],
-        'entities': 21,
+        'entities': 100,
         'iterations': 5,
         'delay': 0
       }
