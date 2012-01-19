@@ -147,6 +147,8 @@ const TEST_SITES = [
 
 const TAB_MODAL = "prompts.tab_modal.enabled";
 
+const MAX_TABS = 30;
+
 var controller;
 var enduranceManager;
 var tabBrowser;
@@ -165,6 +167,18 @@ function setupModule() {
 
   tabBrowser = new tabs.tabBrowser(controller);
   tabBrowser.closeAllTabs();
+  
+  // Use bad proxy settings to break any non-localhost access
+  //var prefs = Components.classes["@mozilla.org/preferences-service;1"]
+  //                      .getService(Components.interfaces.nsIPrefService);
+  //prefs = prefs.getBranch("network.proxy.");
+  prefs.preferences.setPref("network.proxy.socks", "localhost");
+  prefs.preferences.setPref("network.proxy.socks_port", 90000); // Invalid port
+  prefs.preferences.setPref("network.proxy.socks_remote_dns", true);
+  prefs.preferences.setPref("network.proxy.type", 1); // Socks
+  
+  // We're not testing flash memory usage. Also, it likes to crash in VNC sessions.
+  prefs.preferences.setPref("plugin.disable", true);
 }
 
 /**
@@ -185,24 +199,22 @@ function testMemoryUsage() {
     enduranceManager.loop(function () {
       var currentEntity = enduranceManager.currentEntity;
 
-      if (tabBrowser.length < currentEntity) {
+      var tabNum = (currentEntity - 1) % MAX_TABS;
+      if (tabBrowser.length < tabNum + 1) {
         tabBrowser.openTab();
       }
 
-      controller.tabs.selectTabIndex(currentEntity - 1);
-      controller.waitFor(function() { return controller.tabs.activeTabIndex == currentEntity - 1; });
+      controller.tabs.selectTabIndex(tabNum);
+      controller.waitFor(function() { return controller.tabs.activeTabIndex == tabNum; }, 60000, 500);
 
       var siteIndex = (currentEntity - 1) % TEST_SITES.length;
       var site = TEST_SITES[siteIndex];
 
       controller.open(site);
+      controller.waitForPageLoad(controller.tabs.activeTab, 60000, 500);
+      controller.assert(function () { return controller.tabs.activeTab.readyState == "complete"; });
     });
-    
-    for (var i = 0; i < tabBrowser.length; i++) {
-      var tab = controller.tabs.getTab(i);
-      controller.waitForPageLoad(tab, 60000, 500);
-      controller.assert(function () { return tab.readyState == "complete"; });
-    }
+
     // Settle
     controller.sleep(10000);
     memoryCheckpoint("TabsOpen");
