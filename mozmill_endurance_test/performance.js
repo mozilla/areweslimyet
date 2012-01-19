@@ -117,13 +117,12 @@ PerfTracer.prototype = {
           knownHeap += result['memory'][r.path];
       }
     }
+
+    var pendingReports = 0;
+    
     // Also record multireporters if they exist
     if (memMgr.enumerateMultiReporters) {
       var multireporters = memMgr.enumerateMultiReporters();
-      var pendingReports = 0;
-      
-      if (!multireporters.hasMoreElements())
-        this._log.push(result);
       
       while (multireporters.hasMoreElements()) {
         var mr = multireporters.getNext();
@@ -153,8 +152,12 @@ PerfTracer.prototype = {
           }
         }}, null);
       }
-    } else {
+    }
+    
+    if (pendingReports == 0) {
+      // If no multireporters were queued, make sure we finish up
       this._log.push(result);
+      if (aCallback) aCallback();
     }
   },
 }
