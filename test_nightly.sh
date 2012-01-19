@@ -55,4 +55,5 @@ if ! ./slimtest_linux.sh --logfile "logs/$(date +%Y%m%d_%H%M%S)_$rev.log" \
                           --buildtime "$timestamp" \
                           --sqlitedb slimtest.sqlite; then
   echo "!! Test failed, see benchtester log for $rev"
+  exit 1
 fi
