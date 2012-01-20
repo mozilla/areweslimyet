@@ -128,7 +128,7 @@ EnduranceManager.prototype = {
     {
       // In order of preference: schedulePreciseShrinkingGC, schedulePreciseGC
       // garbageCollect
-      if (++j <= 3) {
+      if (++j <= 10) {
         var schedGC = Cu.schedulePreciseShrinkingGC;
         if (!schedGC) schedGC = Cu.schedulePreciseGC;
         
@@ -136,14 +136,12 @@ EnduranceManager.prototype = {
         
         if (schedGC) {
           schedGC.call(Cu, { callback: function () {
-            cc();
-            runSoon(minimizeInner);
+            runSoon(function () { cc(); runSoon(minimizeInner); });
           } });
         } else {
           if (domWindowUtils.garbageCollect)
             domWindowUtils.garbageCollect();
-          cc();
-          runSoon(minimizeInner);
+          runSoon(function () { cc(); runSoon(minimizeInner); });
         }
       } else {
         runSoon(callback);

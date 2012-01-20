@@ -188,6 +188,13 @@ function testMemoryUsage() {
   function memoryCheckpoint(name) {
     var complete = false;
     enduranceManager.doFullGC(function () {
+      complete = true;
+    });
+    controller.waitFor(function () { return complete; }, null, 60000, 500);
+    controller.sleep(5000);
+    complete = false;
+ 
+    enduranceManager.doFullGC(function () {
       enduranceManager.addCheckpoint(name, function () {
         complete = true;
       });
