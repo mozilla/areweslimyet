@@ -9,14 +9,18 @@
   <link href="./slimyet.css" rel="stylesheet" />
 </head>
 <body>
-  <div id="tooltip">
-    <div id="tooltipInner">
-      <h2>Tooltip</h2>
-      <p>Text text text</p>
-    </div>
-  </div>
-  
   <h1>Are we <span class="emph">slim</span> yet?</h1>
-  <div id="graphs" />
+  
+  <div id="graphs"></div>
+  
+  <noscript><h3>This site requires javascript</h3></noscript>
+  
+  <div id="tooltip">
+    <h2 id="tooltipTitle">Loading...</h2>
+    <p id="tooltipDatapoint"></p>
+    <p id="tooltipTime"></p>
+    <p id="tooltipValue"></p>
+    <p id="tooltipRevision"></p>
+  </div>
 </body>
 </html>

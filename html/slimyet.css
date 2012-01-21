@@ -38,20 +38,22 @@ a:visited {
 }
 
 #tooltip {
-  text-align: left;
-  position: absolute;
-  padding: 15px;
-  display: none;
-  width: auto;
-  height: 100px;
-}
-
-#tooltipInner {
   font-family: sans-serif;
   color: #EEE;
   background-color: rgba(0, 0, 0, 0.7);
   border-radius: 5px;
   padding: 15px;
+  /*margin: 15px;*/
+  text-align: left;
+  position: absolute;
+  /*display: none;*/
+  width: auto;
+  height: 100px;
+  /*pointer-events: none;*/
+}
+
+#tooltipInner {
+
 }
 
 #tooltip h2, p {

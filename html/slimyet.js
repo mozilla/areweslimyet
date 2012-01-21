@@ -45,7 +45,7 @@ function addGraph(axis) {
     seriesDataPoints.push({ label: axis[x], data: datapoints });
   }
   
-  var plotbox = $.new('div', { 'id' : 'testgraph' }, { width: '1000px', height: '500px', margin: 'auto' }).appendTo(document.body);
+  var plotbox = $.new('div', { 'id' : 'testgraph' }, { width: '1000px', height: '500px', margin: 'auto' }).appendTo($('#graphs'));
   var plot = $.plot(plotbox,
     // Data
     seriesDataPoints,
@@ -81,52 +81,31 @@ function addGraph(axis) {
   //
   // Tooltip
   //
-  var tooltipHovered;
+
   var mouseoverItem;
-  var tooltip = $('#tooltip')
-    .hide()
-    .appendTo(document.body)
-    .bind('mouseenter', function() {
-        tooltipHovered = true;
-      })
-    .bind('mouseleave', function() {
-        tooltipHovered = false;
-        checkHideTooltip();
-      });
-    
-  function checkHideTooltip() {
-    window.setTimeout(function () {
-      if (!mouseoverItem && !tooltipHovered && tooltip.is(':visible')) {
-        tooltip.stop().fadeTo(200, 0, function () { tooltip.hide(); });
-        plot.unhighlight();
-      }
-    }, 0);
-  }
   $("#testgraph").bind("plothover", function (event, pos, item) {
     if (item == mouseoverItem)
       return;
     mouseoverItem = item;
     
-    if (!item) {
-      checkHideTooltip();
+    if (item == null)
+    {
+      $("#tooltip").stop().fadeTo(200, 0, function () { $(this).hide(); });
       return;
     }
-    tooltip.css({ top: item.pageY, left: item.pageX });
-    // Fill tooltip
-    tooltip.find('h2').text('Nightly');
-    var c = tooltip.find('p').empty();
-    c.append($.new('p').text(seriesDataPoints[item.seriesIndex]['label']));
-    c.append($.new('p').text(new Date(item.datapoint[0] * 1000).toDateString()));
-    c.append($.new('p').text(formatBytes(item.datapoint[1])));
-    var rev = seriesData[item.seriesIndex][item.dataIndex].build.slice(0,12);
-    c.append($.new('a', {
-        target: '_blank',
-        href: 'https://hg.mozilla.org/mozilla-central/rev/'
-      }).text(rev));
+    
+    $("#tooltip").css({ top: item.pageY, left: item.pageX });
+    
+    // Tooltip Content
+    $("#tooltipTitle").text("Nightly"); // FIXME
+    $("#tooltipDatapoint").text(seriesDataPoints[item.seriesIndex]['label']);
+    $("#tooltipTime").text(new Date(item.datapoint[0] * 1000).toDateString());
+    $("#tooltipValue").text(formatBytes(item.datapoint[1]));
+    $("#tooltipRevision").text(seriesData[item.seriesIndex][item.dataIndex].build.slice(0,12));
     
     // Show tooltip
-    plot.highlight(item.series, item.datapoint);
-    tooltip.stop().fadeTo(200, 1);
+    // plot.highlight(item.series, item.datapoint);
+    $("#tooltip").stop().fadeTo(200, 1);
   });
 }
 
