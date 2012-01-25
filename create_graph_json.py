@@ -15,12 +15,16 @@ if len(sys.argv) != 3:
   sys.exit(1)
 
 gDatabase = sys.argv[1]
-gOutfile = sys.argv[2]
+gOutDir = sys.argv[2]
 
-gPullData = {
+if not os.path.isdir(gOutDir):
+  sys.stderr.write("Directory %s does not exist\n" % gOutDir)
+  sys.exit(1)
+
+gSeriesInfo = {
   "MaxMemory" : {
     "test": "Slimtest-TalosTP5",
-    "datapoint": "Iteration 4.TabsOpen.mem.explicit/%"
+    "datapoint": "Iteration 4.TabsOpen.mem.explicit/"
   },
   "MaxMemoryResident" : {
     "test": "Slimtest-TalosTP5",
@@ -28,7 +32,7 @@ gPullData = {
   },
   "StartMemory" : {
     "test": "Slimtest-TalosTP5",
-    "datapoint": "Iteration 0.PreTabs.mem.explicit/%"
+    "datapoint": "Iteration 0.PreTabs.mem.explicit/"
   },
   "StartMemoryResident" : {
     "test": "Slimtest-TalosTP5",
@@ -36,7 +40,7 @@ gPullData = {
   },
   "EndMemory" : {
     "test": "Slimtest-TalosTP5",
-    "datapoint": "Iteration 4.TabsClosed.mem.explicit/%"
+    "datapoint": "Iteration 4.TabsClosed.mem.explicit/"
   },
   "EndMemoryResident" : {
     "test": "Slimtest-TalosTP5",
@@ -45,38 +49,76 @@ gPullData = {
 }
 
 sql = sqlite3.connect(gDatabase)
+sql.row_factory = sqlite3.Row
 cur = sql.cursor()
-cur.row_factory = sqlite3.Row
 
 cur.execute('''SELECT `id`, `name`, `time` FROM `benchtester_builds` ORDER BY `time` ASC''')
 builds = cur.fetchall()
 
-test_names = set(map(lambda x: x['test'], gPullData.values()))
+# Test names referenced in one or more series
+test_names = set(map(lambda x: x['test'], gSeriesInfo.values()))
 
-data = {}
+# series - a dict of series name (e.g. StartMemory) -> [[x,y], [x2, y2], ...]
+#          All series have the same length, such the same index in any series
+#          refers to the same build
+# build_info - a list with the same length/order as the series that contains
+#              info about this build
+# test_info - A dict of lists indexed by testname (e.g. Slimtest-TalosTP5)
+#             with the same length/order as the series, containing a full dump
+#             of test data for each build (many series can reference the same
+#             test). This data is saved separately per build/test, and XHR'd in
+#             when desired.
+data = {
+  'series' : dict((n, []) for n in gSeriesInfo.keys()),
+  'build_info' : []
+}
+
+i = 0
 
 for build in builds:
+  i += 1
+  print("[%u/%u] Processing build %s" % (i, len(builds), build['name']))
   test_ids = {}
-  for n in test_names:
-    # Find ID of latest testrun for this test on this build
-    cur.execute('''SELECT * FROM `benchtester_tests` WHERE `name` = ? AND `build_id` = ? ORDER BY `time` DESC LIMIT 1''', [n, build['id']])
-    test_ids[n] = cur.fetchone()['id']
+  # Fill build_info
+  data['build_info'].append({ 'id' : build['id'], 'revision' : build['name'] })
   
-  # Pull data
-  for dname,dinfo in gPullData.items():
-    cur.execute('''SELECT * FROM `benchtester_data` WHERE `test_id` = ? AND datapoint LIKE ?''', [test_ids[dinfo['test']], dinfo['datapoint']])
-    row = cur.fetchone()
-    value = 0
-    while row:
-      if row['value']:
-        value += row['value']
-      row = cur.fetchone()
-    if value:
-      if not data.has_key(dname): data[dname] = []
-      data[dname].append({ 'build': build['name'], 'time': build['time'], 'value': value})
+  testdata = {}
+  
+  # For each test a series references, pull all data into testdata
+  for testname in test_names:
+    # Pull all data for latest run of this test on this build
+    allrows = cur.execute('''SELECT d.datapoint, d.value, t.time, t.id
+                             FROM benchtester_data d
+                             JOIN benchtester_tests t ON d.test_id = t.id
+                             LEFT JOIN benchtester_tests t2 ON t.name = t2.name AND t.build_id = t2.build_id AND t.time < t2.time
+                             WHERE t.name = ? AND t2.id IS NULL AND t.build_id = ? AND t.id IS NOT NULL
+                             ''', [testname, build['id']])
+    testdata[testname] = { 'time' : None, 'id' : None, 'allvalues' : {} };
+    for row in allrows:
+      if not testdata[testname]['time']:
+        testdata[testname]['time'] = row['time']
+        testdata[testname]['id'] = row['id']
+      testdata[testname]['allvalues'][row['datapoint']] = row['value']
+    
+  # Build all series from testdata
+  for sname, sinfo in gSeriesInfo.iteritems():
+    thisinfo = testdata[sinfo['test']]['allvalues']
+    
+    if sinfo['datapoint'][-1:] == '/':
+      value = reduce(lambda val, (k, v): val + v if k.startswith(sinfo['datapoint']) and v else val, thisinfo.iteritems(), 0)
+    else:
+      value = thisinfo[sinfo['datapoint']] if thisinfo.has_key(sinfo['datapoint']) else 0
+    data['series'][sname].append([build['time'], value])
+    
+  # Write out the test data for this build
+  testfile = open(os.path.join(gOutDir, build['name'] + '.json'), 'w')
+  json.dump(testdata, testfile, indent=2)
+  testfile.write('\n')
+  testfile.close()
 
-datafile = open(gOutfile, 'w')
-datafile.write("// Generated %s\n\n" % time.strftime("%b %d, %Y @ %I:%M%p %Z"))
-datafile.write("var gSlimGraphSeries = ")
+data['info'] = { 'generated' : time.time() }
+
+datafile = open(os.path.join(gOutDir, 'series.json'), 'w')
 json.dump(data, datafile, indent=2)
-datafile.write(';\n')
+datafile.write('\n')
+datafile.close()
