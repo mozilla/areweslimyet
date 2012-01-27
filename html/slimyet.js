@@ -6,8 +6,17 @@ jQuery.new = function(e, attrs, css) {
   return ret;
 };
 
-//FIXME
-// Async load graph data
+var gSeries = {
+  'MaxMemory' : "Peak memory usage [explicit]",
+  'MaxMemoryResident' : "Peak memory usage [resident]",
+  'StartMemory' : "Fresh start memory [explicit]",
+  'StartMemoryResident' : "Fresh start memory [resident]",
+  'EndMemory' : "After test memory [explicit]",
+  'EndMemoryResident' : "After test memory [resident]"
+};
+
+var gGraphData;
+var gMouseoverItem;
 
 function formatBytes(raw) {
   function prettyFloat(aFloat) {
@@ -31,24 +40,91 @@ function formatBytes(raw) {
   }
 }
 
-function addGraph(axis) {
-  var seriesData = [];
-  var seriesDataPoints = [];
+//
+// Tooltip stuff
+//
+
+function tooltipHover (item) {
+  if ($('#tooltip').is('.zoomed'))
+    return;
+  if (item == gMouseoverItem)
+    return;
+  gMouseoverItem = item;
   
-  for (var x in axis) {
-    var data = gSlimGraphSeries[x];
-    var datapoints = [];
-    for (var i in data) {
-      datapoints.push([ data[i].time, data[i].value ]);
-    }
-    seriesData.push(data);
-    seriesDataPoints.push({ label: axis[x], data: datapoints });
+  if (item == null)
+  {
+    $("#tooltip").stop().fadeTo(200, 0);
+    return;
   }
   
-  var plotbox = $.new('div', { 'id' : 'testgraph' }, { width: '1000px', height: '500px', margin: 'auto' }).appendTo($('#graphs'));
+  var h = $('#tooltip').outerHeight();
+  var w = $('#tooltip').outerWidth();
+  // Lower-right of cursor
+  var top = item.pageY + 5;
+  var left = item.pageX + 5;
+  // Move above cursor if too far down
+  if (window.innerHeight + document.body.scrollTop < top + h + 30)
+    top = item.pageY - h - 5;
+  // Move left of cursor if too far right
+  if (window.innerWidth + document.body.scrollLeft < left + w + 30)
+    left = item.pageX - w - 5;
+  
+  $("#tooltip").css({
+    top: top,
+    left: left
+  });
+  
+  // Show tooltip
+  $("#tooltip").stop().fadeTo(200, 1);
+}
+
+function tooltipZoom () {
+  var offset = $('#graphs').offset();
+  var w = $('#graphs').width();
+  var h =$('#graphs').height();  
+    
+  $('#tooltip').stop().addClass('zoomed').animate({
+    width: w * 1.10,
+    height: h,
+    left: offset.left - w * 0.05,
+    top: offset.top - h * 0.05,
+    opacity: 1
+  }, 500);
+}
+
+function tooltipUnZoom(event) {
+  var t = $('#tooltip');
+  if (t.is('.zoomed') && !t.is(':animated') && !$.contains(t.get(0), event.target))
+  {
+    $('#tooltip').animate({
+        width: '50%',
+        height: '50%',
+        top: '25%',
+        left: '25%',
+        opacity: '0'
+      }, 250, function() {
+        gMouseoverItem = null;
+        $('#tooltip').removeAttr('style').hide().removeClass('zoomed');
+      });
+  }
+}
+
+//
+// Append a graph to #graphs
+// - axis -> { 'AxisName' : 'Nicename', ... }
+//
+function addGraph(axis) {
+  
+  var seriesData = [];
+  
+  for (var x in axis) {
+    seriesData.push({ label: axis[x], data: gGraphData['series'][x] });
+  }
+  
+  var plotbox = $.new('div').addClass('graph').prependTo($('#graphs'));
   var plot = $.plot(plotbox,
     // Data
-    seriesDataPoints,
+    seriesData,
     // Options
     {
       series: {
@@ -82,38 +158,61 @@ function addGraph(axis) {
   // Tooltip
   //
 
-  var mouseoverItem;
-  $("#testgraph").bind("plothover", function (event, pos, item) {
-    if (item == mouseoverItem)
-      return;
-    mouseoverItem = item;
-    
-    if (item == null)
-    {
-      $("#tooltip").stop().fadeTo(200, 0, function () { $(this).hide(); });
-      return;
+  plotbox.bind("plotclick", function(event, pos, item) {
+    if (item) {
+      tooltipZoom();
+      // Attach everything to an abs div so it can fade out without
+      // affecting flow
+      var fadeOut = $.new('div', null, { position: 'absolute' })
+                     .append($('#tooltip').children())
+                     .appendTo($('#tooltip'))
+                     .fadeTo(500, 0, function () {
+                       $(this).remove();
+                     });
+      $.new('h2', null, {
+        display: 'none',
+        'text-align': 'center',
+        'margin-top': '200px'
+      }).text('Loading datapoint...')
+        .appendTo($('#tooltip'))
+        .fadeIn();
+    }
+  });
+  plotbox.bind("plothover", function (event, pos, item) {
+    if (item && !$('#tooltip').is('.zoomed')) {
+      // Tooltip Content
+      var t = $('#tooltip').empty();
+      $.new('h2').text("Nightly").appendTo(t); // FIXME
+      $.new('p').text(seriesData[item.seriesIndex]['label']).appendTo(t);
+      $.new('p').text(new Date(item.datapoint[0] * 1000).toDateString()).appendTo(t);
+      $.new('p').text(formatBytes(item.datapoint[1])).appendTo(t);
+      $.new('p').text(gGraphData['build_info'][item.dataIndex]['revision'].slice(0,12)).appendTo(t);
     }
     
-    $("#tooltip").css({ top: item.pageY, left: item.pageX });
-    
-    // Tooltip Content
-    $("#tooltipTitle").text("Nightly"); // FIXME
-    $("#tooltipDatapoint").text(seriesDataPoints[item.seriesIndex]['label']);
-    $("#tooltipTime").text(new Date(item.datapoint[0] * 1000).toDateString());
-    $("#tooltipValue").text(formatBytes(item.datapoint[1]));
-    $("#tooltipRevision").text(seriesData[item.seriesIndex][item.dataIndex].build.slice(0,12));
-    
-    // Show tooltip
-    // plot.highlight(item.series, item.datapoint);
-    $("#tooltip").stop().fadeTo(200, 1);
+    tooltipHover(item);
   });
 }
 
-$(function () { addGraph({
-    'MaxMemory' : "Peak memory usage [explicit]",
-    'MaxMemoryResident' : "Peak memory usage [resident]",
-    'StartMemory' : "Fresh start memory [explicit]",
-    'StartMemoryResident' : "Fresh start memory [resident]",
-    'EndMemory' : "After test memory [explicit]",
-    'EndMemoryResident' : "After test memory [resident]"
-  });});
+$(function () {
+  // Load graph data
+  $.ajax({
+    url: './data/series.json',
+    success: function (data) {
+      gGraphData = data;
+      $('#graphs h3').remove();
+      addGraph(gSeries);
+    },
+    error: function(xhr, status, error) {
+      $('#graphs h3').text("An error occured while loading the graph data");
+      $('#graphs').append($.new('p', null, { color: '#F55' }).text(status + ': ' + error));
+    },
+    dataType: 'json'
+  });
+  
+  // Global handlers for tooltip
+  $('body').bind('click', tooltipUnZoom);
+  window.addEventListener('resize', function() {
+    if ($('#tooltip').is('.zoomed'))
+      tooltipZoom();
+  }, false);
+});

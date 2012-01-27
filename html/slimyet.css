@@ -32,6 +32,11 @@ a:visited {
   color: #AFA;
 }
 
+.graph {
+  width: 100%;
+  height: 500px;
+}
+
 .emph {
   font-style: italic;
   color: #955;
@@ -43,20 +48,26 @@ a:visited {
   background-color: rgba(0, 0, 0, 0.7);
   border-radius: 5px;
   padding: 15px;
-  /*margin: 15px;*/
   text-align: left;
   position: absolute;
-  /*display: none;*/
-  width: auto;
-  height: 100px;
-  /*pointer-events: none;*/
+  width: 250px;
+  pointer-events: none;
+  display: none;
+  overflow: hidden;
 }
 
-#tooltipInner {
-
+#tooltip.zoomed {
+  pointer-events: inherit;
 }
 
 #tooltip h2, p {
   line-height: inherit;
   margin: inherit;
 }
+
+#graphs {
+  position: relative;
+  width: 1000px;
+  margin: auto;
+}
+

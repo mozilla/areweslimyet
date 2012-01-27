@@ -4,23 +4,18 @@
   <title>ARE WE SLIM YET?</title>
   <script type="text/javascript" src="./jquery-1.7.1.min.js"></script>
   <script type="text/javascript" src="./jquery.flot.min.js"></script>
-  <script type="text/javascript" src="./graphdata.js"></script>
   <script type="text/javascript" src="./slimyet.js"></script>
   <link href="./slimyet.css" rel="stylesheet" />
 </head>
 <body>
   <h1>Are we <span class="emph">slim</span> yet?</h1>
   
-  <div id="graphs"></div>
+  <div id="graphs">
+    <h3 style="margin-top: 250px">Loading...</h3>
+  </div>
+  
+  <div id="tooltip"></div>
   
   <noscript><h3>This site requires javascript</h3></noscript>
-  
-  <div id="tooltip">
-    <h2 id="tooltipTitle">Loading...</h2>
-    <p id="tooltipDatapoint"></p>
-    <p id="tooltipTime"></p>
-    <p id="tooltipValue"></p>
-    <p id="tooltipRevision"></p>
-  </div>
 </body>
 </html>
