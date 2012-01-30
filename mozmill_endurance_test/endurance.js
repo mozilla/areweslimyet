@@ -188,11 +188,7 @@ EnduranceManager.prototype = {
 
       // Run the main test method
       callback();
-
-      _testResults.iterations.push({"checkpoints" : this._perfTracer._log});
-      this._perfTracer.clearLog();
     }
-    frame.events.fireEvent('enduranceResults', _testResults)
   },
 
   /**
@@ -221,6 +217,8 @@ EnduranceManager.prototype = {
     this._perfTracer.addCheckpoint(label +
                                    " [i:" + this._currentIteration +
                                    " e:" + this._currentEntity + "]", callback);
+    frame.events.fireEvent('enduranceCheckpoint', { "checkpoints" : this._perfTracer._log });
+    this._perfTracer.clearLog();
   }
 
 }
