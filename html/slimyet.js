@@ -59,15 +59,16 @@ function tooltipHover (item) {
   
   var h = $('#tooltip').outerHeight();
   var w = $('#tooltip').outerWidth();
+  var pad = 5;
   // Lower-right of cursor
-  var top = item.pageY + 5;
-  var left = item.pageX + 5;
+  var top = item.pageY + pad;
+  var left = item.pageX + pad;
   // Move above cursor if too far down
   if (window.innerHeight + document.body.scrollTop < top + h + 30)
-    top = item.pageY - h - 5;
+    top = item.pageY - h - pad;
   // Move left of cursor if too far right
   if (window.innerWidth + document.body.scrollLeft < left + w + 30)
-    left = item.pageX - w - 5;
+    left = item.pageX - w - pad;
   
   $("#tooltip").css({
     top: top,
@@ -155,7 +156,7 @@ function addGraph(axis) {
   );
   
   //
-  // Tooltip
+  // Graph Tooltip
   //
 
   plotbox.bind("plotclick", function(event, pos, item) {
@@ -169,13 +170,24 @@ function addGraph(axis) {
                      .fadeTo(500, 0, function () {
                        $(this).remove();
                      });
-      $.new('h2', null, {
+      var loading = $.new('h2', null, {
         display: 'none',
         'text-align': 'center',
         'margin-top': '200px'
       }).text('Loading datapoint...')
         .appendTo($('#tooltip'))
         .fadeIn();
+      // Load
+      $.ajax({
+        url: './data/' + gGraphData['build_info'][item.dataIndex]['revision'] + '.json',
+        success: function (data) {
+        },
+        error: function(xhr, status, error) {
+          loading.text("An error occured while loading the datapoint");
+          $('#tooltip').append($.new('p', null, { color: '#F55' }).text(status + ': ' + error));
+        },
+        dataType: 'json'
+      });
     }
   });
   plotbox.bind("plothover", function (event, pos, item) {
