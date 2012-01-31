@@ -113,7 +113,7 @@ EnduranceManager.prototype = {
    * @param {function} callback
    *        Callback to call when GC/CC cycles have completed
    */
-  doFullGC: function endurance_doFullGC(callback) {
+  doFullGC: function endurance_doFullGC(callback, iterations, percyclecallback) {
     function runSoon(f)
     {
       threadMan.mainThread.dispatch({ run: f }, Ci.nsIThread.DISPATCH_NORMAL);
@@ -126,9 +126,11 @@ EnduranceManager.prototype = {
     }
     function minimizeInner()
     {
+      if (percyclecallback)
+        percyclecallback.call(null, j);
       // In order of preference: schedulePreciseShrinkingGC, schedulePreciseGC
       // garbageCollect
-      if (++j <= 10) {
+      if (++j <= iterations) {
         var schedGC = Cu.schedulePreciseShrinkingGC;
         if (!schedGC) schedGC = Cu.schedulePreciseGC;
         
