@@ -189,7 +189,7 @@ function testMemoryUsage() {
     var complete = false;
     enduranceManager.doFullGC(function () {
       complete = true;
-    });
+    }, 10);
     controller.waitFor(function () { return complete; }, null, 60000, 500);
     controller.sleep(5000);
     complete = false;
@@ -198,7 +198,7 @@ function testMemoryUsage() {
       enduranceManager.addCheckpoint(name, function () {
         complete = true;
       });
-    });
+    }, 10);
     controller.waitFor(function () { return complete; }, null, 60000, 500);
   }
   enduranceManager.run(function () {
