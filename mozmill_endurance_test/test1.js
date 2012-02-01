@@ -185,33 +185,21 @@ function setupModule() {
  * Run Mem Test
  **/
 function testMemoryUsage() {
-  function waitCheckpoint(name) {
-    var complete = false;
-    enduranceManager.addCheckpoint(name, function () { complete = true; });
-    controller.waitFor(function () { return complete; }, null, 60000, 500);
-  }
-  function waitGC(iter) {
-    var complete = false;
-    enduranceManager.doFullGC(function () { complete = true; }, iter);
-    controller.waitFor(function () { return complete; }, null, 60000, 500);
-  }
   function memoryCheckpoint(name) {
-    waitCheckpoint(name + "_pre");
-    waitGC(1);
-    controller.sleep(1000);
-    waitCheckpoint(name + "_onegc");
-    waitGC(2);
-    controller.sleep(1000);
-    waitCheckpoint(name + "_threegc");
-    waitGC(3);
-    controller.sleep(1000);
-    waitCheckpoint(name + "_sixgc");
-    waitGC(4);
-    controller.sleep(1000);
-    waitCheckpoint(name + "_tengc");
-    waitGC(10);
-    controller.sleep(1000);
-    waitCheckpoint(name + "_twentygc");
+    var complete = false;
+    enduranceManager.doFullGC(function () {
+      complete = true;
+    });
+    controller.waitFor(function () { return complete; }, null, 60000, 500);
+    controller.sleep(5000);
+    complete = false;
+ 
+    enduranceManager.doFullGC(function () {
+      enduranceManager.addCheckpoint(name, function () {
+        complete = true;
+      });
+    });
+    controller.waitFor(function () { return complete; }, null, 60000, 500);
   }
   enduranceManager.run(function () {
     memoryCheckpoint("PreTabs");
