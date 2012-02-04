@@ -10,6 +10,8 @@ set -e
 
 >test_months.err
 
+starttime=$(date +%s)
+
 year=2011
 while [ $year -le 2012 ]; do
   month=1
@@ -17,7 +19,9 @@ while [ $year -le 2012 ]; do
     day=1
     while [ $day -le 31 ]; do
       # Break if this month doesn't have this many days (feb: this year)
-      date --date="$month/$day $year" &>/dev/null || break
+      # Or if in future
+      timestamp=$(date +%s --date="$month/$day $year" 2>/dev/null || true)
+      if [ -z "$timestamp" ] || [ $timestamp -gt $starttime ]; then break; fi
       
       if [ "$skip" -eq 0 ]; then
         skip=$step
