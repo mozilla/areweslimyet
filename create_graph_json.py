@@ -9,6 +9,7 @@ import os
 import sqlite3
 import json
 import time
+import gzip
 
 if len(sys.argv) != 3:
   sys.stderr.write("Usage: %s <database> <outfile>\n" % sys.argv[0])
@@ -111,14 +112,14 @@ for build in builds:
     data['series'][sname].append([build['time'], value])
     
   # Write out the test data for this build
-  testfile = open(os.path.join(gOutDir, build['name'] + '.json'), 'w')
+  testfile = gzip.open(os.path.join(gOutDir, build['name'] + '.json.gz'), 'w', 9)
   json.dump(testdata, testfile, indent=2)
   testfile.write('\n')
   testfile.close()
 
 data['info'] = { 'generated' : time.time() }
 
-datafile = open(os.path.join(gOutDir, 'series.json'), 'w')
+datafile = gzip.open(os.path.join(gOutDir, 'series.json.gz'), 'w', 9)
 json.dump(data, datafile, indent=2)
 datafile.write('\n')
 datafile.close()
