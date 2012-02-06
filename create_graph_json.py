@@ -89,6 +89,7 @@ for build in builds:
   if in_old_data and (
     len(old_data['build_info']) < i
     or old_data['build_info'][i - 1]['revision'] != build['name']
+    or old_data['build_info'][i - 1]['id'] != build['id']
     or not os.path.exists(os.path.join(gOutDir, build['name'] + '.json.gz'))):
     in_old_data = False
   
