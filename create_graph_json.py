@@ -80,20 +80,16 @@ i = 0
 try:
   last_series = gzip.open(os.path.join(gOutDir, 'series.json.gz'), 'r')
   old_data = json.loads(last_series.read())
-  in_old_data = True
 except Exception:
-  in_old_data = False
+  old_data = None
 
 for build in builds:
   i += 1
-  if in_old_data and (
-    len(old_data['build_info']) < i
-    or old_data['build_info'][i - 1]['revision'] != build['name']
-    or old_data['build_info'][i - 1]['id'] != build['id']
-    or not os.path.exists(os.path.join(gOutDir, build['name'] + '.json.gz'))):
-    in_old_data = False
-  
-  if in_old_data:
+  if old_data and (
+      len(old_data['build_info']) >= i
+      and old_data['build_info'][i - 1]['revision'] == build['name']
+      and old_data['build_info'][i - 1]['id'] == build['id']
+      and os.path.exists(os.path.join(gOutDir, build['name'] + '.json.gz'))):
     print("[%u/%u] Using existing data for build %s" % (i, len(builds), build['name'])) 
     data['build_info'].append(old_data['build_info'][i - 1])
     for sname, sinfo in gSeriesInfo.iteritems():
