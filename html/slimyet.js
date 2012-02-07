@@ -15,6 +15,7 @@ var gSeries = {
   'EndMemoryResident' : "After test memory [resident]"
 };
 
+var gZoomedGraph;
 var gGraphData;
 var gMouseoverItem;
 
@@ -79,10 +80,15 @@ function tooltipHover (item) {
   $("#tooltip").stop().fadeTo(200, 1);
 }
 
-function tooltipZoom () {
-  var offset = $('#graphs').offset();
-  var w = $('#graphs').width();
-  var h =$('#graphs').height();  
+function tooltipZoom (obj) {
+  if (obj === undefined)
+    obj = gZoomedGraph;
+  else
+    gZoomedGraph = obj;
+  
+  var offset = obj.offset();
+  var w = obj.width();
+  var h = obj.height();
     
   $('#tooltip').stop().addClass('zoomed').animate({
     width: w * 1.10,
@@ -161,7 +167,7 @@ function addGraph(axis) {
 
   plotbox.bind("plotclick", function(event, pos, item) {
     if (item) {
-      tooltipZoom();
+      tooltipZoom(plotbox);
       // Attach everything to an abs div so it can fade out without
       // affecting flow
       var fadeOut = $.new('div', null, { position: 'absolute' })
