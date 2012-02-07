@@ -22,6 +22,7 @@ if not os.path.isdir(gOutDir):
   sys.stderr.write("Directory %s does not exist\n" % gOutDir)
   sys.exit(1)
 
+# A datapoint ending in a / totals all nodes in that tree
 gSeriesInfo = {
   "MaxMemory" : {
     "test": "Slimtest-TalosTP5",
