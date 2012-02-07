@@ -25,27 +25,27 @@ if not os.path.isdir(gOutDir):
 gSeriesInfo = {
   "MaxMemory" : {
     "test": "Slimtest-TalosTP5",
-    "datapoint": "Iteration 4.TabsOpen.mem.explicit/"
+    "datapoint": "Iteration 5.TabsOpen.mem.explicit/"
   },
   "MaxMemoryResident" : {
     "test": "Slimtest-TalosTP5",
-    "datapoint": "Iteration 4.TabsOpen.mem.resident"
+    "datapoint": "Iteration 5.TabsOpen.mem.resident"
   },
   "StartMemory" : {
     "test": "Slimtest-TalosTP5",
-    "datapoint": "Iteration 0.PreTabs.mem.explicit/"
+    "datapoint": "Iteration 1.PreTabs.mem.explicit/"
   },
   "StartMemoryResident" : {
     "test": "Slimtest-TalosTP5",
-    "datapoint": "Iteration 0.PreTabs.mem.resident"
+    "datapoint": "Iteration 1.PreTabs.mem.resident"
   },
   "EndMemory" : {
     "test": "Slimtest-TalosTP5",
-    "datapoint": "Iteration 4.TabsClosed.mem.explicit/"
+    "datapoint": "Iteration 5.TabsClosed.mem.explicit/"
   },
   "EndMemoryResident" : {
     "test": "Slimtest-TalosTP5",
-    "datapoint": "Iteration 4.TabsClosed.mem.resident"
+    "datapoint": "Iteration 5.TabsClosed.mem.resident"
   },
 }
 
