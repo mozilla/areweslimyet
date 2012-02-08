@@ -185,24 +185,29 @@ function setupModule() {
  * Run Mem Test
  **/
 function testMemoryUsage() {
-  function memoryCheckpoint(name) {
+  function waitGC() {
     var complete = false;
     enduranceManager.doFullGC(function () {
       complete = true;
-    }, 10);
-    controller.waitFor(function () { return complete; }, null, 60000, 500);
-    controller.sleep(5000);
-    complete = false;
- 
-    enduranceManager.doFullGC(function () {
-      enduranceManager.addCheckpoint(name, function () {
-        complete = true;
-      });
-    }, 10);
+    }, 50);
     controller.waitFor(function () { return complete; }, null, 60000, 500);
   }
+  function waitCheckpoint(name) {
+    var complete = false;
+    enduranceManager.addCheckpoint(name, function () {
+      complete = true;
+    });
+    controller.waitFor(function () { return complete; }, null, 60000, 500);
+  }
+  
+  var initial = true;
   enduranceManager.run(function () {
-    memoryCheckpoint("PreTabs");
+    if (initial) {
+      initial = false;
+      waitCheckpoint("Start");
+      controller.sleep(30000);
+      waitCheckpoint("StartSettled");
+    }
     enduranceManager.loop(function () {
       var currentEntity = enduranceManager.currentEntity;
 
@@ -222,13 +227,16 @@ function testMemoryUsage() {
       controller.assert(function () { return controller.tabs.activeTab.readyState == "complete"; });
     });
 
-    // Settle
-    controller.sleep(10000);
-    memoryCheckpoint("TabsOpen");
+    waitCheckpoint("TabsOpen");
+    controller.sleep(30000);
+    waitCheckpoint("TabsOpenSettled");
     tabBrowser.closeAllTabs();
     controller.waitForPageLoad(controller.tabs.activeTab);
-    controller.sleep(10000);
-    memoryCheckpoint("TabsClosed");
+    waitCheckpoint("TabsClosed");
+    controller.sleep(30000);
+    waitCheckpoint("TabsClosedSettled");
+    waitGC();
+    waitCheckpoint("TabsClosedForceGC");
   });
 }
 
