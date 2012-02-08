@@ -47,28 +47,30 @@ function formatBytes(raw) {
 // Tooltip stuff
 //
 
-function tooltipHover(tooltip, pageX, pageY, nofade) {
+function tooltipHover(tooltip, x, y, nofade) {
   if (tooltip.is('.zoomed'))
     return;
   
-  if (pageX === undefined || pageY === undefined)
+  if (x === undefined || y === undefined)
   {
     tooltip.stop().fadeTo(200, 0, function () { $(this).hide(); });
     return;
   }
   
+  var poffset = tooltip.parent().offset();
+  
   var h = tooltip.outerHeight();
   var w = tooltip.outerWidth();
   var pad = 5;
   // Lower-right of cursor
-  var top = pageY + pad;
-  var left = pageX + pad;
+  var top = y + pad;
+  var left = x + pad;
   // Move above cursor if too far down
-  if (window.innerHeight + document.body.scrollTop < top + h + 30)
-    top = pageY - h - pad;
+  if (window.innerHeight + document.body.scrollTop < poffset.top + top + h + 30)
+    top = y - h - pad;
   // Move left of cursor if too far right
-  if (window.innerWidth + document.body.scrollLeft < left + w + 30)
-    left = pageX - w - pad;
+  if (window.innerWidth + document.body.scrollLeft < poffset.left + left + w + 30)
+    left = x - w - pad;
   
   tooltip.css({
     top: top,
