@@ -42,7 +42,7 @@ a:visited {
   color: #955;
 }
 
-#tooltip {
+.tooltip {
   font-family: sans-serif;
   color: #EEE;
   background-color: rgba(0, 0, 0, 0.7);
@@ -52,15 +52,14 @@ a:visited {
   position: absolute;
   width: 250px;
   pointer-events: none;
-  display: none;
   overflow: hidden;
 }
 
-#tooltip.zoomed {
+.tooltip.zoomed {
   pointer-events: inherit;
 }
 
-#tooltip h2, p {
+.tooltip h2, p {
   line-height: inherit;
   margin: inherit;
 }

@@ -1,4 +1,6 @@
 
+"use strict";
+
 jQuery.new = function(e, attrs, css) {
   var ret = jQuery(document.createElement(e));
   if (attrs) ret.attr(attrs);
@@ -45,65 +47,55 @@ function formatBytes(raw) {
 // Tooltip stuff
 //
 
-function tooltipHover (item) {
-  if ($('#tooltip').is('.zoomed'))
+function tooltipHover(tooltip, pageX, pageY) {
+  if (tooltip.is('.zoomed'))
     return;
-  if (item == gMouseoverItem)
-    return;
-  gMouseoverItem = item;
   
-  if (item == null)
+  if (pageX === undefined || pageY === undefined)
   {
-    $("#tooltip").stop().fadeTo(200, 0);
+    tooltip.stop().fadeTo(200, 0);
     return;
   }
   
-  var h = $('#tooltip').outerHeight();
-  var w = $('#tooltip').outerWidth();
+  var h = tooltip.outerHeight();
+  var w = tooltip.outerWidth();
   var pad = 5;
   // Lower-right of cursor
-  var top = item.pageY + pad;
-  var left = item.pageX + pad;
+  var top = pageY + pad;
+  var left = pageX + pad;
   // Move above cursor if too far down
   if (window.innerHeight + document.body.scrollTop < top + h + 30)
-    top = item.pageY - h - pad;
+    top = pageY - h - pad;
   // Move left of cursor if too far right
   if (window.innerWidth + document.body.scrollLeft < left + w + 30)
-    left = item.pageX - w - pad;
+    left = pageX - w - pad;
   
-  $("#tooltip").css({
+  tooltip.css({
     top: top,
     left: left
   });
   
   // Show tooltip
-  $("#tooltip").stop().fadeTo(200, 1);
+  tooltip.stop().fadeTo(200, 1);
 }
 
-function tooltipZoom (obj) {
-  if (obj === undefined)
-    obj = gZoomedGraph;
-  else
-    gZoomedGraph = obj;
-  
-  var offset = obj.offset();
-  var w = obj.width();
-  var h = obj.height();
+function tooltipZoom(tooltip) {
+  var w = tooltip.parent().width();
+  var h = tooltip.parent().height();
     
-  $('#tooltip').stop().addClass('zoomed').animate({
-    width: w * 1.10,
-    height: h,
-    left: offset.left - w * 0.05,
-    top: offset.top - h * 0.05,
+  tooltip.stop().addClass('zoomed').animate({
+    width: '110%',
+    height: '100%',
+    left: '-5%',
+    top: '-5%',
     opacity: 1
   }, 500);
 }
 
-function tooltipUnZoom(event) {
-  var t = $('#tooltip');
-  if (t.is('.zoomed') && !t.is(':animated') && !$.contains(t.get(0), event.target))
+function tooltipUnZoom(tooltip) {
+  if (tooltip.is('.zoomed') && !tooltip.is(':animated'))
   {
-    $('#tooltip').animate({
+    tooltip.animate({
         width: '50%',
         height: '50%',
         top: '25%',
@@ -111,8 +103,64 @@ function tooltipUnZoom(event) {
         opacity: '0'
       }, 250, function() {
         gMouseoverItem = null;
-        $('#tooltip').removeAttr('style').hide().removeClass('zoomed');
-      });
+        tooltip.removeAttr('style').hide().removeClass('zoomed');
+    });
+  }
+}
+
+function PlotClick(plot, item) {
+  if (item) {
+    var tooltip = plot.find('.tooltip');
+    tooltipZoom(tooltip);
+    // Attach everything to an abs div so it can fade out without
+    // affecting flow
+    var fadeOut = $.new('div', null, { position: 'absolute' })
+                    .append(tooltip.children())
+                    .appendTo(tooltip)
+                    .fadeTo(500, 0, function () {
+                      $(this).remove();
+                    });
+    var loading = $.new('h2', null, {
+      display: 'none',
+      'text-align': 'center',
+      'margin-top': '200px'
+    }).text('Loading datapoint...')
+      .appendTo(tooltip)
+      .fadeIn();
+    // Load
+    $.ajax({
+      url: './data/' + gGraphData['build_info'][item.dataIndex]['revision'] + '.json',
+      success: function (data) {
+      },
+      error: function(xhr, status, error) {
+        loading.text("An error occured while loading the datapoint");
+        tooltip.append($.new('p', null, { color: '#F55' }).text(status + ': ' + error));
+      },
+      dataType: 'json'
+    });
+  }
+}
+
+function PlotHover(plot, item) {
+  var tooltip = plot.find('.tooltip');
+  if (item !== plot.data('hoveredItem') && !tooltip.is('.zoomed')) {
+    plot.data('hoveredItem', item);
+    if (item) {
+      var seriesData = plot.data('seriesData');
+      // Tooltip Content
+      var t = tooltip.empty();
+      $.new('h2').text("Nightly").appendTo(t); // FIXME
+      $.new('p').text(seriesData[item.seriesIndex]['label']).appendTo(t);
+      $.new('p').text(new Date(item.datapoint[0] * 1000).toDateString()).appendTo(t);
+      $.new('p').text(formatBytes(item.datapoint[1])).appendTo(t);
+      $.new('p').text(gGraphData['build_info'][item.dataIndex]['revision'].slice(0,12)).appendTo(t);
+      
+      // Tooltips move relative to the plot, not the page
+      var offset = plot.offset();
+      tooltipHover(tooltip, item.pageX - offset.left, item.pageY - offset.top);
+    }
+    else
+      tooltipHover(tooltip);
   }
 }
 
@@ -161,54 +209,14 @@ function addGraph(axis) {
     }
   );
   
+  plotbox.data({ 'plot_obj' : plot, 'seriesData' : seriesData});
   //
   // Graph Tooltip
   //
 
-  plotbox.bind("plotclick", function(event, pos, item) {
-    if (item) {
-      tooltipZoom(plotbox);
-      // Attach everything to an abs div so it can fade out without
-      // affecting flow
-      var fadeOut = $.new('div', null, { position: 'absolute' })
-                     .append($('#tooltip').children())
-                     .appendTo($('#tooltip'))
-                     .fadeTo(500, 0, function () {
-                       $(this).remove();
-                     });
-      var loading = $.new('h2', null, {
-        display: 'none',
-        'text-align': 'center',
-        'margin-top': '200px'
-      }).text('Loading datapoint...')
-        .appendTo($('#tooltip'))
-        .fadeIn();
-      // Load
-      $.ajax({
-        url: './data/' + gGraphData['build_info'][item.dataIndex]['revision'] + '.json',
-        success: function (data) {
-        },
-        error: function(xhr, status, error) {
-          loading.text("An error occured while loading the datapoint");
-          $('#tooltip').append($.new('p', null, { color: '#F55' }).text(status + ': ' + error));
-        },
-        dataType: 'json'
-      });
-    }
-  });
-  plotbox.bind("plothover", function (event, pos, item) {
-    if (item && !$('#tooltip').is('.zoomed')) {
-      // Tooltip Content
-      var t = $('#tooltip').empty();
-      $.new('h2').text("Nightly").appendTo(t); // FIXME
-      $.new('p').text(seriesData[item.seriesIndex]['label']).appendTo(t);
-      $.new('p').text(new Date(item.datapoint[0] * 1000).toDateString()).appendTo(t);
-      $.new('p').text(formatBytes(item.datapoint[1])).appendTo(t);
-      $.new('p').text(gGraphData['build_info'][item.dataIndex]['revision'].slice(0,12)).appendTo(t);
-    }
-    
-    tooltipHover(item);
-  });
+  plotbox.append($.new('div', { 'class' : 'tooltip' }, { 'display' : 'none' }));
+  plotbox.bind("plotclick", function(event, pos, item) { PlotClick(plotbox, item); });
+  plotbox.bind("plothover", function(event, pos, item) { PlotHover(plotbox, item); });
 }
 
 $(function () {
@@ -218,7 +226,21 @@ $(function () {
     success: function (data) {
       gGraphData = data;
       $('#graphs h3').remove();
-      addGraph(gSeries);
+      // Temporary hack to visualize per-GC data
+      addGraph({
+        'MaxMemory_immediate': 'All tabs open, immediately after',
+        'MaxMemory_pre': 'All tabs open, 30s later',
+        'MaxMemory_hundredgc': 'All tabs open, 100 GC/CC cycles',
+      });
+      var gc_names = [ '_immediate', '_pre', '_hundredgc' ];
+      for (var n in gc_names) {
+        var x = gc_names[n];
+        $.new('h3').text(x).appendTo($('#graphs'));
+        var newseries = {};
+        for (var k in gSeries)
+          newseries[k + x] = gSeries[k];
+        addGraph(newseries);
+      }
     },
     error: function(xhr, status, error) {
       $('#graphs h3').text("An error occured while loading the graph data");
@@ -227,10 +249,11 @@ $(function () {
     dataType: 'json'
   });
   
-  // Global handlers for tooltip
-  $('body').bind('click', tooltipUnZoom);
-  window.addEventListener('resize', function() {
-    if ($('#tooltip').is('.zoomed'))
-      tooltipZoom();
-  }, false);
+  // Close zoomed tooltips upon clicking outside of them
+  $('body').bind('click', function(e) {
+    if (!$(e.target).is('.tooltip') && !$(e.target).parents('.tooltip').length)
+      $('.tooltip.zoomed').each(function(ind,ele) {
+        tooltipUnZoom($(ele));
+      });
+  });
 });
