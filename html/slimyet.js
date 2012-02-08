@@ -47,13 +47,13 @@ function formatBytes(raw) {
 // Tooltip stuff
 //
 
-function tooltipHover(tooltip, pageX, pageY) {
+function tooltipHover(tooltip, pageX, pageY, nofade) {
   if (tooltip.is('.zoomed'))
     return;
   
   if (pageX === undefined || pageY === undefined)
   {
-    tooltip.stop().fadeTo(200, 0);
+    tooltip.stop().fadeTo(200, 0, function () { $(this).hide(); });
     return;
   }
   
@@ -76,7 +76,8 @@ function tooltipHover(tooltip, pageX, pageY) {
   });
   
   // Show tooltip
-  tooltip.stop().fadeTo(200, 1);
+  if (!nofade)
+    tooltip.stop().fadeTo(200, 1);
 }
 
 function tooltipZoom(tooltip) {
@@ -144,7 +145,6 @@ function PlotClick(plot, item) {
 function PlotHover(plot, item) {
   var tooltip = plot.find('.tooltip');
   if (item !== plot.data('hoveredItem') && !tooltip.is('.zoomed')) {
-    plot.data('hoveredItem', item);
     if (item) {
       var seriesData = plot.data('seriesData');
       // Tooltip Content
@@ -157,10 +157,12 @@ function PlotHover(plot, item) {
       
       // Tooltips move relative to the plot, not the page
       var offset = plot.offset();
-      tooltipHover(tooltip, item.pageX - offset.left, item.pageY - offset.top);
+      tooltipHover(tooltip, item.pageX - offset.left, item.pageY - offset.top, plot.data('hoveredItem') ? true : false);
     }
-    else
+    else {
       tooltipHover(tooltip);
+    }
+    plot.data('hoveredItem', item);
   }
 }
 
