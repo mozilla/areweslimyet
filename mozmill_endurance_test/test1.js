@@ -230,13 +230,13 @@ function testMemoryUsage() {
     waitCheckpoint("TabsOpen");
     controller.sleep(30000);
     waitCheckpoint("TabsOpenSettled");
+    waitGC();
+    waitCheckpoint("TabsOpenForceGC");
     tabBrowser.closeAllTabs();
     controller.waitForPageLoad(controller.tabs.activeTab);
     waitCheckpoint("TabsClosed");
     controller.sleep(30000);
     waitCheckpoint("TabsClosedSettled");
-    waitGC();
-    waitCheckpoint("TabsClosedForceGC");
   });
 }
 
