@@ -9,12 +9,18 @@ jQuery.new = function(e, attrs, css) {
 };
 
 var gSeries = {
-  'MaxMemory' : "Peak memory usage [explicit]",
-  'MaxMemoryResident' : "Peak memory usage [resident]",
-  'StartMemory' : "Fresh start memory [explicit]",
-  'StartMemoryResident' : "Fresh start memory [resident]",
-  'EndMemory' : "After test memory [explicit]",
-  'EndMemoryResident' : "After test memory [resident]"
+  'MaxMemory' : "Iterations complete - immediate [explicit]",
+  'MaxMemoryResident' : "Iterations complete - immediate [resident]",
+  'MaxMemorySettled' : "Iterations complete - after 30s [explicit]",
+  'MaxMemoryResidentSettled' : "Iterations complete - after 30s [resident]",
+  'StartMemory' : "Fresh start - immediate [explicit]",
+  'StartMemoryResident' : "Fresh start - immediate [resident]",
+  'StartMemorySettled' : "Fresh start - after 30s [explicit]",
+  'StartMemoryResidentSettled' : "Fresh start - after 30s [resident]",
+  'EndMemory' : "Test shutdown - immediate [explicit]",
+  'EndMemoryResident' : "Test shutdown - immediate [resident]"
+  'EndMemorySettled' : "Test shutdown - after 30s [explicit]",
+  'EndMemoryResidentSettled' : "Test shutdown - after 30s [resident]"
 };
 
 var gZoomedGraph;
