@@ -118,6 +118,41 @@ PerfTracer.prototype = {
       }
     }
 
+    var self = this;
+    function finish() {
+      var heapAllocated = result['memory']['heap-allocated'];
+      // Called heap-used in older builds
+      if (!heapAllocated) heapAllocated = result['memory']['heap-used'];
+      
+      // This is how about:memory calculates derived value heap-unclassified, which
+      // is necessary to get a proper explicit value.
+      if (knownHeap && heapAllocated)
+        result['memory']['explicit/heap-unclassified'] = result['memory']['heap-allocated'] - knownHeap;
+      
+      // HACK for old builds without resident, get manually
+      // Linux only HACK for getting old data on AWSY
+      if (!result['memory']['resident']) {
+        try {
+          var file = Components.classes["@mozilla.org/file/local;1"]
+                    .createInstance(Components.interfaces.nsILocalFile);
+          file.initWithPath("/proc/self/statm");
+          var istream = Components.classes["@mozilla.org/network/file-input-stream;1"]
+                        .createInstance(Components.interfaces.nsIFileInputStream);  
+          istream.init(file, 0x01, 0444, 0);
+          istream instanceof Components.interfaces.nsILineInputStream;
+          var line = {};
+          istream.readLine(line);
+          istream.close();
+          // Second field in /proc/self/statm is resident pages
+          // HACK again! Pagesize might not be 4096.
+          result['memory']['resident'] = line.value.split(' ')[1] * 4096;
+        } catch (e) {}
+      }
+      
+      self._log.push(result);
+      if (aCallback) aCallback();
+    }
+    
     var pendingReports = 0;
     
     // Also record multireporters if they exist
@@ -129,7 +164,6 @@ PerfTracer.prototype = {
         mr instanceof Ci.nsIMemoryMultiReporter;
         pendingReports++;
         
-        var self = this;
         mr.collectReports({ callback: function (proc, path, kind, units, amount, description, closure) {
           result['memory'][path] = amount;
           if (kind == Ci.nsIMemoryReporter.KIND_HEAP)
@@ -137,27 +171,14 @@ PerfTracer.prototype = {
           
           if (--pendingReports == 0) {
             // All callbacks complete
-            
-            var heapAllocated = result['memory']['heap-allocated'];
-            // Called heap-used in older builds
-            if (!heapAllocated) heapAllocated = result['memory']['heap-used'];
-            
-            // This is how about:memory calculates derived value heap-unclassified, which
-            // is necessary to get a proper explicit value.
-            if (knownHeap && heapAllocated)
-              result['memory']['explicit/heap-unclassified'] = result['memory']['heap-allocated'] - knownHeap;
-            
-            self._log.push(result);
-            if (aCallback) aCallback();
+            finish();
           }
         }}, null);
       }
     }
     
     if (pendingReports == 0) {
-      // If no multireporters were queued, make sure we finish up
-      this._log.push(result);
-      if (aCallback) aCallback();
+      finish();
     }
   },
 }
