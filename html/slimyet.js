@@ -18,7 +18,7 @@ var gSeries = {
   'StartMemorySettled' : "Fresh start - after 30s [explicit]",
   'StartMemoryResidentSettled' : "Fresh start - after 30s [resident]",
   'EndMemory' : "Test shutdown - immediate [explicit]",
-  'EndMemoryResident' : "Test shutdown - immediate [resident]"
+  'EndMemoryResident' : "Test shutdown - immediate [resident]",
   'EndMemorySettled' : "Test shutdown - after 30s [explicit]",
   'EndMemoryResidentSettled' : "Test shutdown - after 30s [resident]"
 };
@@ -186,7 +186,7 @@ function addGraph(axis) {
     seriesData.push({ label: axis[x], data: gGraphData['series'][x] });
   }
   
-  var plotbox = $.new('div').addClass('graph').prependTo($('#graphs'));
+  var plotbox = $.new('div').addClass('graph').appendTo($('#graphs'));
   var plot = $.plot(plotbox,
     // Data
     seriesData,
@@ -236,21 +236,7 @@ $(function () {
     success: function (data) {
       gGraphData = data;
       $('#graphs h3').remove();
-      // Temporary hack to visualize per-GC data
-      addGraph({
-        'MaxMemory_immediate': 'All tabs open, immediately after',
-        'MaxMemory_pre': 'All tabs open, 30s later',
-        'MaxMemory_hundredgc': 'All tabs open, 100 GC/CC cycles',
-      });
-      var gc_names = [ '_immediate', '_pre', '_hundredgc' ];
-      for (var n in gc_names) {
-        var x = gc_names[n];
-        $.new('h3').text(x).appendTo($('#graphs'));
-        var newseries = {};
-        for (var k in gSeries)
-          newseries[k + x] = gSeries[k];
-        addGraph(newseries);
-      }
+      addGraph(gSeries);
     },
     error: function(xhr, status, error) {
       $('#graphs h3').text("An error occured while loading the graph data");
