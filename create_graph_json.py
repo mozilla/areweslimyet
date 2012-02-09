@@ -32,6 +32,10 @@ gSeriesInfo = {
     "test": "Slimtest-TalosTP5",
     "datapoint": "Iteration 5.TabsOpenSettled.mem.explicit/"
   },
+  "MaxMemoryForceGC" : {
+    "test": "Slimtest-TalosTP5",
+    "datapoint": "Iteration 5.TabsOpenForceGC.mem.explicit/"
+  },
   "MaxMemoryResident" : {
     "test": "Slimtest-TalosTP5",
     "datapoint": "Iteration 5.TabsOpen.mem.resident"
