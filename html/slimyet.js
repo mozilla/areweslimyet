@@ -242,7 +242,7 @@ $(function () {
     success: function (data) {
       gGraphData = data;
       $('#graphs h3').remove();
-      for (graphname in gSeries) {
+      for (var graphname in gSeries) {
         $.new('h2').text(graphname).appendTo($('#graphs'));
         addGraph(gSeries[graphname]);
       }
