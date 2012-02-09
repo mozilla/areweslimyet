@@ -9,18 +9,24 @@ jQuery.new = function(e, attrs, css) {
 };
 
 var gSeries = {
-  'MaxMemory' : "Iterations complete - immediate [explicit]",
-  'MaxMemoryResident' : "Iterations complete - immediate [resident]",
-  'MaxMemorySettled' : "Iterations complete - after 30s [explicit]",
-  'MaxMemoryResidentSettled' : "Iterations complete - after 30s [resident]",
-  'StartMemory' : "Fresh start - immediate [explicit]",
-  'StartMemoryResident' : "Fresh start - immediate [resident]",
-  'StartMemorySettled' : "Fresh start - after 30s [explicit]",
-  'StartMemoryResidentSettled' : "Fresh start - after 30s [resident]",
-  'EndMemory' : "Test shutdown - immediate [explicit]",
-  'EndMemoryResident' : "Test shutdown - immediate [resident]",
-  'EndMemorySettled' : "Test shutdown - after 30s [explicit]",
-  'EndMemoryResidentSettled' : "Test shutdown - after 30s [resident]"
+  "Resident Memory" : {
+    'MaxMemoryResident' : "TP5 opened in 30 tabs",
+    'MaxMemoryResidentSettled' : "TP5 opened in 30 tabs [+30s]",
+    'MaxMemoryResidentForceGC' : "TP5 opened in 30 tabs [+30s, forced GC]",
+    'StartMemoryResident' : "Fresh start",
+    'StartMemoryResidentSettled' : "Fresh start [+30s]",
+    'EndMemoryResident' : "Tabs closed",
+    'EndMemoryResidentSettled' : "Tabs closed [+30s]"
+  },
+  "Explicit Memory" : {
+    'MaxMemory' : "TP5 opened in 30 tabs",
+    'MaxMemorySettled' : "TP5 opened in 30 tabs [+30s]",
+    'MaxMemoryForceGC' : "TP5 opened in 30 tabs [+30s, forced GC]",
+    'StartMemory' : "Fresh start",
+    'StartMemorySettled' : "Fresh start [+30s]",
+    'EndMemory' : "Tabs closed",
+    'EndMemorySettled' : "Tabs closed [+30s]"
+  }
 };
 
 var gZoomedGraph;
@@ -236,7 +242,10 @@ $(function () {
     success: function (data) {
       gGraphData = data;
       $('#graphs h3').remove();
-      addGraph(gSeries);
+      for (graphname in gSeries) {
+        $.new('h2').text(graphname).appendTo($('#graphs'));
+        addGraph(gSeries[graphname]);
+      }
     },
     error: function(xhr, status, error) {
       $('#graphs h3').text("An error occured while loading the graph data");
