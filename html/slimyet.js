@@ -220,6 +220,7 @@ function addGraph(axis) {
       legend: {
         backgroundColor: "#000",
         margin: 10,
+        position: 'sw',
         backgroundOpacity: 0.4
       }
     }
