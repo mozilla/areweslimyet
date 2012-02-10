@@ -73,6 +73,28 @@ function PerfTracer(name) {
   this._name = name;
 }
 
+// HACK to get resident data on old linux builds for AWSY data
+function _tryGetLinuxResident() {
+  try {
+    var file = Components.classes["@mozilla.org/file/local;1"]
+              .createInstance(Components.interfaces.nsILocalFile);
+    file.initWithPath("/proc/self/statm");
+    var istream = Components.classes["@mozilla.org/network/file-input-stream;1"]
+                  .createInstance(Components.interfaces.nsIFileInputStream);  
+    istream.init(file, 0x01, 0444, 0);
+    istream instanceof Components.interfaces.nsILineInputStream;
+    var line = {};
+    istream.readLine(line);
+    istream.close();
+    // Second field in /proc/self/statm is resident pages
+    // HACK again! Pagesize might not be 4096.
+    var ret = line.value.split(' ')[1] * 4096;
+    return ret ? ret : null;
+  } catch (e) {
+    return null;
+  }
+}
+
 PerfTracer.prototype = {
   // PUBLIC INTERFACE
 
@@ -106,18 +128,22 @@ PerfTracer.prototype = {
     result['memory']['explicit'] = memMgr.explicit;
     result['memory']['resident'] = memMgr.resident;
     
-    var reporters = memMgr.enumerateReporters();
-    while (reporters.hasMoreElements()) {
-      var r = reporters.getNext();
-      r instanceof Ci.nsIMemoryReporter;
-      if (r.path.length) {
-        // memoryUsed was renamed to amount in gecko7
-        result['memory'][r.path] = (r.amount !== undefined) ? r.amount : r.memoryUsed;
-        if (r.kind == Ci.nsIMemoryReporter.KIND_HEAP)
-          knownHeap += result['memory'][r.path];
-      }
+    function addReport(path, amount, kind, units) {
+      if (units !== undefined && units != Ci.nsIMemoryReporter.UNITS_BYTES)
+        // Unhandled
+        return;
+      
+      if (result['memory'][path])
+        result['memory'][path] += amount;
+      else
+        result['memory'][path] = amount;
+      if (kind !== undefined && kind == Ci.nsIMemoryReporter.KIND_HEAP)
+        knownHeap += result['memory'][r.path];
     }
-
+    
+    //
+    // When all reports are complete
+    //
     var self = this;
     function finish() {
       var heapAllocated = result['memory']['heap-allocated'];
@@ -129,33 +155,33 @@ PerfTracer.prototype = {
       if (knownHeap && heapAllocated)
         result['memory']['explicit/heap-unclassified'] = result['memory']['heap-allocated'] - knownHeap;
       
-      // HACK for old builds without resident, get manually
-      // Linux only HACK for getting old data on AWSY
+      // Linux only HACK for getting old resident data on AWSY
       if (!result['memory']['resident']) {
-        try {
-          var file = Components.classes["@mozilla.org/file/local;1"]
-                    .createInstance(Components.interfaces.nsILocalFile);
-          file.initWithPath("/proc/self/statm");
-          var istream = Components.classes["@mozilla.org/network/file-input-stream;1"]
-                        .createInstance(Components.interfaces.nsIFileInputStream);  
-          istream.init(file, 0x01, 0444, 0);
-          istream instanceof Components.interfaces.nsILineInputStream;
-          var line = {};
-          istream.readLine(line);
-          istream.close();
-          // Second field in /proc/self/statm is resident pages
-          // HACK again! Pagesize might not be 4096.
-          result['memory']['resident'] = line.value.split(' ')[1] * 4096;
-        } catch (e) {}
+        result['memory']['resident'] = _tryGetLinuxResident();
       }
       
       self._log.push(result);
       if (aCallback) aCallback();
     }
     
-    var pendingReports = 0;
+    //
+    // Normal reporters
+    //
+    var reporters = memMgr.enumerateReporters();
+    while (reporters.hasMoreElements()) {
+      var r = reporters.getNext();
+      r instanceof Ci.nsIMemoryReporter;
+      if (r.path.length) {
+        // memoryUsed was renamed to amount in gecko7
+        var amount = (r.amount !== undefined) ? r.amount : r.memoryUsed;
+        addReport(r.path, amount, r.kind, r.units);
+      }
+    }
     
-    // Also record multireporters if they exist
+    //
+    // Multireporters
+    //
+    var pendingReports = 0;
     if (memMgr.enumerateMultiReporters) {
       var multireporters = memMgr.enumerateMultiReporters();
       
@@ -165,10 +191,7 @@ PerfTracer.prototype = {
         pendingReports++;
         
         mr.collectReports({ callback: function (proc, path, kind, units, amount, description, closure) {
-          result['memory'][path] = amount;
-          if (kind == Ci.nsIMemoryReporter.KIND_HEAP)
-            knownHeap += amount;
-          
+          addReport(path, amount, kind, units);
           if (--pendingReports == 0) {
             // All callbacks complete
             finish();
@@ -178,6 +201,7 @@ PerfTracer.prototype = {
     }
     
     if (pendingReports == 0) {
+      // No multireporters were queued
       finish();
     }
   },
