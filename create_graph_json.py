@@ -155,7 +155,6 @@ for build in builds:
   if old_data and (
       len(old_data['builds']) >= i
       and old_data['builds'][i - 1]['revision'] == build['name']
-      and old_data['builds'][i - 1]['id'] == build['id']
       and os.path.exists(os.path.join(gOutDir, build['name'] + '.json.gz'))):
     print("[%u/%u] Using existing data for build %s" % (i, len(builds), build['name'])) 
     data['builds'].append(old_data['builds'][i - 1])
@@ -165,7 +164,7 @@ for build in builds:
     print("[%u/%u] Processing build %s" % (i, len(builds), build['name']))
     test_ids = {}
     # Fill builds
-    data['builds'].append({ 'id' : build['id'], 'revision' : build['name'], 'time' : build['time'] })
+    data['builds'].append({ 'revision' : build['name'], 'time' : build['time'] })
     
     testdata = {}
     
