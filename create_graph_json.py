@@ -12,33 +12,6 @@ import json
 import time
 import gzip
 
-# Python 2 compat
-if sys.hexversion < 0x03000000:
-  def bytes(string, **kwargs):
-    return string
-
-def error(msg):
-  sys.stderr.write(msg + '\n')
-  sys.exit(1)
-
-if len(sys.argv) != 3:
-  error("Usage: %s <database> <outdir>" % sys.argv[0])
-
-gDatabase = os.path.normpath(sys.argv[1])
-gOutDir = os.path.normpath(sys.argv[2])
-
-if not os.path.isfile(gDatabase):
-  error("Database '%s' not found")
-
-if not os.path.isdir(gOutDir):
-  if os.path.exists(gOutDir):
-    error("File '%s' is not a directory" % gOutDir)
-  # Try to create
-  parentdir = os.path.dirname(gOutDir)
-  if not os.path.isdir(parentdir):
-    error("'%s' is not a directory, cannot create folders in it" % parentdir)
-  os.mkdir(gOutDir)
-
 # Extra config for specific tests. (not required to use a test in gSeries)
 # - nodeize : [char] split this test's datapoints by the given character and
 #             build a tree, otherwise just export them as flat key/values
@@ -115,6 +88,37 @@ gSeries = {
     "datapoint": "Iteration 5.TabsClosedSettled.mem.resident"
   },
 }
+
+# Python 2 compat
+if sys.hexversion < 0x03000000:
+  def bytes(string, **kwargs):
+    return string
+
+def error(msg):
+  sys.stderr.write(msg + '\n')
+  sys.exit(1)
+
+if len(sys.argv) != 3:
+  error("Usage: %s <database> <outdir>" % sys.argv[0])
+
+gDatabase = os.path.normpath(sys.argv[1])
+gOutDir = os.path.normpath(sys.argv[2])
+
+if not os.path.isfile(gDatabase):
+  error("Database '%s' not found")
+
+if not os.path.isdir(gOutDir):
+  if os.path.exists(gOutDir):
+    error("File '%s' is not a directory" % gOutDir)
+  # Try to create
+  parentdir = os.path.dirname(gOutDir)
+  # dirname() returns '' for this-directory. Other os.path functions dont
+  # recognize '' as this-directory. ???.
+  if parentdir == '':
+    parentdir = '.'
+  if not os.path.isdir(parentdir):
+    error("'%s' is not a directory, cannot create folders in it" % parentdir)
+  os.mkdir(gOutDir)
 
 sql = sqlite3.connect(gDatabase)
 sql.row_factory = sqlite3.Row
