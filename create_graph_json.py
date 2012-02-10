@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 
-# Right now:
-# pull the most recent test for each build (usually only one),
-# Pull selected datapoints for that test
+# For all builds in given sqlite db, finds the newest test run of that test and:
+# - Generate series.json.gz with all the series in gSeries, ready for graphing
+# - Generate a <buildname>.json.gz with all datapoints from the tests configured
+#   for dumping in gTests
 
 import sys
 import os
@@ -11,19 +12,47 @@ import json
 import time
 import gzip
 
-if len(sys.argv) != 3:
-  sys.stderr.write("Usage: %s <database> <outfile>\n" % sys.argv[0])
+def error(msg):
+  sys.stderr.write(msg + '\n')
   sys.exit(1)
 
-gDatabase = sys.argv[1]
-gOutDir = sys.argv[2]
+if len(sys.argv) != 3:
+  error("Usage: %s <database> <outdir>" % sys.argv[0])
+
+gDatabase = os.path.normpath(sys.argv[1])
+gOutDir = os.path.normpath(sys.argv[2])
+
+if not os.path.isfile(gDatabase):
+  error("Database '%s' not found")
 
 if not os.path.isdir(gOutDir):
-  sys.stderr.write("Directory %s does not exist\n" % gOutDir)
-  sys.exit(1)
+  if os.path.exists(gOutDir):
+    error("File '%s' is not a directory" % gOutDir)
+  # Try to create
+  parentdir = os.path.dirname(gOutDir)
+  if not os.path.isdir(parentdir):
+    error("'%s' is not a directory, cannot create folders in it" % parentdir)
+  os.mkdir(gOutDir)
 
-# A datapoint ending in a / totals all nodes in that tree
-gSeriesInfo = {
+# Extra config for specific tests. (not required to use a test in gSeries)
+# - nodeize : [char] split this test's datapoints by the given character and
+#             build a tree, otherwise just export them as flat key/values
+# - dump    : [bool] dump this test in the per-build data file
+gTests = {
+  "Slimtest-TalosTP5" : {
+    "nodeize" : "/",
+    "dump" : True
+  }
+}
+
+# Series to generate plot-lines for.
+# - test      : Name of test to look at
+# - datapoint : Name of datapoint to dump. If the test is configured above to
+#               'nodeize', you can use a node-name; otherwise you must use a
+#               full datapoint name
+# - use_sum   : *If* this test is nodeized, always use the sum of this node,
+#               even if it has an explicit value
+gSeries = {
   "MaxMemory" : {
     "test": "Slimtest-TalosTP5",
     "datapoint": "Iteration 5.TabsOpen.mem.explicit/"
@@ -89,9 +118,6 @@ cur = sql.cursor()
 cur.execute('''SELECT `id`, `name`, `time` FROM `benchtester_builds` ORDER BY `time` ASC''')
 builds = cur.fetchall()
 
-# Test names referenced in one or more series
-test_names = set(map(lambda x: x['test'], gSeriesInfo.values()))
-
 # series - a dict of series name (e.g. StartMemory) -> [[x,y], [x2, y2], ...]
 #          All series have the same length, such the same index in any series
 #          refers to the same build
@@ -103,7 +129,7 @@ test_names = set(map(lambda x: x['test'], gSeriesInfo.values()))
 #             test). This data is saved separately per build/test, and XHR'd in
 #             when desired.
 data = {
-  'series' : dict((n, []) for n in gSeriesInfo.keys()),
+  'series' : dict((n, []) for n in gSeries.keys()),
   'build_info' : []
 }
 
@@ -118,6 +144,9 @@ except Exception:
 
 for build in builds:
   i += 1
+  #
+  # Determine if we should process this build or use the existing data
+  #
   if old_data and (
       len(old_data['build_info']) >= i
       and old_data['build_info'][i - 1]['revision'] == build['name']
@@ -125,7 +154,7 @@ for build in builds:
       and os.path.exists(os.path.join(gOutDir, build['name'] + '.json.gz'))):
     print("[%u/%u] Using existing data for build %s" % (i, len(builds), build['name'])) 
     data['build_info'].append(old_data['build_info'][i - 1])
-    for sname, sinfo in gSeriesInfo.iteritems():
+    for sname, sinfo in gSeries.iteritems():
       data['series'][sname].append(old_data['series'][sname][i - 1])
   else:
     print("[%u/%u] Processing build %s" % (i, len(builds), build['name']))
@@ -135,8 +164,11 @@ for build in builds:
     
     testdata = {}
     
-    # For each test a series references, pull all data into testdata
-    for testname in test_names:
+    #
+    # For each test gSeries or gTests references, pull all of its data into testdata
+    #
+    for testname in set(gTests.keys()) | \
+                    set(map(lambda x: x['test'], gSeries.values())):
       # Pull all data for latest run of this test on this build
       allrows = cur.execute('''SELECT d.datapoint, d.value, t.time, t.id
                               FROM benchtester_data d
@@ -144,32 +176,81 @@ for build in builds:
                               LEFT JOIN benchtester_tests t2 ON t.name = t2.name AND t.build_id = t2.build_id AND t.time < t2.time
                               WHERE t.name = ? AND t2.id IS NULL AND t.build_id = ? AND t.id IS NOT NULL
                               ''', [testname, build['id']])
-      testdata[testname] = { 'time' : None, 'id' : None, 'allvalues' : {} };
+      testdata[testname] = { 'time' : None, 'id' : None, 'nodes' : {} };
+      
       for row in allrows:
-        if not testdata[testname]['time']:
-          testdata[testname]['time'] = row['time']
-          testdata[testname]['id'] = row['id']
-        testdata[testname]['allvalues'][row['datapoint']] = row['value']
+        testdata[testname].setdefault('time', row['time'])
+        testdata[testname].setdefault('id', row['id'])
+        
+        if testname in gTests and gTests[testname].get('nodeize'):
+          # Nodeize.
+          # Note that we perserve null values as 'none', to differentiate missing data from values of 0
+          cursor = testdata[testname]['nodes']
+          thisnode = row['datapoint'].split(gTests[testname]['nodeize'])
+          for n in range(len(thisnode)):
+            leaf = thisnode[n]
+            cursor.setdefault(leaf, {})
+            cursor = cursor[leaf]
+            # Nodes can have a value *and* childnodes, so we set _val for specific
+            # values, and _sum for derived childnodes
+            if n == len(thisnode) - 1:
+              cursor['_val'] = row['value']
+            if not cursor.has_key('_sum') or cursor['_sum'] == None:
+              cursor['_sum'] = row['value']
+            elif row['value'] != None:
+              cursor['_sum'] += row['value']
+        else:
+          # Flat data
+          testdata[testname]['nodes'][row['datapoint']] = row['value']
+    
+    #
+    # Build all series [[x,y], ...] from testdata object
+    #
+    for sname, sinfo in gSeries.iteritems():
+      nodes = testdata[sinfo['test']]['nodes']
       
-    # Build all series from testdata
-    for sname, sinfo in gSeriesInfo.iteritems():
-      thisinfo = testdata[sinfo['test']]['allvalues']
-      
-      if sinfo['datapoint'][-1:] == '/':
-        value = reduce(lambda val, (k, v): val + v if k.startswith(sinfo['datapoint']) and v else val, thisinfo.iteritems(), 0)
+      if sinfo['test'] in gTests and gTests[sinfo['test']].get('nodeize'):
+        # Nodeized data, find this node
+        node = nodes
+        for branch in sinfo['datapoint'].split(gTests[sinfo['test']].get('nodeize')):
+          if node and branch in node:
+            node = node[branch]
+          else:
+            node = None
+        
+        if node == None:
+          value = None
+        elif sinfo.get('use_sum') or not '_val' in node:
+          value = node.get('_sum')
+        else:
+          value = node.get('_val')
       else:
-        value = thisinfo[sinfo['datapoint']] if thisinfo.has_key(sinfo['datapoint']) else 0
+        # Flat data
+        value = nodes.get(sinfo['datapoint'])
+        
       data['series'][sname].append([build['time'], value])
-      
-    # Write out the test data for this build
+    
+    #
+    # Discard data for tests not requested to be dumped
+    #
+    for testname in testdata.keys():
+      if not testname in gTests.keys() or \
+         not gTests[testname].get('dump'):
+        del testdata[testname]
+    
+    #
+    # Write out the test data for this build into <buildname>.json.gz
+    #
     testfile = gzip.open(os.path.join(gOutDir, build['name'] + '.json.gz'), 'w', 9)
     json.dump(testdata, testfile, indent=2)
     testfile.write('\n')
     testfile.close()
 
 data['generated'] = time.time()
-data['series_info'] = gSeriesInfo
+data['series_info'] = gSeries
 
+print("[%u/%u] Finished, writing series.json.gz" % (i, i))
+# Write out all the generated series into series.json.gz
 datafile = gzip.open(os.path.join(gOutDir, 'series.json.gz'), 'w', 9)
 json.dump(data, datafile, indent=2)
 datafile.write('\n')
