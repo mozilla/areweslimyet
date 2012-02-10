@@ -55,15 +55,15 @@ gTests = {
 gSeries = {
   "MaxMemory" : {
     "test": "Slimtest-TalosTP5",
-    "datapoint": "Iteration 5.TabsOpen.mem.explicit/"
+    "datapoint": "Iteration 5.TabsOpen.mem.explicit"
   },
   "MaxMemorySettled" : {
     "test": "Slimtest-TalosTP5",
-    "datapoint": "Iteration 5.TabsOpenSettled.mem.explicit/"
+    "datapoint": "Iteration 5.TabsOpenSettled.mem.explicit"
   },
   "MaxMemoryForceGC" : {
     "test": "Slimtest-TalosTP5",
-    "datapoint": "Iteration 5.TabsOpenForceGC.mem.explicit/"
+    "datapoint": "Iteration 5.TabsOpenForceGC.mem.explicit"
   },
   "MaxMemoryResident" : {
     "test": "Slimtest-TalosTP5",
@@ -79,7 +79,7 @@ gSeries = {
   },
   "StartMemory" : {
     "test": "Slimtest-TalosTP5",
-    "datapoint": "Iteration 1.Start.mem.explicit/"
+    "datapoint": "Iteration 1.Start.mem.explicit"
   },
   "StartMemoryResident" : {
     "test": "Slimtest-TalosTP5",
@@ -87,7 +87,7 @@ gSeries = {
   },
   "StartMemorySettled" : {
     "test": "Slimtest-TalosTP5",
-    "datapoint": "Iteration 1.StartSettled.mem.explicit/"
+    "datapoint": "Iteration 1.StartSettled.mem.explicit"
   },
   "StartMemoryResidentSettled" : {
     "test": "Slimtest-TalosTP5",
@@ -95,7 +95,7 @@ gSeries = {
   },
   "EndMemory" : {
     "test": "Slimtest-TalosTP5",
-    "datapoint": "Iteration 5.TabsClosed.mem.explicit/"
+    "datapoint": "Iteration 5.TabsClosed.mem.explicit"
   },
   "EndMemoryResident" : {
     "test": "Slimtest-TalosTP5",
@@ -103,7 +103,7 @@ gSeries = {
   },
   "EndMemorySettled" : {
     "test": "Slimtest-TalosTP5",
-    "datapoint": "Iteration 5.TabsClosedSettled.mem.explicit/"
+    "datapoint": "Iteration 5.TabsClosedSettled.mem.explicit"
   },
   "EndMemoryResidentSettled" : {
     "test": "Slimtest-TalosTP5",
