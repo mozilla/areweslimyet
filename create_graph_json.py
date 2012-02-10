@@ -121,7 +121,7 @@ builds = cur.fetchall()
 # series - a dict of series name (e.g. StartMemory) -> [[x,y], [x2, y2], ...]
 #          All series have the same length, such the same index in any series
 #          refers to the same build
-# build_info - a list with the same length/order as the series that contains
+# builds - a list with the same length/order as the series that contains
 #              info about this build
 # test_info - A dict of lists indexed by testname (e.g. Slimtest-TalosTP5)
 #             with the same length/order as the series, containing a full dump
@@ -130,7 +130,7 @@ builds = cur.fetchall()
 #             when desired.
 data = {
   'series' : dict((n, []) for n in gSeries.keys()),
-  'build_info' : []
+  'builds' : []
 }
 
 i = 0
@@ -148,19 +148,19 @@ for build in builds:
   # Determine if we should process this build or use the existing data
   #
   if old_data and (
-      len(old_data['build_info']) >= i
-      and old_data['build_info'][i - 1]['revision'] == build['name']
-      and old_data['build_info'][i - 1]['id'] == build['id']
+      len(old_data['builds']) >= i
+      and old_data['builds'][i - 1]['revision'] == build['name']
+      and old_data['builds'][i - 1]['id'] == build['id']
       and os.path.exists(os.path.join(gOutDir, build['name'] + '.json.gz'))):
     print("[%u/%u] Using existing data for build %s" % (i, len(builds), build['name'])) 
-    data['build_info'].append(old_data['build_info'][i - 1])
+    data['builds'].append(old_data['builds'][i - 1])
     for sname, sinfo in gSeries.iteritems():
       data['series'][sname].append(old_data['series'][sname][i - 1])
   else:
     print("[%u/%u] Processing build %s" % (i, len(builds), build['name']))
     test_ids = {}
-    # Fill build_info
-    data['build_info'].append({ 'id' : build['id'], 'revision' : build['name'] })
+    # Fill builds
+    data['builds'].append({ 'id' : build['id'], 'revision' : build['name'], 'time' : build['time'] })
     
     testdata = {}
     
@@ -228,7 +228,7 @@ for build in builds:
         # Flat data
         value = nodes.get(sinfo['datapoint'])
         
-      data['series'][sname].append([build['time'], value])
+      data['series'][sname].append(value)
     
     #
     # Discard data for tests not requested to be dumped
