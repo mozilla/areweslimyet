@@ -167,7 +167,8 @@ for build in builds:
     testfile.write('\n')
     testfile.close()
 
-data['info'] = { 'generated' : time.time() }
+data['generated'] = time.time()
+data['series_info'] = gSeriesInfo
 
 datafile = gzip.open(os.path.join(gOutDir, 'series.json.gz'), 'w', 9)
 json.dump(data, datafile, indent=2)
