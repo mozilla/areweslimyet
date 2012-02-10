@@ -160,11 +160,10 @@ function PlotHover(plot, item) {
   var tooltip = plot.find('.tooltip');
   if (item !== plot.data('hoveredItem') && !tooltip.is('.zoomed')) {
     if (item) {
-      var seriesData = plot.data('seriesData');
       // Tooltip Content
       var t = tooltip.empty();
       $.new('h2').text("Nightly").appendTo(t); // FIXME
-      $.new('p').text(seriesData[item.seriesIndex]['label']).appendTo(t);
+      $.new('p').text(item.series['label']).appendTo(t);
       $.new('p').text(new Date(item.datapoint[0] * 1000).toDateString()).appendTo(t);
       $.new('p').text(formatBytes(item.datapoint[1])).appendTo(t);
       $.new('p').text(gGraphData['build_info'][item.dataIndex]['revision'].slice(0,12)).appendTo(t);
@@ -189,7 +188,7 @@ function addGraph(axis) {
   var seriesData = [];
   
   for (var x in axis) {
-    seriesData.push({ label: axis[x], data: gGraphData['series'][x] });
+    seriesData.push({ name: x, label: axis[x], data: gGraphData['series'][x] });
   }
   
   var plotbox = $.new('div').addClass('graph').appendTo($('#graphs'));
@@ -226,7 +225,7 @@ function addGraph(axis) {
     }
   );
   
-  plotbox.data({ 'plot_obj' : plot, 'seriesData' : seriesData});
+  plotbox.data({ 'plot_obj' : plot });
   //
   // Graph Tooltip
   //
