@@ -12,6 +12,11 @@ import json
 import time
 import gzip
 
+# Python 2 compat
+if sys.hexversion < 0x03000000:
+  def bytes(string, **kwargs):
+    return string
+
 def error(msg):
   sys.stderr.write(msg + '\n')
   sys.exit(1)
@@ -154,7 +159,7 @@ for build in builds:
       and os.path.exists(os.path.join(gOutDir, build['name'] + '.json.gz'))):
     print("[%u/%u] Using existing data for build %s" % (i, len(builds), build['name'])) 
     data['builds'].append(old_data['builds'][i - 1])
-    for sname, sinfo in gSeries.iteritems():
+    for sname, sinfo in gSeries.items():
       data['series'][sname].append(old_data['series'][sname][i - 1])
   else:
     print("[%u/%u] Processing build %s" % (i, len(builds), build['name']))
@@ -195,7 +200,7 @@ for build in builds:
             # values, and _sum for derived childnodes
             if n == len(thisnode) - 1:
               cursor['_val'] = row['value']
-            if not cursor.has_key('_sum') or cursor['_sum'] == None:
+            if not '_sum' in cursor or cursor['_sum'] == None:
               cursor['_sum'] = row['value']
             elif row['value'] != None:
               cursor['_sum'] += row['value']
@@ -206,7 +211,7 @@ for build in builds:
     #
     # Build all series [[x,y], ...] from testdata object
     #
-    for sname, sinfo in gSeries.iteritems():
+    for sname, sinfo in gSeries.items():
       nodes = testdata[sinfo['test']]['nodes']
       
       if sinfo['test'] in gTests and gTests[sinfo['test']].get('nodeize'):
@@ -242,8 +247,8 @@ for build in builds:
     # Write out the test data for this build into <buildname>.json.gz
     #
     testfile = gzip.open(os.path.join(gOutDir, build['name'] + '.json.gz'), 'w', 9)
-    json.dump(testdata, testfile, indent=2)
-    testfile.write('\n')
+    testfile.write(bytes(json.dumps(testdata, indent=2), encoding="utf-8"))
+    testfile.write(bytes('\n', encoding="utf-8"))
     testfile.close()
 
 data['generated'] = time.time()
@@ -252,6 +257,6 @@ data['series_info'] = gSeries
 print("[%u/%u] Finished, writing series.json.gz" % (i, i))
 # Write out all the generated series into series.json.gz
 datafile = gzip.open(os.path.join(gOutDir, 'series.json.gz'), 'w', 9)
-json.dump(data, datafile, indent=2)
-datafile.write('\n')
+datafile.write(bytes(json.dumps(data, indent=2), encoding="utf-8"))
+datafile.write(bytes('\n', encoding="utf-8"))
 datafile.close()
