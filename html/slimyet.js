@@ -144,7 +144,7 @@ function PlotClick(plot, item) {
       .fadeIn();
     // Load
     $.ajax({
-      url: './data/' + gGraphData['build_info'][item.dataIndex]['revision'] + '.json',
+      url: './data/' + gGraphData['builds'][item.dataIndex]['revision'] + '.json',
       success: function (data) {
       },
       error: function(xhr, status, error) {
@@ -166,7 +166,7 @@ function PlotHover(plot, item) {
       $.new('p').text(item.series['label']).appendTo(t);
       $.new('p').text(new Date(item.datapoint[0] * 1000).toDateString()).appendTo(t);
       $.new('p').text(formatBytes(item.datapoint[1])).appendTo(t);
-      $.new('p').text(gGraphData['build_info'][item.dataIndex]['revision'].slice(0,12)).appendTo(t);
+      $.new('p').text(gGraphData['builds'][item.dataIndex]['revision'].slice(0,12)).appendTo(t);
       
       // Tooltips move relative to the plot, not the page
       var offset = plot.offset();
@@ -187,8 +187,14 @@ function addGraph(axis) {
   
   var seriesData = [];
   
-  for (var x in axis) {
-    seriesData.push({ name: x, label: axis[x], data: gGraphData['series'][x] });
+  for (var aname in axis) {
+    // Build datapoint pairs from gGraphData.builds timestamps and
+    // gGraphData.series[aname] values list.
+    var series = [];
+    for (var ind in gGraphData['series'][aname]) {
+      series.push([gGraphData['builds'][ind]['time'], gGraphData['series'][aname][ind]]);
+    }
+    seriesData.push({ name: aname, label: axis[aname], data: series });
   }
   
   var plotbox = $.new('div').addClass('graph').appendTo($('#graphs'));
