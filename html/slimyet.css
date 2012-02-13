@@ -42,6 +42,37 @@ a:visited {
   color: #955;
 }
 
+#graphs {
+  position: relative;
+  width: 1000px;
+  margin: auto;
+}
+
+/*
+ * Tree views
+ */
+
+.treeNode {
+  margin-left: 2em;
+}
+
+.treeNodeTitle {
+  position: relative;
+}
+
+.treeExpandClicker {
+  color: #777;
+  float: left;
+  margin-left: -2em;
+}
+
+.subtree {
+  margin-left: 2em;
+}
+
+/*
+ * Tooltip
+ */
 .tooltip {
   font-family: sans-serif;
   color: #EEE;
@@ -62,11 +93,5 @@ a:visited {
 .tooltip h2, p {
   line-height: inherit;
   margin: inherit;
-}
-
-#graphs {
-  position: relative;
-  width: 1000px;
-  margin: auto;
 }
 

@@ -56,6 +56,66 @@ function formatBytes(raw) {
 }
 
 //
+// For the about:memory-esque display
+//
+
+function treeExpandNode(node) {
+  var subtree = $.new('div').addClass('subtree').hide();
+  renderMemoryTree(subtree, node.data('nodeData'));
+  subtree.appendTo(node);
+  subtree.slideDown();
+  node.children('.treeNodeTitle').find('.treeExpandClicker').text('[-] ');
+}
+
+function treeCollapseNode(node) {
+  node.find('.subtree').slideUp(250, function () {
+    $(this).remove();
+  });
+  node.children('.treeNodeTitle').find('.treeExpandClicker').text('[+] ');
+}
+
+function treeToggleNode(node) {
+  if (node.find('.subtree').length)
+    treeCollapseNode(node);
+  else
+    treeExpandNode(node);
+}
+
+function renderMemoryTree(target, data) {
+  var i = 0;
+  for (var node in data) {
+    
+    // Return to event loop every 50 items
+    // (in conjunction with delete data[node] below)
+    if (i++ > 50)
+      return window.setTimeout(function() { renderMemoryTree(target, data); }, 0);
+    
+    if (node == '_val' || node == '_sum')
+      continue; // TODO
+    
+    var treeNode = $.new('div')
+                    .addClass('treeNode')
+                    .data('nodeData', data[node]);
+    var nodeTitle = $.new('div').addClass('treeNodeTitle')
+                     .text(node)
+                     .appendTo(treeNode);
+
+    // Add treeExpandClicker and click handler if node has children
+    for (var x in data[node]) {
+      if (x !== '_val' && x !== '_sum') {
+        nodeTitle.append($.new('div')
+                           .addClass('treeExpandClicker')
+                           .text('[+] '))
+                 .click(function () { treeToggleNode($(this).parent()); });
+        break;
+      }
+    }
+    delete data[node];
+    target.append(treeNode);
+  }
+}
+
+//
 // Tooltip stuff
 //
 
@@ -98,6 +158,7 @@ function tooltipZoom(tooltip) {
   var w = tooltip.parent().width();
   var h = tooltip.parent().height();
     
+  tooltip.show();
   tooltip.stop().addClass('zoomed').animate({
     width: '110%',
     height: '100%',
@@ -146,6 +207,15 @@ function PlotClick(plot, item) {
     $.ajax({
       url: './data/' + gGraphData['builds'][item.dataIndex]['revision'] + '.json',
       success: function (data) {
+        window.console.log("SUCCESS"); // TODO
+        // Make sure the tooltip is still zoomed
+        // FIXME we should really cancel this ajax
+        // when the tooltip is closed
+        if (tooltip.is('.zoomed')) {
+          tooltip.empty();
+          // TODO header for tree, with test info
+          renderMemoryTree(tooltip, data[gGraphData['series_info'][item.series.name]['test']]['nodes']);
+        }
       },
       error: function(xhr, status, error) {
         loading.text("An error occured while loading the datapoint");
