@@ -125,8 +125,8 @@ PerfTracer.prototype = {
     
     var knownHeap = 0;
     
-    result['memory']['explicit'] = memMgr.explicit;
-    result['memory']['resident'] = memMgr.resident;
+    result['memory']['manager_explicit'] = memMgr.explicit;
+    result['memory']['manager_resident'] = memMgr.resident;
     
     function addReport(path, amount, kind, units) {
       if (units !== undefined && units != Ci.nsIMemoryReporter.UNITS_BYTES)
@@ -154,6 +154,13 @@ PerfTracer.prototype = {
       // is necessary to get a proper explicit value.
       if (knownHeap && heapAllocated)
         result['memory']['explicit/heap-unclassified'] = result['memory']['heap-allocated'] - knownHeap;
+      
+      // If the build doesn't have a resident/explicit reporter, but does have
+      // the memMgr.explicit/resident field, use that
+      if (!result['memory']['resident'])
+        result['memory']['resident'] = result['memory']['manager_resident']
+      if (!result['memory']['explicit'])
+        result['memory']['resident'] = result['memory']['manager_explicit']
       
       // Linux only HACK for getting old resident data on AWSY
       if (!result['memory']['resident']) {
