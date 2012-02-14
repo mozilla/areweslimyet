@@ -160,7 +160,7 @@ PerfTracer.prototype = {
       if (!result['memory']['resident'])
         result['memory']['resident'] = result['memory']['manager_resident']
       if (!result['memory']['explicit'])
-        result['memory']['resident'] = result['memory']['manager_explicit']
+        result['memory']['explicit'] = result['memory']['manager_explicit']
       
       // Linux only HACK for getting old resident data on AWSY
       if (!result['memory']['resident']) {
