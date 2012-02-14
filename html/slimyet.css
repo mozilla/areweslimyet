@@ -53,21 +53,41 @@ a:visited {
  */
 
 .treeNode {
-  margin-left: 2em;
 }
 
 .treeNodeTitle {
+  margin-left: 2em;
   position: relative;
 }
 
+.treeValue {
+  display: inline-block;
+  font-weight: bold;
+  color: #FEE;
+  margin-right: 0.5em;
+  font-size: 0.8em;
+}
+
+.treeValuePct {
+  display: inline-block;
+  color: #D55;
+  margin-right: 0.5em;
+  font-size: 0.6em;
+}
+
 .treeExpandClicker {
-  color: #777;
   float: left;
+  vertical-align: middle;
+  font-family: monospace;
+  font-size: 1.2em;
+  width: 2em;
   margin-left: -2em;
+  color: #777;
 }
 
 .subtree {
   margin-left: 2em;
+  border-left: 1px solid #744;
 }
 
 /*
