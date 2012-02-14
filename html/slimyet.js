@@ -87,41 +87,43 @@ function treeToggleNode(node) {
     treeExpandNode(node);
 }
 
-function renderMemoryTree(target, data, select, memNode) {
+// TODO document args
+function renderMemoryTree(target, data, select, memNode, rows) {
   var i = 0;
   
   function defval(obj) {
     return obj['_val'] !== undefined ? obj['_val'] : obj['_sum'] !== undefined ? obj['_sum'] : null;
   }
   
-  // Sort nodes
-  var rows = [];
-  for (var node in data) {
-    if (node == '_val' || node == '_sum')
-      continue;
-    window.console.log("Pushing "+node);
-    rows.push(node);
-  }
-  if (memNode) {
-    // Sort by memory size
-    rows.sort(function (a, b) {
-      var av = defval(data[a]) == null ? 0 : defval(data[a]);
-      var bv = defval(data[b]) == null ? 0 : defval(data[b]);
-      return bv - av;
-    });
-  } else {
-    // Sort alphanumeric
-    rows = rows.sort();
+  if (!(rows instanceof Array)) {
+    // Sort nodes
+    rows = [];
+    for (var node in data) {
+      if (node == '_val' || node == '_sum')
+        continue;
+      rows.push(node);
+    }
+    if (memNode) {
+      // Sort by memory size
+      rows.sort(function (a, b) {
+        var av = defval(data[a]) == null ? 0 : defval(data[a]);
+        var bv = defval(data[b]) == null ? 0 : defval(data[b]);
+        return bv - av;
+      });
+    } else {
+      // Sort alphanumeric
+      rows = rows.sort();
+    }
   }
   
   // Add rows
   var parentval = defval(data);
-  for (var row = 0; row < rows.length; row++) {
-    var node = rows[row];
+  var node, processed = 0;
+  while (node = rows.shift()) {
     // Return to event loop every 50 items
-    // (in conjunction with delete data[node] below)
-    if (i++ > 50) {
-      window.setTimeout(function() { renderMemoryTree(target, data, select, memNode); }, 0);
+    // (in conjunction with rows.shift() below)
+    if (processed++ > 50) {
+      window.setTimeout(function() { renderMemoryTree(target, data, select, memNode, rows); }, 0);
       return;
     }
     
@@ -141,6 +143,8 @@ function renderMemoryTree(target, data, select, memNode) {
                   .text(formatBytes(val))
                   .appendTo(nodeTitle);
       // Percentage
+      // FIXME this should only show on nodes known to be a sum
+      //       of their parts...
       var pct = "("+prettyFloat(100* (val / parentval))+"%)";
       if (parentval != null) {
         $.new('div').addClass('treeValuePct')
@@ -163,7 +167,6 @@ function renderMemoryTree(target, data, select, memNode) {
       }
     }
     
-    delete data[node];
     target.append(treeNode);
   }
 }
@@ -247,7 +250,7 @@ function tooltipUnZoom(tooltip) {
 //
 
 function getPerBuildData(buildname, success, fail) {
-  if (gPerBuildData[buildname]) {
+  if (gPerBuildData[buildname] !== undefined) {
     if (success instanceof Function) success.apply(null);
   } else {
     $.ajax({
