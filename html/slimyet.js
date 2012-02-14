@@ -141,7 +141,7 @@ function renderMemoryTree(target, data, select, memNode) {
                   .text(formatBytes(val))
                   .appendTo(nodeTitle);
       // Percentage
-      var pct = "("+prettyFloat(val / parentval)+"%)";
+      var pct = "("+prettyFloat(100* (val / parentval))+"%)";
       if (parentval != null) {
         $.new('div').addClass('treeValuePct')
                     .text(pct)
