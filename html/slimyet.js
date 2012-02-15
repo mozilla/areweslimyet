@@ -33,6 +33,21 @@ var gZoomedGraph;
 var gGraphData;
 var gPerBuildData = {};
 
+//
+// Utility
+//
+
+function fadeEmpty(obj) {
+  // Attach everything to an abs div so it can fade out without
+  // affecting flow
+  var fadeOut = $.new('div', null, { position: 'absolute' })
+                  .append(obj.children())
+                  .prependTo(obj)
+                  .fadeTo(500, 0, function () {
+                    $(this).remove();
+                  });
+}
+
 function prettyFloat(aFloat) {
   var ret = Math.round(aFloat * 100).toString();
   if (ret == "0") return ret;
@@ -61,18 +76,23 @@ function formatBytes(raw) {
 // For the about:memory-esque display
 //
 
+// TODO document selectedNode return val
 function treeExpandNode(node, noanimate) {
   var subtree = node.find('.subtree');
+  var selectedNode;
   if (!subtree.length) {
     var subtree = $.new('div').addClass('subtree').hide();
-    renderMemoryTree(subtree, node.data('nodeData'), node.data('select'), node.data('memNode'));
+    selectedNode = renderMemoryTree(subtree, node.data('nodeData'),
+                                    node.data('select'), node.data('showMem'),
+                                    node.data('showPct'));
     subtree.appendTo(node);
   }
   if (noanimate)
     subtree.show();
   else
-    subtree.slideDown();
+    subtree.slideDown(250);
   node.children('.treeNodeTitle').find('.treeExpandClicker').text('[-]');
+  return selectedNode;
 }
 
 function treeCollapseNode(node) {
@@ -88,87 +108,110 @@ function treeToggleNode(node) {
 }
 
 // TODO document args
-function renderMemoryTree(target, data, select, memNode, rows) {
-  var i = 0;
+function renderMemoryTree(target, data, select, showMem, showPct) {
   
-  function defval(obj) {
-    return obj['_val'] !== undefined ? obj['_val'] : obj['_sum'] !== undefined ? obj['_sum'] : null;
+  // if select is passed as "a/b/c", split it so it is an array
+  if (typeof(select) == "string") {
+    select = select.split('/');
   }
   
-  if (!(rows instanceof Array)) {
-    // Sort nodes
-    rows = [];
-    for (var node in data) {
-      if (node == '_val' || node == '_sum')
-        continue;
-      rows.push(node);
-    }
-    if (memNode) {
-      // Sort by memory size
-      rows.sort(function (a, b) {
-        var av = defval(data[a]) == null ? 0 : defval(data[a]);
-        var bv = defval(data[b]) == null ? 0 : defval(data[b]);
-        return bv - av;
-      });
-    } else {
-      // Sort alphanumeric
-      rows = rows.sort();
-    }
+  function defval(obj) {
+    return obj['_val'] !== undefined ? obj['_val']
+           : (obj['_sum'] !== undefined ? obj['_sum'] : null);
+  }
+  
+  // Sort nodes
+  var rows = [];
+  for (var node in data) {
+    if (node == '_val' || node == '_sum')
+      continue;
+    rows.push(node);
+  }
+  if (showMem) {
+    // Sort by memory size
+    rows.sort(function (a, b) {
+      var av = defval(data[a]) == null ? 0 : defval(data[a]);
+      var bv = defval(data[b]) == null ? 0 : defval(data[b]);
+      return bv - av;
+    });
+  } else {
+    // Sort alphanumeric
+    rows = rows.sort();
   }
   
   // Add rows
+  var selectedNode;
   var parentval = defval(data);
-  var node, processed = 0;
+  var node;
   while (node = rows.shift()) {
-    // Return to event loop every 50 items
-    // (in conjunction with rows.shift() below)
-    if (processed++ > 50) {
-      window.setTimeout(function() { renderMemoryTree(target, data, select, memNode, rows); }, 0);
-      return;
-    }
-    
     var treeNode = $.new('div')
                     .addClass('treeNode')
                     .data('nodeData', data[node])
-                    .data('memNode', (memNode || node == 'mem'));
+                    .data('showMem', (showMem || node == 'mem'))
+                    .data('showPct', showMem == true); // TODO Better selection of nodes that should show Pct
     var nodeTitle = $.new('div')
                      .addClass('treeNodeTitle')
                      .appendTo(treeNode);
-
+    
     // Add value if inside a memNode
     var val = defval(data[node]);
-    if (memNode && val != null) {
+    if (showMem && val != null) {
       // Value
-      $.new('div').addClass('treeValue')
+      $.new('span').addClass('treeValue')
                   .text(formatBytes(val))
                   .appendTo(nodeTitle);
       // Percentage
       // FIXME this should only show on nodes known to be a sum
       //       of their parts...
       var pct = "("+prettyFloat(100* (val / parentval))+"%)";
-      if (parentval != null) {
-        $.new('div').addClass('treeValuePct')
+      if (showPct && parentval != null) {
+        $.new('span').addClass('treeValuePct')
                     .text(pct)
                     .appendTo(nodeTitle);
       }
     }
     
     // Add label
-    $.new('span').addClass('treeNodeLabel').appendTo(nodeTitle).text(node);
+    var title = node, subtitle;
+    if (subtitle = /^(.+)\((.+)\)$/.exec(node)) {
+      node = subtitle[1];
+      subtitle = subtitle[2];
+    }
+    var label = $.new('span').addClass('treeNodeLabel')
+                             .appendTo(nodeTitle).text(node);
+    if (subtitle) {
+      $.new('span').addClass('subtitle').text(' '+subtitle).appendTo(label);
+    }
 
     // Add treeExpandClicker and click handler if node has children
-    var expandClick = $.new('div').addClass('treeExpandClicker');
+    var expandClick = $.new('span').addClass('treeExpandClicker');
     nodeTitle.prepend(expandClick);
     for (var x in data[node]) {
       if (x !== '_val' && x !== '_sum') {
         expandClick.text('[+]');
         nodeTitle.click(function () { treeToggleNode($(this).parent()); });
+        treeNode.addClass('hasChildren');
         break;
+      }
+    }
+    
+    // Handle selecting a start node
+    if (select && node == select[0]) {
+      if (select.length == 1) {
+        treeNode.addClass('highlight');
+        selectedNode = treeNode;
+        if (treeNode.is('.hasChildren'))
+          treeExpandNode(treeNode, true);
+      } else {
+        treeNode.data('select', select.splice(1));
+        selectedNode = treeExpandNode(treeNode, true);
       }
     }
     
     target.append(treeNode);
   }
+  
+  return selectedNode;
 }
 
 //
@@ -210,7 +253,7 @@ function tooltipHover(tooltip, x, y, nofade) {
     tooltip.stop().fadeTo(200, 1);
 }
 
-function tooltipZoom(tooltip) {
+function tooltipZoom(tooltip, callback) {
   var w = tooltip.parent().width();
   var h = tooltip.parent().height();
     
@@ -221,7 +264,7 @@ function tooltipZoom(tooltip) {
     left: '-5%',
     top: '-5%',
     opacity: 1
-  }, 500);
+  }, 500, null, callback);
 }
 
 function tooltipUnZoom(tooltip) {
@@ -274,15 +317,12 @@ function getPerBuildData(buildname, success, fail) {
 function PlotClick(plot, item) {
   if (item) {
     var tooltip = plot.find('.tooltip');
-    tooltipZoom(tooltip);
-    // Attach everything to an abs div so it can fade out without
-    // affecting flow
-    var fadeOut = $.new('div', null, { position: 'absolute' })
-                    .append(tooltip.children())
-                    .appendTo(tooltip)
-                    .fadeTo(500, 0, function () {
-                      $(this).remove();
-                    });
+    var zoomedCallback;
+    tooltipZoom(tooltip, function () {
+      if (zoomedCallback)
+        zoomedCallback.apply(this);
+    });
+    fadeEmpty(tooltip);
     var loading = $.new('h2', null, {
       display: 'none',
       'text-align': 'center',
@@ -304,10 +344,25 @@ function PlotClick(plot, item) {
         var subnode = series_info['datapoint'].split('/');
         
         tooltip.empty();
-        $.new('h2').text(series_info['test']).appendTo(tooltip);
-        $.new('h3').text(series_info['datapoint']).appendTo(tooltip);
+        var memoryTree = $.new('div', { class: 'memoryTree' }, { display: 'none' });
         
-        renderMemoryTree(tooltip, nodes, series_info['datapoint']);
+        $.new('h2').text(series_info['test']).appendTo(memoryTree);
+        $.new('h3').text(series_info['datapoint']).appendTo(memoryTree);
+        var selectedRow = renderMemoryTree(memoryTree, nodes, series_info['datapoint']);
+        
+        memoryTree.appendTo(tooltip).fadeIn();
+        if (selectedRow)
+        {
+          var scroll = function() {
+            var offset = selectedRow.position().top + tooltip.scrollTop() - 25;
+            tooltip.animate({ 'scrollTop' : offset + 'px' }, 250);
+          }
+          if (tooltip.is(':animated')) {
+            zoomedCallback = scroll;
+          } else {
+            scroll();
+          }
+        }
       }
     }, function (error) {
       // On failure
@@ -388,7 +443,7 @@ function addGraph(axis) {
       legend: {
         backgroundColor: "#000",
         margin: 10,
-        position: 'sw',
+        position: 'nw',
         backgroundOpacity: 0.4
       }
     }
@@ -425,7 +480,7 @@ $(function () {
   
   // Close zoomed tooltips upon clicking outside of them
   $('body').bind('click', function(e) {
-    if (!$(e.target).is('.tooltip') && !$(e.target).parents('.tooltip').length)
+    if (!$(e.target).is('.tooltip') && !$(e.target).parents('#graphs').length)
       $('.tooltip.zoomed').each(function(ind,ele) {
         tooltipUnZoom($(ele));
       });

@@ -14,10 +14,11 @@ h1 {
 
 a {
   text-decoration: none;
+  outline: none;
 }
 
 a:link {
-  color: #FAA;
+  color: #E77;
 }
 
 a:hover {
@@ -55,9 +56,23 @@ a:visited {
 .treeNode {
 }
 
+.treeNode.highlight {
+  background-color: rgba(150, 75, 75, 0.2);
+}
+
 .treeNodeTitle {
   margin-left: 2em;
   position: relative;
+  cursor: pointer;
+}
+
+.treeNodeTitle:hover .treeExpandClicker {
+  color: #FCC;
+}
+
+.treeNodeTitle .subtitle {
+  font-size: 0.8em;
+  color: #AAA;
 }
 
 .treeValue {
@@ -82,12 +97,12 @@ a:visited {
   font-size: 1.2em;
   width: 2em;
   margin-left: -2em;
-  color: #777;
+  color: #E77;
 }
 
 .subtree {
   margin-left: 2em;
-  border-left: 2px solid #744;
+  border-left: 2px dashed #555;
 }
 
 /*
