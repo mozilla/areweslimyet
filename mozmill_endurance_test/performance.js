@@ -116,64 +116,36 @@ PerfTracer.prototype = {
    *        Callback to call when this checkpoint finishes (the memory reporters
    *        do not return immediately)
    */
-  addCheckpoint : function PerfTracer_addCheckpoint(aLabel, aCallback) {
+  addCheckpoint : function PerfTracer_addCheckpoint(aLabel) {
     var result = {
       label : aLabel,
       timestamp : new Date(),
       memory : {}
     };
     
-    var knownHeap = 0;
-    
+    // These *should* be identical to the explicit/resident root node
+    // sum, AND the explicit/resident node explicit value (on newer builds),
+    // but we record all three so we can make sure the data is consistent
     result['memory']['manager_explicit'] = memMgr.explicit;
     result['memory']['manager_resident'] = memMgr.resident;
     
+    var knownHeap = 0;
+    
     function addReport(path, amount, kind, units) {
       if (units !== undefined && units != Ci.nsIMemoryReporter.UNITS_BYTES)
-        // Unhandled
+        // Unhandled. (old builds don't specify units, but use only bytes)
         return;
       
       if (result['memory'][path])
         result['memory'][path] += amount;
       else
         result['memory'][path] = amount;
-      if (kind !== undefined && kind == Ci.nsIMemoryReporter.KIND_HEAP)
-        knownHeap += result['memory'][r.path];
+      if (kind !== undefined && kind == Ci.nsIMemoryReporter.KIND_HEAP
+          && path.indexOf('explicit/') == 0)
+        knownHeap += amount;
     }
     
-    //
-    // When all reports are complete
-    //
-    var self = this;
-    function finish() {
-      var heapAllocated = result['memory']['heap-allocated'];
-      // Called heap-used in older builds
-      if (!heapAllocated) heapAllocated = result['memory']['heap-used'];
-      
-      // This is how about:memory calculates derived value heap-unclassified, which
-      // is necessary to get a proper explicit value.
-      if (knownHeap && heapAllocated)
-        result['memory']['explicit/heap-unclassified'] = result['memory']['heap-allocated'] - knownHeap;
-      
-      // If the build doesn't have a resident/explicit reporter, but does have
-      // the memMgr.explicit/resident field, use that
-      if (!result['memory']['resident'])
-        result['memory']['resident'] = result['memory']['manager_resident']
-      if (!result['memory']['explicit'])
-        result['memory']['explicit'] = result['memory']['manager_explicit']
-      
-      // Linux only HACK for getting old resident data on AWSY
-      if (!result['memory']['resident']) {
-        result['memory']['resident'] = _tryGetLinuxResident();
-      }
-      
-      self._log.push(result);
-      if (aCallback) aCallback();
-    }
-    
-    //
     // Normal reporters
-    //
     var reporters = memMgr.enumerateReporters();
     while (reporters.hasMoreElements()) {
       var r = reporters.getNext();
@@ -185,32 +157,40 @@ PerfTracer.prototype = {
       }
     }
     
-    //
     // Multireporters
-    //
-    var pendingReports = 0;
     if (memMgr.enumerateMultiReporters) {
       var multireporters = memMgr.enumerateMultiReporters();
       
       while (multireporters.hasMoreElements()) {
         var mr = multireporters.getNext();
         mr instanceof Ci.nsIMemoryMultiReporter;
-        pendingReports++;
-        
-        mr.collectReports({ callback: function (proc, path, kind, units, amount, description, closure) {
+        mr.collectReports(function (proc, path, kind, units, amount, description, closure) {
           addReport(path, amount, kind, units);
-          if (--pendingReports == 0) {
-            // All callbacks complete
-            finish();
-          }
-        }}, null);
+        }, null);
       }
     }
     
-    if (pendingReports == 0) {
-      // No multireporters were queued
-      finish();
+    var heapAllocated = result['memory']['heap-allocated'];
+    // Called heap-used in older builds
+    if (!heapAllocated) heapAllocated = result['memory']['heap-used'];
+    // This is how about:memory calculates derived value heap-unclassified, which
+    // is necessary to get a proper explicit value.
+    if (knownHeap && heapAllocated)
+      result['memory']['explicit/heap-unclassified'] = result['memory']['heap-allocated'] - knownHeap;
+    
+    // If the build doesn't have a resident/explicit reporter, but does have
+    // the memMgr.explicit/resident field, use that
+    if (!result['memory']['resident'])
+      result['memory']['resident'] = result['memory']['manager_resident']
+    if (!result['memory']['explicit'])
+      result['memory']['explicit'] = result['memory']['manager_explicit']
+    
+    // Linux only HACK for getting old resident data on AWSY
+    if (!result['memory']['resident']) {
+      result['memory']['resident'] = _tryGetLinuxResident();
     }
+    
+    this._log.push(result);
   },
 }
 

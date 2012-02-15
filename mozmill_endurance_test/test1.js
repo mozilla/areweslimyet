@@ -192,21 +192,14 @@ function testMemoryUsage() {
     }, 50);
     controller.waitFor(function () { return complete; }, null, 60000, 500);
   }
-  function waitCheckpoint(name) {
-    var complete = false;
-    enduranceManager.addCheckpoint(name, function () {
-      complete = true;
-    });
-    controller.waitFor(function () { return complete; }, null, 60000, 500);
-  }
   
   var initial = true;
   enduranceManager.run(function () {
     if (initial) {
       initial = false;
-      waitCheckpoint("Start");
+      enduranceManager.addCheckpoint("Start");
       controller.sleep(30000);
-      waitCheckpoint("StartSettled");
+      enduranceManager.addCheckpoint("StartSettled");
     }
     enduranceManager.loop(function () {
       var currentEntity = enduranceManager.currentEntity;
@@ -227,16 +220,16 @@ function testMemoryUsage() {
       controller.assert(function () { return controller.tabs.activeTab.readyState == "complete"; });
     });
 
-    waitCheckpoint("TabsOpen");
+    enduranceManager.addCheckpoint("TabsOpen");
     controller.sleep(30000);
-    waitCheckpoint("TabsOpenSettled");
+    enduranceManager.addCheckpoint("TabsOpenSettled");
     waitGC();
-    waitCheckpoint("TabsOpenForceGC");
+    enduranceManager.addCheckpoint("TabsOpenForceGC");
     tabBrowser.closeAllTabs();
     controller.waitForPageLoad(controller.tabs.activeTab);
-    waitCheckpoint("TabsClosed");
+    enduranceManager.addCheckpoint("TabsClosed");
     controller.sleep(30000);
-    waitCheckpoint("TabsClosedSettled");
+    enduranceManager.addCheckpoint("TabsClosedSettled");
   });
 }
 
