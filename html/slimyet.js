@@ -37,17 +37,6 @@ var gPerBuildData = {};
 // Utility
 //
 
-function fadeEmpty(obj) {
-  // Attach everything to an abs div so it can fade out without
-  // affecting flow
-  var fadeOut = $.new('div', null, { position: 'absolute' })
-                  .append(obj.children())
-                  .prependTo(obj)
-                  .fadeTo(500, 0, function () {
-                    $(this).remove();
-                  });
-}
-
 function prettyFloat(aFloat) {
   var ret = Math.round(aFloat * 100).toString();
   if (ret == "0") return ret;
@@ -78,13 +67,14 @@ function formatBytes(raw) {
 
 // TODO document selectedNode return val
 function treeExpandNode(node, noanimate) {
+  if (!node.is('.hasChildren')) return;
+  
   var subtree = node.find('.subtree');
-  var selectedNode;
   if (!subtree.length) {
     var subtree = $.new('div').addClass('subtree').hide();
-    selectedNode = renderMemoryTree(subtree, node.data('nodeData'),
-                                    node.data('select'), node.data('showMem'),
-                                    node.data('showPct'));
+    renderMemoryTree(subtree, node.data('nodeData'),
+                              node.data('select'), node.data('showMem'),
+                              node.data('showPct'));
     subtree.appendTo(node);
   }
   if (noanimate)
@@ -92,7 +82,6 @@ function treeExpandNode(node, noanimate) {
   else
     subtree.slideDown(250);
   node.children('.treeNodeTitle').find('.treeExpandClicker').text('[-]');
-  return selectedNode;
 }
 
 function treeCollapseNode(node) {
@@ -135,12 +124,11 @@ function renderMemoryTree(target, data, select, showMem, showPct) {
       return bv - av;
     });
   } else {
-    // Sort alphanumeric
-    rows = rows.sort();
+    // Sort reverse alphanumeric
+    rows = rows.sort(function (a, b) { return a == b ? 0 : a < b ? 1 : -1 });
   }
   
   // Add rows
-  var selectedNode;
   var parentval = defval(data);
   var node;
   while (node = rows.shift()) {
@@ -198,20 +186,15 @@ function renderMemoryTree(target, data, select, showMem, showPct) {
     // Handle selecting a start node
     if (select && node == select[0]) {
       if (select.length == 1) {
-        treeNode.addClass('highlight');
-        selectedNode = treeNode;
-        if (treeNode.is('.hasChildren'))
-          treeExpandNode(treeNode, true);
+        treeNode.addClass('highlight'); 
       } else {
         treeNode.data('select', select.splice(1));
-        selectedNode = treeExpandNode(treeNode, true);
       }
+      treeExpandNode(treeNode, true);
     }
     
     target.append(treeNode);
   }
-  
-  return selectedNode;
 }
 
 //
@@ -265,6 +248,15 @@ function tooltipZoom(tooltip, callback) {
     top: '-5%',
     opacity: 1
   }, 500, null, callback);
+  
+  // Close button
+  $.new('a', { class: 'closeButton', href: '#' }).addClass('closeButton')
+   .text('[x]')
+   .appendTo(tooltip).css('display', 'none')
+   .fadeIn(500).click(function () {
+     tooltipUnZoom(tooltip);
+     return false;
+   });
 }
 
 function tooltipUnZoom(tooltip) {
@@ -278,6 +270,7 @@ function tooltipUnZoom(tooltip) {
         opacity: '0'
       }, 250, function() {
         tooltip.removeAttr('style').hide().removeClass('zoomed');
+        tooltip.find('.closeButton').remove();
     });
     
     // onUnZoom callback
@@ -318,16 +311,11 @@ function PlotClick(plot, item) {
   if (item) {
     var tooltip = plot.find('.tooltip');
     var zoomedCallback;
-    tooltipZoom(tooltip, function () {
-      if (zoomedCallback)
-        zoomedCallback.apply(this);
-    });
-    fadeEmpty(tooltip);
+    tooltipZoom(tooltip);
     var loading = $.new('h2', null, {
       display: 'none',
       'text-align': 'center',
-      'margin-top': '200px'
-    }).text('Loading datapoint...')
+    }).text('Loading test data...')
       .appendTo(tooltip)
       .fadeIn();
       
@@ -336,34 +324,27 @@ function PlotClick(plot, item) {
     var revision = gGraphData['builds'][item.dataIndex]['revision'];
     getPerBuildData(revision, function () {
       // On get data (can be immediate)
-      if (!canceled)
-      {
-        // FIXME add header
-        var series_info = gGraphData['series_info'][item.series.name];
-        var nodes = gPerBuildData[revision][series_info['test']]['nodes'];
-        var subnode = series_info['datapoint'].split('/');
-        
-        tooltip.empty();
-        var memoryTree = $.new('div', { class: 'memoryTree' }, { display: 'none' });
-        
-        $.new('h2').text(series_info['test']).appendTo(memoryTree);
-        $.new('h3').text(series_info['datapoint']).appendTo(memoryTree);
-        var selectedRow = renderMemoryTree(memoryTree, nodes, series_info['datapoint']);
-        
-        memoryTree.appendTo(tooltip).fadeIn();
-        if (selectedRow)
-        {
-          var scroll = function() {
-            var offset = selectedRow.position().top + tooltip.scrollTop() - 25;
-            tooltip.animate({ 'scrollTop' : offset + 'px' }, 250);
-          }
-          if (tooltip.is(':animated')) {
-            zoomedCallback = scroll;
-          } else {
-            scroll();
-          }
-        }
-      }
+      if (canceled) { return; }
+      
+      // Build zoomed tooltip
+      var series_info = gGraphData['series_info'][item.series.name];
+      var nodes = gPerBuildData[revision][series_info['test']]['nodes'];
+      var subnode = series_info['datapoint'].split('/');
+      
+      var memoryTree = $.new('div', { class: 'memoryTree' }, { display: 'none' });
+      loading.css({ 'width' : '100%', 'position': 'absolute' }).fadeOut(250);
+      
+      // memoryTree title
+      var treeTitle = $.new('div', { class: 'treeTitle' }).appendTo(memoryTree);
+      $.new('h3').text('Part of test '+series_info['test'])
+                 .appendTo(treeTitle);
+      // datapoint subtitle
+      $.new('div').addClass('highlight')
+                  .text(series_info['datapoint'].replace(/\//g, ' -> '))
+                  .appendTo(treeTitle);
+      renderMemoryTree(memoryTree, nodes, series_info['datapoint']);
+      
+      memoryTree.appendTo(tooltip).fadeIn();
     }, function (error) {
       // On failure
       loading.text("An error occured while loading the datapoint");
@@ -380,11 +361,19 @@ function PlotHover(plot, item) {
     if (item) {
       // Tooltip Content
       var t = tooltip.empty();
-      $.new('h2').text("Nightly").appendTo(t); // FIXME
-      $.new('p').text(item.series['label']).appendTo(t);
-      $.new('p').text(new Date(item.datapoint[0] * 1000).toDateString()).appendTo(t);
-      $.new('p').text(formatBytes(item.datapoint[1])).appendTo(t);
-      $.new('p').text(gGraphData['builds'][item.dataIndex]['revision'].slice(0,12)).appendTo(t);
+      var rev = gGraphData['builds'][item.dataIndex]['revision'].slice(0,12);
+      var date = new Date(item.datapoint[0] * 1000).toDateString();
+      
+      // Label
+      $.new('h3').text(item.series['label']).appendTo(t);
+      // Build link / time
+      $.new('p').append($.new('p').text(formatBytes(item.datapoint[1])))
+                .append($.new('b').text('build '))
+                .append($.new('a')
+                         .attr('href', "http://hg.mozilla.org/mozilla-central/rev/" + rev)
+                         .text(rev))
+                .append($.new('span').text(' @ ' + date))
+                .appendTo(t);
       
       // Tooltips move relative to the plot, not the page
       var offset = plot.offset();

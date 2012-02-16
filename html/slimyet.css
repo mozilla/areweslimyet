@@ -12,6 +12,11 @@ h1 {
   text-shadow: #000 2px 2px 1px;
 }
 
+h2, h3 {
+  margin-top: 0;
+  margin-bottom: 0.2em;
+}
+
 a {
   text-decoration: none;
   outline: none;
@@ -49,6 +54,10 @@ a:visited {
   margin: auto;
 }
 
+#footer {
+  margin-top: 50px;
+}
+
 /*
  * Tree views
  */
@@ -56,7 +65,7 @@ a:visited {
 .treeNode {
 }
 
-.treeNode.highlight {
+.highlight {
   background-color: rgba(150, 75, 75, 0.2);
 }
 
@@ -111,19 +120,39 @@ a:visited {
 .tooltip {
   font-family: sans-serif;
   color: #EEE;
-  background-color: rgba(0, 0, 0, 0.7);
+  background-color: rgba(0, 0, 0, 0.9);
   border-radius: 5px;
   padding: 15px;
+  line-height: 1.4em;
   text-align: left;
   position: absolute;
-  width: 250px;
+  width: 350px;
   pointer-events: none;
   overflow: hidden;
 }
 
 .tooltip.zoomed {
   pointer-events: inherit;
-  overflow: auto;
+  overflow-y: auto;
+}
+
+.memoryTree {
+  margin-top: 5px;
+  padding: 5px;
+  background-color: rgba(100, 100, 100, 0.2);
+}
+
+.memoryTree .treeTitle {
+  padding: 5px;
+}
+
+.tooltip .closeButton {
+  color: #CCC;
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  font-family: monospace;
+  font-size: 1.5em;
 }
 
 .tooltip h2, p {
