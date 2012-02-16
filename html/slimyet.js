@@ -73,8 +73,8 @@ function treeExpandNode(node, noanimate) {
   if (!subtree.length) {
     var subtree = $.new('div').addClass('subtree').hide();
     renderMemoryTree(subtree, node.data('nodeData'),
-                              node.data('select'), node.data('showMem'),
-                              node.data('showPct'));
+                              node.data('select'),
+                              node.data('depth'));
     subtree.appendTo(node);
   }
   if (noanimate)
@@ -97,7 +97,13 @@ function treeToggleNode(node) {
 }
 
 // TODO document args
-function renderMemoryTree(target, data, select, showMem, showPct) {
+function renderMemoryTree(target, data, select, depth) {
+  if (depth === undefined)
+    depth = 0;
+  
+  // TODO Better selection of nodes that should show Mem/Pct
+  var showMem = depth >= 2;
+  var showPct = depth >= 3;
   
   // if select is passed as "a/b/c", split it so it is an array
   if (typeof(select) == "string") {
@@ -135,8 +141,7 @@ function renderMemoryTree(target, data, select, showMem, showPct) {
     var treeNode = $.new('div')
                     .addClass('treeNode')
                     .data('nodeData', data[node])
-                    .data('showMem', (showMem || node == 'mem'))
-                    .data('showPct', showMem == true); // TODO Better selection of nodes that should show Pct
+                    .data('depth', depth + 1);
     var nodeTitle = $.new('div')
                      .addClass('treeNodeTitle')
                      .appendTo(treeNode);
