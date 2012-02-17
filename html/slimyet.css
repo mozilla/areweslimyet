@@ -12,7 +12,11 @@ h1 {
   text-shadow: #000 2px 2px 1px;
 }
 
-h2, h3 {
+h2 {
+  margin: 1em;
+}
+
+h3 {
   margin-top: 0;
   margin-bottom: 0.2em;
 }
