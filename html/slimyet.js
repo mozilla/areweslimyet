@@ -541,7 +541,7 @@ $(function () {
   
   // Close zoomed tooltips upon clicking outside of them
   $('body').bind('click', function(e) {
-    if (!$(e.target).is('.tooltip') && !$(e.target).parents('#graphs').length)
+    if (!$(e.target).is('.tooltip') && !$(e.target).parents('.graph').length)
       $('.tooltip.zoomed').each(function(ind,ele) {
         $(ele).data('owner').unzoom();
       });
