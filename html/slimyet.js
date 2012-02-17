@@ -8,6 +8,7 @@ jQuery.new = function(e, attrs, css) {
   return ret;
 };
 
+// Which series from series.json to graph where with what label
 var gSeries = {
   "Resident Memory" : {
     'MaxMemoryResident' : "TP5 opened in 30 tabs",
@@ -26,6 +27,9 @@ var gSeries = {
     'StartMemorySettled' : "Fresh start [+30s]",
     'EndMemory' : "Tabs closed",
     'EndMemorySettled' : "Tabs closed [+30s]"
+  },
+  "Possibly Interesting Things" : {
+    'MaxHeapUnclassified' : "Heap Unclassified @ TP5 opened in 30 tabs [+30s]"
   }
 };
 

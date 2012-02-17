@@ -87,6 +87,10 @@ gSeries = {
     "test": "Slimtest-TalosTP5",
     "datapoint": "Iteration 5/TabsClosedSettled/resident"
   },
+  "MaxHeapUnclassified" : {
+    "test": "Slimtest-TalosTP5",
+    "datapoint": "Iteration 5/TabsOpenSettled/explicit/heap-unclassified",
+  }
 }
 
 # Python 2 compat
