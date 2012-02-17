@@ -93,7 +93,7 @@ gSeries = {
   },
   "MaxJS" : {
     "test": "Slimtest-TalosTP5",
-    "datapoint": "Iteration 5/TabsOpenSettled/explicit/js",
+    "datapoint": [ "Iteration 5/TabsOpenSettled/explicit/js", "Iteration 5/TabsOpenSettled/js" ],
   }
 }
 
@@ -224,11 +224,23 @@ for build in builds:
     #
     for sname, sinfo in gSeries.items():
       nodes = testdata[sinfo['test']]['nodes']
+      if type(sinfo['datapoint']) == list:
+        # If datapoint has alternate names, find the first one defined in the
+        # nodes
+        for dp in sinfo['datapoint']:
+          if nodes.get(dp):
+            datapoint = dp
+            break
+      else:
+        datapoint = sinfo['datapoint']
+      
+      if not datapoint:
+        next
       
       if sinfo['test'] in gTests and gTests[sinfo['test']].get('nodeize'):
         # Nodeized data, find this node
         node = nodes
-        for branch in sinfo['datapoint'].split(gTests[sinfo['test']].get('nodeize')):
+        for branch in datapoint.split(gTests[sinfo['test']].get('nodeize')):
           if node and branch in node:
             node = node[branch]
           else:
@@ -242,7 +254,7 @@ for build in builds:
           value = node.get('_val')
       else:
         # Flat data
-        value = nodes.get(sinfo['datapoint'])
+        value = nodes.get(datapoint)
         
       data['series'][sname].append(value)
     
