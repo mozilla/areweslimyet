@@ -90,6 +90,10 @@ gSeries = {
   "MaxHeapUnclassified" : {
     "test": "Slimtest-TalosTP5",
     "datapoint": "Iteration 5/TabsOpenSettled/explicit/heap-unclassified",
+  },
+  "MaxJS" : {
+    "test": "Slimtest-TalosTP5",
+    "datapoint": "Iteration 5/TabsOpenSettled/explicit/js",
   }
 }
 

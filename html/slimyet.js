@@ -29,7 +29,8 @@ var gSeries = {
     'EndMemorySettled' : "Tabs closed [+30s]"
   },
   "Possibly Interesting Things" : {
-    'MaxHeapUnclassified' : "Heap Unclassified @ TP5 opened in 30 tabs [+30s]"
+    'MaxHeapUnclassified' : "Heap Unclassified @ TP5 opened in 30 tabs [+30s]",
+    'MaxJS' : "JS @ TP5 oepened in 30 tabs [+30s]"
   }
 };
 
