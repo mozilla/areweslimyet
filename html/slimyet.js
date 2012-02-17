@@ -447,7 +447,24 @@ Plot.prototype.onClick = function(item) {
       // Build zoomed tooltip
       var series_info = gGraphData['series_info'][item.series.name];
       var nodes = gPerBuildData[revision][series_info['test']]['nodes'];
-      var subnode = series_info['datapoint'].split('/');
+      var datapoint = series_info['datapoint'];
+      
+      // series_info['datapoint'] might be a list of aliases for the datapoint.
+      // find the one actually used in this node tree.
+      if (datapoint instanceof Array) {
+        for (var i = 0; i < datapoint.length; i++) {
+          var dlist = datapoint[i].split('/');
+          var p = nodes;
+          while (dlist.length) {
+            p = p[dlist.shift()];
+            if (!p) break;
+          }
+          if (p) {
+            datapoint = datapoint[i];
+            break;
+          }
+        }
+      }
       
       var memoryTree = $.new('div', { class: 'memoryTree' }, { display: 'none' });
       loading.css({ 'width' : '100%', 'position': 'absolute' }).fadeOut(250);
@@ -458,9 +475,9 @@ Plot.prototype.onClick = function(item) {
                  .appendTo(treeTitle);
       // datapoint subtitle
       $.new('div').addClass('highlight')
-                  .text(series_info['datapoint'].replace(/\//g, ' -> '))
+                  .text(datapoint.replace(/\//g, ' -> '))
                   .appendTo(treeTitle);
-      renderMemoryTree(memoryTree, nodes, series_info['datapoint']);
+      renderMemoryTree(memoryTree, nodes, datapoint);
       
       self.tooltip.append(memoryTree);
       memoryTree.fadeIn();
