@@ -416,13 +416,32 @@ function Plot(axis) {
   );
   
   //
+  // Background selector for zooming
+  //
+  var fcanvas = this.flot.getCanvas();
+  this.zoomSelector = $.new('div', null,
+                       { 
+                         position: 'absolute',
+                         top: this.flot.getPlotOffset().top + 'px',
+                         height: this.flot.height() - 10 + 'px',
+                         'padding-top': '10px',
+                         opacity: '0'
+                       })
+                       .addClass('zoomSelector')
+                       .text("[zoom]")
+                       .insertBefore(fcanvas);
+  // For proper layering
+  $(fcanvas).css('position', 'relative');
+  
+  //
   // Graph Tooltip
   //
 
   this.tooltip = new Tooltip(this.obj);
   var self = this;
   this.obj.bind("plotclick", function(event, pos, item) { self.onClick(item); });
-  this.obj.bind("plothover", function(event, pos, item) { self.onHover(item); });
+  this.obj.bind("plothover", function(event, pos, item) { self.onHover(item, pos); });
+  this.obj.bind("mouseout", function(event) { self.hideHighlight(); });
 }
 
 Plot.prototype.onClick = function(item) {
@@ -491,9 +510,41 @@ Plot.prototype.onClick = function(item) {
   }
 }
 
-Plot.prototype.onHover = function(item) {
-  if (item !== this.hoveredItem && !this.tooltip.isZoomed()) {
+Plot.prototype.showHighlight = function(location, width) {
+  if (!this.highlighted) {
+    this.zoomSelector.stop().fadeTo(250, 1);
+    this.highlighted = true;
+  }
+
+  var off = this.flot.getPlotOffset();
+  var left = location - width / 2;
+  var overflow = left + width - this.flot.width() - off.left;
+  var underflow = off.left - left;
+  
+  if (overflow > 0) {
+    width = Math.max(width - overflow, 0);
+  } else if (underflow > 0) {
+    left += underflow;
+    width = Math.max(width - underflow, 0);
+  }
+  
+  this.zoomSelector.css({
+    left: left + 'px',
+    width: width + 'px'
+  });
+}
+
+Plot.prototype.hideHighlight = function() {
+  if (this.highlighted) {
+    this.highlighted = false;
+    this.zoomSelector.stop().fadeTo(250, 0);
+  }
+}
+
+Plot.prototype.onHover = function(item, pos) {
+  if ((!item || item !== this.hoveredItem) && !this.tooltip.isZoomed()) {
     if (item) {
+      this.hideHighlight();
       // Tooltip Content
       this.tooltip.empty();
       var rev = gGraphData['builds'][item.dataIndex]['revision'].slice(0,12);
@@ -514,7 +565,11 @@ Plot.prototype.onHover = function(item) {
       this.tooltip.hover(item.pageX - offset.left, item.pageY - offset.top, this.hoveredItem ? true : false);
     }
     else {
-      this.tooltip.unHover();
+      if (this.hoveredItem)
+        this.tooltip.unHover();
+      // Move hover highlight for zooming
+      var left = pos.pageX - this.flot.offset().left + this.flot.getPlotOffset().left;
+      this.showHighlight(left, 200);
     }
     this.hoveredItem = item;
   }
