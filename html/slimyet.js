@@ -419,7 +419,7 @@ function Plot(axis) {
   //
   // Background selector for zooming
   //
-  var fcanvas = ;
+  var fcanvas = this.flot.getCanvas();
   this.zoomSelector = $.new('div', null,
                        { 
                          top: this.flot.getPlotOffset().top + 'px',
