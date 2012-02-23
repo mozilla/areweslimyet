@@ -163,6 +163,19 @@ try:
 except Exception:
   old_data = None
 
+# Helper to find a node by datapoint
+def _findNode(nodes, datapoint, nodeize):
+  node = nodes
+  if (nodeize):
+    for branch in datapoint.split(nodeize):
+      if node and branch in node:
+        node = node[branch]
+      else:
+        return None
+    return node
+  else:
+    return nodes.get(datapoint)
+  
 for build in builds:
   i += 1
   #
@@ -228,28 +241,28 @@ for build in builds:
     #
     for sname, sinfo in gSeries.items():
       nodes = testdata[sinfo['test']]['nodes']
+      # Is this nodeized data?
+      if sinfo['test'] in gTests:
+        nodeize = gTests[sinfo['test']].get('nodeize')
+      else:
+        nodeize = False
+        
+      node = None
       if type(sinfo['datapoint']) == list:
+        datapoint = None
         # If datapoint has alternate names, find the first one defined in the
         # nodes
         for dp in sinfo['datapoint']:
-          if nodes.get(dp):
-            datapoint = dp
+          node = _findNode(nodes, dp, nodeize)
+          if node: 
             break
       else:
-        datapoint = sinfo['datapoint']
+        node = _findNode(nodes, sinfo['datapoint'], nodeize)
       
-      if not datapoint:
-        next
-      
-      if sinfo['test'] in gTests and gTests[sinfo['test']].get('nodeize'):
-        # Nodeized data, find this node
-        node = nodes
-        for branch in datapoint.split(gTests[sinfo['test']].get('nodeize')):
-          if node and branch in node:
-            node = node[branch]
-          else:
-            node = None
+      if not node:
+        continue
         
+      if nodeize:
         if node == None:
           value = None
         elif sinfo.get('use_sum') or not '_val' in node:
@@ -258,7 +271,7 @@ for build in builds:
           value = node.get('_val')
       else:
         # Flat data
-        value = nodes.get(datapoint)
+        value = node
         
       data['series'][sname].append(value)
     
