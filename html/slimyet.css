@@ -63,6 +63,9 @@ a:visited {
 }
 
 .zoomSelector {
+  padding-top: 10px;
+  position: absolute;
+  opacity: 0; /* Start hidden */
   background-color: rgba(100,50,50,0.5);
   text-align: center;
   font-size: 80%;
