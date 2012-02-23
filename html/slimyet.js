@@ -30,7 +30,8 @@ var gSeries = {
   },
   "Possibly Interesting Things" : {
     'MaxHeapUnclassified' : "Heap Unclassified @ TP5 opened in 30 tabs [+30s]",
-    'MaxJS' : "JS @ TP5 opened in 30 tabs [+30s]"
+    'MaxJS' : "JS @ TP5 opened in 30 tabs [+30s]",
+    'MaxImages' : "Images @ TP5 opened in 30 tabs [+30s]"
   }
 };
 

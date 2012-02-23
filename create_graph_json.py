@@ -94,6 +94,10 @@ gSeries = {
   "MaxJS" : {
     "test": "Slimtest-TalosTP5",
     "datapoint": [ "Iteration 5/TabsOpenSettled/explicit/js", "Iteration 5/TabsOpenSettled/js" ],
+  },
+  "MaxImages" : {
+    "test": "Slimtest-TalosTP5",
+    "datapoint": [ "Iteration 5/TabsOpenSettled/explicit/images", "Iteration 5/TabsOpenSettled/images" ],
   }
 }
 
