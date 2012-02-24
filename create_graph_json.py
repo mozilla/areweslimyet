@@ -214,19 +214,28 @@ for build in builds:
     #
     for testname in set(gTests.keys()) | \
                     set(map(lambda x: x['test'], gSeries.values())):
+
+      testdata[testname] = { 'time' : None, 'id' : None, 'nodes' : {} }
+
+      # Get latest test for this build
+      cur.execute('''SELECT id, time FROM benchtester_tests
+                     WHERE name = ? AND build_id = ?
+                     ORDER BY time DESC LIMIT 1''', [testname, build['id']])
+      testrow = cur.fetchone()
+      if not testrow:
+        continue
+
+      testdata[testname]['time'] = testrow['time']
+      testdata[testname]['id'] = testrow['id']
+
       # Pull all data for latest run of this test on this build
-      allrows = cur.execute('''SELECT d.datapoint, d.value, t.time, t.id
-                              FROM benchtester_data d
-                              JOIN benchtester_tests t ON d.test_id = t.id
-                              LEFT JOIN benchtester_tests t2 ON t.name = t2.name AND t.build_id = t2.build_id AND t.time < t2.time
-                              WHERE t.name = ? AND t2.id IS NULL AND t.build_id = ? AND t.id IS NOT NULL
-                              ''', [testname, build['id']])
-      testdata[testname] = { 'time' : None, 'id' : None, 'nodes' : {} };
-      
+      allrows = cur.execute('''SELECT datapoint, value
+                               FROM benchtester_data d
+                               WHERE test_id = ?
+                            ''', [testrow['id']])
+
+      # Sort data, splitting it up into nodes if requested
       for row in allrows:
-        testdata[testname].setdefault('time', row['time'])
-        testdata[testname].setdefault('id', row['id'])
-        
         if testname in gTests and gTests[testname].get('nodeize'):
           # Nodeize.
           # Note that we perserve null values as 'none', to differentiate missing data from values of 0
