@@ -93,11 +93,23 @@ gSeries = {
   },
   "MaxJS" : {
     "test": "Slimtest-TalosTP5",
-    "datapoint": [ "Iteration 5/TabsOpenSettled/explicit/js", "Iteration 5/TabsOpenSettled/js" ],
+    "datapoint": [
+      "Iteration 5/TabsOpenSettled/explicit/js",
+      # Old ~FF4 reporters
+      "Iteration 5/TabsOpenSettled/js",
+      # Brief period in may 2011 before heap-used became explicit
+      "Iteration 5/TabsOpenSettled/heap-used/js"
+    ],
   },
   "MaxImages" : {
     "test": "Slimtest-TalosTP5",
-    "datapoint": [ "Iteration 5/TabsOpenSettled/explicit/images", "Iteration 5/TabsOpenSettled/images" ],
+    "datapoint": [
+      "Iteration 5/TabsOpenSettled/explicit/images",
+      # Old ~FF4 reporters
+      "Iteration 5/TabsOpenSettled/images",
+      # Brief period in may 2011 before heap-used became explicit
+      "Iteration 5/TabsOpenSettled/heap-used/images"
+    ],
   }
 }
 
