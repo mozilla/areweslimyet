@@ -166,7 +166,7 @@ except Exception:
 # Helper to find a node by datapoint
 def _findNode(nodes, datapoint, nodeize):
   node = nodes
-  if (nodeize):
+  if nodeize:
     for branch in datapoint.split(nodeize):
       if node and branch in node:
         node = node[branch]
@@ -258,9 +258,6 @@ for build in builds:
             break
       else:
         node = _findNode(nodes, sinfo['datapoint'], nodeize)
-      
-      if not node:
-        continue
         
       if nodeize:
         if node == None:
