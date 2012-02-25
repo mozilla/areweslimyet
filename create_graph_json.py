@@ -228,6 +228,11 @@ for build in builds:
       testdata[testname]['time'] = testrow['time']
       testdata[testname]['id'] = testrow['id']
 
+      if testname in gTests:
+        nodeize = gTests[testname].get('nodeize')
+      else:
+        nodeize = False
+
       # Pull all data for latest run of this test on this build
       allrows = cur.execute('''SELECT datapoint, value
                                FROM benchtester_data d
@@ -236,11 +241,10 @@ for build in builds:
 
       # Sort data, splitting it up into nodes if requested
       for row in allrows:
-        if testname in gTests and gTests[testname].get('nodeize'):
-          # Nodeize.
+        if nodeize:
           # Note that we perserve null values as 'none', to differentiate missing data from values of 0
           cursor = testdata[testname]['nodes']
-          thisnode = row['datapoint'].split(gTests[testname]['nodeize'])
+          thisnode = row['datapoint'].split(nodeize)
           for n in range(len(thisnode)):
             leaf = thisnode[n]
             cursor.setdefault(leaf, {})
@@ -249,6 +253,7 @@ for build in builds:
             # values, and _sum for derived childnodes
             if n == len(thisnode) - 1:
               cursor['_val'] = row['value']
+
             if not '_sum' in cursor or cursor['_sum'] == None:
               cursor['_sum'] = row['value']
             elif row['value'] != None:
