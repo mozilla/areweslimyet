@@ -1,5 +1,11 @@
 #!/usr/bin/env python
 
+# Copyright © 2012 Mozilla Corporation
+
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this file,
+# You can obtain one at http://mozilla.org/MPL/2.0/.
+
 # For all builds in given sqlite db, finds the newest test run of that test and:
 # - Generate series.json.gz with all the series in gSeries, ready for graphing
 # - Generate a <buildname>.json.gz with all datapoints from the tests configured
