@@ -43,7 +43,10 @@ var gSeries = {
   }
 };
 
-var gZoomedGraph;
+// Filled with /data/series.json
+// FIXME this comment is wrong
+// Contains info about graphs to create and sparse data for initial graphing.
+// When we zoom in, ajax requests further data.
 var gGraphData;
 var gPerBuildData = {};
 
@@ -377,23 +380,17 @@ function Plot(axis) {
     logError("Plot() used incorrectly");
     return;
   }
-  
-  var seriesData = [];
-  
-  for (var aname in axis) {
-    // Build datapoint pairs from gGraphData.builds timestamps and
-    // gGraphData.series[aname] values list.
-    var series = [];
-    for (var ind in gGraphData['series'][aname]) {
-      series.push([gGraphData['builds'][ind]['time'], gGraphData['series'][aname][ind]]);
-    }
-    seriesData.push({ name: aname, label: axis[aname], data: series });
-  }
+
+  this.axis = axis;
+  this.zoomed = false;
+  this.dataRange = [ gGraphData['builds'][0]['time'],
+                     gGraphData['builds'][gGraphData['builds'].length - 1]['time'] ];
+  this.zoomRange = this.dataRange;
   
   this.obj = $.new('div').addClass('graph').appendTo($('#graphs'));
   this.flot = $.plot(this.obj,
     // Data
-    seriesData,
+    this._buildSeries(),
     // Options
     {
       series: {
@@ -450,8 +447,66 @@ function Plot(axis) {
   this.obj.bind("mouseout", function(event) { self.hideHighlight(); });
 }
 
+// Zoom this graph to given range. If called with no arguments, zoom all the way
+// back out. range is of format [x1, x2]. this.dataRange contains the range of
+// all data, this.zoomRange contains currently zoomed range if this.zoomed is
+// true.
+Plot.prototype.setZoomRange = function(range) {
+    var zoomOut = false;
+    if (range === undefined) {
+      zoomOut = true;
+      range = this.dataRange;
+    }
+    
+    var self = this;
+    if (this.zoomed && zoomOut) {
+      // Zooming back out, remove close button
+      this.zoomed = false;
+      this.obj.children('.closeButton').remove();
+    } else if (!this.zoomed && !zoomOut) {
+      // Zoomed out -> zoomed in. Add close button
+      this.zoomed = true;
+      self.obj.append($.new('div').addClass('closeButton').text('[zoom out]').click(function () {
+        self.setZoomRange();
+      }));
+    }
+
+    this.zoomRange = range;
+    var newseries = this._buildSeries(range[0], range[1]);
+    this.flot.setData(newseries);
+    this.flot.setupGrid();
+    this.flot.draw();
+    // setupGrid() reparents the grid, so we need to reparent the tooltip
+    // such that it is last in the z-ordering
+    this.tooltip.obj.appendTo(this.obj);
+}
+
+// RebuildsFIXME FIXME FIXME
+Plot.prototype._buildSeries = function(start, stop) {
+  var seriesData = [];
+  if (start === undefined)
+    start = gGraphData['builds'][0]['time'];
+  if (stop == undefined)
+    stop = gGraphData['builds'][gGraphData['builds'].length - 1]['time'];
+  
+  for (var axis in this.axis) {
+    var series = [];
+    var buildinfo = [];
+    for (var ind in gGraphData['builds']) {
+      var b = gGraphData['builds'][ind];
+      if (b['time'] < start) continue;
+      if (b['time'] > stop) break;
+      series.push([ b['time'], gGraphData['series'][axis][ind] ]);
+      buildinfo.push(b);
+    }
+    seriesData.push({ name: axis, label: axis, data: series, buildinfo: buildinfo });
+  }
+  return seriesData;
+}
+
 Plot.prototype.onClick = function(item) {
   if (item) {
+    // Zoom in on item
     var zoomedCallback;
     this.tooltip.zoom();
     var loading = $.new('h2', null, {
@@ -463,7 +518,7 @@ Plot.prototype.onClick = function(item) {
       
     // Load per build data
     var canceled = false;
-    var revision = gGraphData['builds'][item.dataIndex]['revision'];
+    var revision = item.series.buildinfo[item.dataIndex]['revision'];
     var self = this;
     getPerBuildData(revision, function () {
       // On get data (can be immediate)
@@ -513,6 +568,9 @@ Plot.prototype.onClick = function(item) {
     });
     // Cancel loading if tooltip is closed before the callback
     this.tooltip.onUnzoom(function () { canceled = true; });
+  } else if (this.highlighted) {
+    // Clicked on highlighted zoom space, do a graph zoom
+    this.setZoomRange(this.highlightRange);
   }
 }
 
@@ -534,6 +592,10 @@ Plot.prototype.showHighlight = function(location, width) {
     width = Math.max(width - underflow, 0);
   }
   
+  // Calculate the x-axis range of the data we're highlighting
+  var xaxis = this.flot.getAxes().xaxis;
+  this.highlightRange = [ xaxis.c2p(left - off.left), xaxis.c2p(left + width - off.left) ];
+  
   this.zoomSelector.css({
     left: left + 'px',
     width: width + 'px'
@@ -553,7 +615,7 @@ Plot.prototype.onHover = function(item, pos) {
       this.hideHighlight();
       // Tooltip Content
       this.tooltip.empty();
-      var rev = gGraphData['builds'][item.dataIndex]['revision'].slice(0,12);
+      var rev = item.series.buildinfo[item.dataIndex]['revision'].slice(0,12);
       var date = new Date(item.datapoint[0] * 1000).toDateString();
       
       // Label
@@ -575,7 +637,7 @@ Plot.prototype.onHover = function(item, pos) {
         this.tooltip.unHover();
       // Move hover highlight for zooming
       var left = pos.pageX - this.flot.offset().left + this.flot.getPlotOffset().left;
-      this.showHighlight(left, 200);
+      this.showHighlight(left, 400);
     }
     this.hoveredItem = item;
   }
