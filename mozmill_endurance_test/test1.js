@@ -153,10 +153,15 @@ var controller;
 var enduranceManager;
 var tabBrowser;
 var md;
+var perTabPause;
 
 function setupModule() {
   controller = mozmill.getBrowserController();
   enduranceManager = new endurance.EnduranceManager(controller);
+
+  if ("endurance" in persisted) {
+    perTabPause = persisted.endurance.perTabPause;
+  }
 
   // XXX: Bug 673399
   //      Tab modal dialogs are not yet supported so we switch back to browser modal dialogss
@@ -218,6 +223,7 @@ function testMemoryUsage() {
       controller.open(site);
       controller.waitForPageLoad(controller.tabs.activeTab, 60000, 500);
       controller.assert(function () { return controller.tabs.activeTab.readyState == "complete"; });
+      if (perTabPause) controller.sleep(perTabPause * 1000)
     });
 
     enduranceManager.addCheckpoint("TabsOpen");
