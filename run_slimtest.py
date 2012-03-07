@@ -13,6 +13,7 @@ import argparse
 import time
 import datetime
 import multiprocessing
+import socket
 
 sys.path.append(os.path.abspath("benchtester"))
 import BuildGetter
@@ -45,13 +46,17 @@ AreWeSlimYetTests = {
 };
 
 parser = argparse.ArgumentParser(description='Run the areweslimyet.com tests against one or more builds in parallel')
-parser.add_argument('--mode', help='nightly or tinderbox')
+parser.add_argument('--mode', help='nightly or tinderbox or build')
 parser.add_argument('--batch', help='Batch mode -- given a folder name, treat each file within as containing a set of arguments to this script, deleting each file as it is processed.')
-parser.add_argument('--firstbuild', help='For nightly, the date (YYYY-MM-DD) of the first build to test. For tinderbox, the timestamp to start testing builds at.')
-parser.add_argument('--lastbuild', help='[optional] For nightly builds, the last date to test. For tinderbox, the timestamp to stop testing builds at. If omitted, first_build is the only build tested.')
+parser.add_argument('--firstbuild', help='For nightly, the date (YYYY-MM-DD) of the first build to test. For tinderbox, the timestamp to start testing builds at. For build, the first revision to build.')
+parser.add_argument('--lastbuild', help='[optional] For nightly builds, the last date to test. For tinderbox, the timestamp to stop testing builds at. For build, the last revision to build If omitted, first_build is the only build tested.')
 parser.add_argument('-p', '--processes', help='Number of tests to run in parallel.', default=1, type=int)
 parser.add_argument('--hook', help='Name of a python file to import for each test. The test will call before() and after() in this file. Used for our linux cronjob to start vncserver processes, for instance.')
 parser.add_argument('--log', '-l', help="File to log progress to. Doesn't make sense for batched processes.")
+parser.add_argument('--repo', help="For build mode, the checked out FF repo to use")
+parser.add_argument('--mozconfig', help="For build mode, the mozconfig to use")
+parser.add_argument('--objdir', help="For build mode, the objdir provided mozconfig will create")
+parser.add_argument('--no-pull', action='store_true', help="For build mode, don't run a hg pull in the repo before messing with a commit")
 
 ##
 ##
@@ -95,6 +100,14 @@ def queue_builds(args):
       builds.extend(BuildGetter.get_tinderbox_builds(startdate, enddate))
     else:
       builds.append(BuildGetter.TinderboxBuild(startdate))
+  elif mode == 'build':
+    if not args.get('repo') or not args.get('mozconfig') or not args.get('objdir'):
+      raise Exception("Build mode requires --repo, --mozconfig, and --objdir to be set")
+    if dorange:
+      for commit in BuildGetter.get_hg_range(args.get('repo'), args['firstbuild'], args['lastbuild'], not args.get("no_pull")):
+        builds.append(BuildGetter.CompileBuild(args.get('repo'), args.get('mozconfig'), args.get('objdir'), pull=True, commit=commit, log=None))
+    else:
+      builds.append(BuildGetter.CompileBuild(args.get('repo'), args.get('mozconfig'), args.get('objdir'), pull=True, commit=args['firstbuild'], log=None))
   else:
     raise Exception("Unknown mode %s" % mode)
   return builds
@@ -140,13 +153,19 @@ def _test_build(build, buildindex):
       return False
   
   # Setup tester
+  try:
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.bind(('', 24242 + buildindex))
+    s.close()
+  except Exception, e:
+    stat("WARNING: Port %u unavailable" % (24242 + buildindex,))
   testinfo = {
     'buildname': build.get_revision(),
     'binary': build.get_binary(),
     'buildtime': build.get_buildtime(),
     'sqlitedb': "slimtest.sqlite",
     'logfile': "slimtest.log",
-    'jsbridge_port': 24243 + buildindex # Use different jsbridge ports so as not to collide
+    'jsbridge_port': 24242 + buildindex # Use different jsbridge ports so as not to collide
   }
   stat("Test %u starting :: %s" % (buildindex, testinfo))
   tester.setup(testinfo)
@@ -164,6 +183,7 @@ def _test_build(build, buildindex):
 #
 
 if __name__ == '__main__':
+  stat("Starting at %s with args \"%s\"" % (time.ctime(), sys.argv))
   args = vars(parser.parse_args())
 
   if args.get('log'):
