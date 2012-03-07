@@ -237,7 +237,7 @@ if __name__ == '__main__':
       break
     else:
       # Wait a little and repeat loop
-      stat("%u tasks :: %s" % (len(running), map(lambda x: x.num, running)))
+      stat("%u tasks queued, %u pending " % (len(running), len(pending)))
       time.sleep(5)
 
   stat("No more tasks exiting")
