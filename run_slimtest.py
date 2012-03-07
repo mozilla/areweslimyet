@@ -40,7 +40,7 @@ AreWeSlimYetTests = {
         'entities': 100,
         'iterations': 5,
         'delay': 0,
-        'perTabPause': 0
+        'perTabPause': 10
       }
   },
 };
