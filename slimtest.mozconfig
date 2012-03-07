@@ -1,25 +1,30 @@
+
+# based on http://hg.mozilla.org/build/buildbot-configs/file/8ce6e0f9984b/mozilla2/linux64/mozilla-central/nightly/mozconfig
+
 ac_add_options --enable-application=browser
 ac_add_options --enable-optimize
+# ac_add_options --enable-update-channel=nightly
+# ac_add_options --enable-update-packaging
 ac_add_options --disable-debug
 # ac_add_options --enable-tests
-# ac_add_options --enable-codesighs
+ac_add_options --enable-codesighs
+
+mk_add_options MOZ_OBJDIR=@TOPSRCDIR@/../slimtest-objdir
 
 # Mozilla-Central nightlies only since this has a cost in performance
-# ac_add_options --enable-js-diagnostics
+ac_add_options --enable-js-diagnostics
 
-mk_add_options MOZ_OBJDIR=@TOPSRCDIR@/../slimtest-build
-
-#CC=/tools/gcc-4.5/bin/gcc
-#CXX=/tools/gcc-4.5/bin/g++
+# CC=/tools/gcc-4.5/bin/gcc
+# CXX=/tools/gcc-4.5/bin/g++
 # Avoid dependency on libstdc++ 4.5
-# ac_add_options --enable-stdcxx-compat
+ac_add_options --enable-stdcxx-compat
 
-# export CFLAGS="-gdwarf-2"
-# export CXXFLAGS="-gdwarf-2"
+export CFLAGS="-gdwarf-2"
+export CXXFLAGS="-gdwarf-2"
 
 # For NSS symbols
-# export MOZ_DEBUG_SYMBOLS=1
-# ac_add_options --enable-debug-symbols="-gdwarf-2"
+export MOZ_DEBUG_SYMBOLS=1
+ac_add_options --enable-debug-symbols="-gdwarf-2"
 
 # Needed to enable breakpad in application.ini
 export MOZILLA_OFFICIAL=1
@@ -27,10 +32,10 @@ export MOZILLA_OFFICIAL=1
 export MOZ_TELEMETRY_REPORTING=1
 
 # PGO
-# mk_add_options PROFILE_GEN_SCRIPT='$(PYTHON) @MOZ_OBJDIR@/_profile/pgo/profileserver.py 10'
+mk_add_options PROFILE_GEN_SCRIPT='$(PYTHON) @MOZ_OBJDIR@/_profile/pgo/profileserver.py 10'
 
 # Enable parallel compiling
 mk_add_options MOZ_MAKE_FLAGS="-j10"
 
 #Use ccache
-ac_add_options --with-ccache=/usr/local/bin/ccache
+ac_add_options --with-ccache=/usr/bin/ccache
