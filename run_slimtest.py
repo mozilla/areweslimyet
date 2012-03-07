@@ -153,12 +153,15 @@ def _test_build(build, buildindex):
       return False
   
   # Setup tester
+  # TODO BenchTester should actually dynamically pick a free port, rather than
+  # taking it as a parameter.
+  s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
   try:
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.bind(('', 24242 + buildindex))
-    s.close()
   except Exception, e:
     stat("WARNING: Port %u unavailable" % (24242 + buildindex,))
+  s.close()
+
   testinfo = {
     'buildname': build.get_revision(),
     'binary': build.get_binary(),
