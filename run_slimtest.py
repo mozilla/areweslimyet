@@ -99,7 +99,7 @@ def have_test_data(build):
   row = res.fetchone()
   if not row: return False
 
-  res = sql.execute("SELECT `name` FROM `benchtester_tests` WHERE `successful` = 1 AND `build_id` = ?")
+  res = sql.execute("SELECT `name` FROM `benchtester_tests` WHERE `successful` = 1 AND `build_id` = ?", [row['id']])
   have_tests = set(map(lambda x: x['name'], res.fetchall()))
   for x in AreWeSlimYetTests:
     if not x in have_tests:
