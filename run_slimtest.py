@@ -184,21 +184,18 @@ def serialize_build(build):
   if isinstance(build, BuildGetter.CompileBuild):
     return {
       'type': "compile",
-      'commit': build._commit,
-      'name' : "Compile revision %s" % (build._commit,)
+      'commit': build._commit
       }
   elif isinstance(build, BuildGetter.TinderboxBuild):
     return {
       'type' : 'tinderbox',
-      'timestamp' : build._timestamp,
-      'name' : "Tinderbox build %u" % (build._timestamp,)
+      'timestamp' : build._timestamp
       }
   elif isinstance(build, BuildGetter.NightlyBuild):
     date = '%u-%u-%u' % (build._date.year, build._date.month, build._date.day)
     return {
       'type' : 'nightly',
-      'date' : date,
-      'name' : 'Nightly build for %s' % (date,)
+      'date' : date
       }
   else:
     raise Exception("Unknown build type %s" % (build,))
