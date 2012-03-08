@@ -90,6 +90,8 @@ def parse_nightly_time(string):
 def have_test_data(build):
   global sql
   if not sql:
+    if not os.exists('slimtest.sqlite'):
+      return False
     sql = sqlite3.connect('slimtest.sqlite')
     sql.row_factory = sqlite3.Row
 
@@ -109,13 +111,19 @@ def queue_builds(args):
   if not args['firstbuild']:
     raise Exception("--firstbuild is required")
 
+  if not gArgs.get('no_pull'):
+    # Do a tip lookup to pull the repo so get_full_revision is up to date
+    BuildGetter.get_hg_range(gArgs.get('repo'), '.', '.')
+
   builds = []
   def pushbuilds(buildlist):
-    stat("Queueing %u builds" % (len(buildlist),))
-    buildlist = filter(get_full_revision, buildlist)
+    # Remove builds that have no revision (not found on ftp.m.o, usually)
+    # or can't be fully looked up
+    buildlist = filter(lambda x: x.get_revision() and get_full_revision(x), buildlist)
     if gArgs.get('skip_existing') or args.get('skip_existing'):
       buildlist = filter(lambda x: not have_test_data(x), buildlist)
     builds.extend(buildlist)
+    stat("Queued %u builds" % (len(buildlist),))
 
   mode = args['mode']
   dorange = args['lastbuild']
