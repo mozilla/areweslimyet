@@ -113,7 +113,7 @@ def queue_builds(args):
 
   if not gArgs.get('no_pull'):
     # Do a tip lookup to pull the repo so get_full_revision is up to date
-    BuildGetter.get_hg_range(gArgs.get('repo'), '.', '.')
+    BuildGetter.get_hg_range(gArgs.get('repo'), '.', '.', True)
 
   builds = []
   def pushbuilds(buildlist):
