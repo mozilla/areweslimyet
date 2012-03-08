@@ -360,7 +360,7 @@ if __name__ == '__main__':
     # Prepare pending builds and put them in the run pool, but not more than
     # max + 10, as prepared builds takeup space (hundreds of queued builds would
     # fill /tmp with gigabytes of things)
-    if len(pending) and len(running) < args['processes'] + 5:
+    if len(pending) and len(running) < args['processes'] * 2:
       build = pending[0]
       pending.remove(build)
       if statfile:
