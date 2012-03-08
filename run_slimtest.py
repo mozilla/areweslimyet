@@ -56,7 +56,7 @@ parser.add_argument('--firstbuild', help='For nightly, the date (YYYY-MM-DD) of 
 parser.add_argument('--lastbuild', help='[optional] For nightly builds, the last date to test. For tinderbox, the timestamp to stop testing builds at. For build, the last revision to build If omitted, first_build is the only build tested.')
 parser.add_argument('-p', '--processes', help='Number of tests to run in parallel.', default=1, type=int)
 parser.add_argument('--hook', help='Name of a python file to import for each test. The test will call before() and after() in this file. Used for our linux cronjob to start vncserver processes, for instance.')
-parser.add_argument('--log', '-l', help="File to log progress to. Doesn't make sense for batched processes.")
+parser.add_argument('--logdir', '-l', help="Directory to log progress to. Doesn't make sense for batched processes. Creates 'tester.log', 'buildname.test.log' and 'buildname.build.log' (for compile builds).")
 parser.add_argument('--repo', help="For build mode, the checked out FF repo to use")
 parser.add_argument('--mozconfig', help="For build mode, the mozconfig to use")
 parser.add_argument('--objdir', help="For build mode, the objdir provided mozconfig will create")
@@ -137,15 +137,22 @@ def queue_builds(args):
     else:
       pushbuilds([BuildGetter.TinderboxBuild(startdate)])
   elif mode == 'build':
-    if not args.get('repo') or not args.get('mozconfig') or not args.get('objdir'):
+    repo = args.get('repo') if args.get('repo') else gArgs.get('repo')
+    objdir = args.get('objdir') if args.get('objdir') else gArgs.get('objdir')
+    mozconfig = args.get('mozconfig') if args.get('mozconfig') else gArgs.get('mozconfig')
+    if not repo or not mozconfig or not objdir:
       raise Exception("Build mode requires --repo, --mozconfig, and --objdir to be set")
-    
+
     if dorange:
       lastbuild = args['lastbuild']
     else:
       lastbuild = args['firstbuild']
-    for commit in BuildGetter.get_hg_range(args.get('repo'), args['firstbuild'], lastbuild, not args.get("no_pull")):
-      pushbuilds([BuildGetter.CompileBuild(args.get('repo'), args.get('mozconfig'), args.get('objdir'), pull=True, commit=commit, log=None)])
+    for commit in BuildGetter.get_hg_range(repo, args['firstbuild'], lastbuild, not args.get("no_pull")):
+      if gArgs.get('logdir'):
+        logfile = os.path.join(gArgs.get('logdir'), "%s.build.log" % (commit,))
+      else:
+        logfile = None
+      pushbuilds([BuildGetter.CompileBuild(repo, mozconfig, objdir, pull=True, commit=commit, log=logfile)])
   else:
     raise Exception("Unknown mode %s" % mode)
   return builds
@@ -235,12 +242,16 @@ def _test_build(build, buildindex):
     stat("WARNING: Port %u unavailable" % (24242 + buildindex,))
   s.close()
 
+  if gArgs.get('logdir'):
+    logfile = os.path.join(gArgs.get('logdir'), "%s.test.log" % (build.fullrev,))
+  else:
+    logfile = None
   testinfo = {
     'buildname': build.fullrev,
     'binary': build.get_binary(),
     'buildtime': build.get_buildtime(),
     'sqlitedb': "slimtest.sqlite",
-    'logfile': "slimtest.log",
+    'logfile': logfile,
     'jsbridge_port': 24242 + buildindex # Use different jsbridge ports so as not to collide
   }
   stat("Test %u starting :: %s" % (buildindex, testinfo))
@@ -293,8 +304,8 @@ if __name__ == '__main__':
 
   statfile = args.get("status_file")
   
-  if args.get('log'):
-    logfile = open(args.get('log'), 'a')
+  if args.get('logdir'):
+    logfile = open(os.path.join(args.get('logdir'), 'tester.log'), 'a')
 
   pool = multiprocessing.Pool(processes=args['processes'])
   buildnum = 0
