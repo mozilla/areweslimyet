@@ -107,6 +107,15 @@ def have_test_data(build):
   stat("Skipping build with test data: %s" % (build.fullrev,))
   return True
 
+def check_builds(buildlist):
+    # Remove builds that have no revision (not found on ftp.m.o, usually)
+    # or can't be fully looked up
+    buildlist = filter(lambda x: x.get_revision() and get_full_revision(x), buildlist)
+    if gArgs.get('skip_existing') or args.get('skip_existing'):
+      buildlist = filter(lambda x: not have_test_data(x), buildlist)
+    return buildlist
+    stat("Queued %u builds" % (len(buildlist),))
+
 def queue_builds(args):
   if not args['firstbuild']:
     raise Exception("--firstbuild is required")
@@ -116,14 +125,6 @@ def queue_builds(args):
     BuildGetter.get_hg_range(gArgs.get('repo'), '.', '.', True)
 
   builds = []
-  def pushbuilds(buildlist):
-    # Remove builds that have no revision (not found on ftp.m.o, usually)
-    # or can't be fully looked up
-    buildlist = filter(lambda x: x.get_revision() and get_full_revision(x), buildlist)
-    if gArgs.get('skip_existing') or args.get('skip_existing'):
-      buildlist = filter(lambda x: not have_test_data(x), buildlist)
-    builds.extend(buildlist)
-    stat("Queued %u builds" % (len(buildlist),))
 
   mode = args['mode']
   dorange = args['lastbuild']
@@ -136,14 +137,14 @@ def queue_builds(args):
     else:
       dates = [ startdate.toordinal() ]
     for x in dates:
-      pushbuilds([BuildGetter.NightlyBuild(datetime.date.fromordinal(x))])
+      builds.extend(check_builds([BuildGetter.NightlyBuild(datetime.date.fromordinal(x))]))
   elif mode == 'tinderbox':
     startdate = float(args['firstbuild'])
     if dorange:
       enddate = float(args['lastbuild'])
-      pushbuilds(BuildGetter.get_tinderbox_builds(startdate, enddate))
+      builds.extend(check_builds(BuildGetter.get_tinderbox_builds(startdate, enddate)))
     else:
-      pushbuilds([BuildGetter.TinderboxBuild(startdate)])
+      builds.extend(check_builds([BuildGetter.TinderboxBuild(startdate)]))
   elif mode == 'build':
     repo = args.get('repo') if args.get('repo') else gArgs.get('repo')
     objdir = args.get('objdir') if args.get('objdir') else gArgs.get('objdir')
@@ -160,7 +161,7 @@ def queue_builds(args):
         logfile = os.path.join(gArgs.get('logdir'), "%s.build.log" % (commit,))
       else:
         logfile = None
-      pushbuilds([BuildGetter.CompileBuild(repo, mozconfig, objdir, pull=True, commit=commit, log=logfile)])
+      builds.extend(check_builds([BuildGetter.CompileBuild(repo, mozconfig, objdir, pull=True, commit=commit, log=logfile)]))
   else:
     raise Exception("Unknown mode %s" % mode)
   return builds
@@ -181,35 +182,35 @@ def get_queued_job(dirname):
 # For writing builds to the status.json file, as well as resuming an interrupted
 # session by parsing that file.
 def serialize_build(build):
+  ret = {
+    'timestamp' : build.get_buildtime(),
+    'revision' : build.fullrev
+  }
   if isinstance(build, BuildGetter.CompileBuild):
-    return {
-      'type': "compile",
-      'commit': build._commit
-      }
+    ret['type'] = 'compile'
   elif isinstance(build, BuildGetter.TinderboxBuild):
-    return {
-      'type' : 'tinderbox',
-      'timestamp' : build._timestamp
-      }
+    ret['type'] = 'tinderbox'
   elif isinstance(build, BuildGetter.NightlyBuild):
-    date = '%u-%u-%u' % (build._date.year, build._date.month, build._date.day)
-    return {
-      'type' : 'nightly',
-      'date' : date
-      }
+    # Date of nightly might not correspond to build timestamp
+    ret['for'] = '%u-%u-%u' % (build._date.year, build._date.month, build._date.day)
+    ret['type'] = 'nightly'
   else:
     raise Exception("Unknown build type %s" % (build,))
+  return ret
 
-def deserialize_build(buildobj, args):
-  if buildobj['type'] == 'compile':
-    return BuildGetter.CompileBuild(args.get('repo'), args.get('mozconfig'), args.get('objdir'), pull=True, commit=buildobj['commit'], log=None)
-  elif buildobj['type'] == 'tinderbox':
-    return BuildGetter.TinderboxBuild(buildobj['timestamp'])
-  elif buildobj['type'] == 'nightly':
-    return BuildGetter.NightlyBuild(parse_nightly_time(buildobj['date']))
-  else:
-    raise Exception("Unkown build type %s" % buildobj['type'])
-    
+def deserialize_builds(inbuilds):
+  builds = []
+  for buildobj in inbuilds:
+    if buildobj['type'] == 'compile':
+      builds.append(BuildGetter.CompileBuild(gArgs.get('repo'), gArgs.get('mozconfig'), gArgs.get('objdir'), pull=True, commit=buildobj['revision'], log=None))
+    elif buildobj['type'] == 'tinderbox':
+      builds.append(BuildGetter.TinderboxBuild(buildobj['timestamp']))
+    elif buildobj['type'] == 'nightly':
+      builds.append(BuildGetter.NightlyBuild(parse_nightly_time(buildobj['for'])))
+    else:
+      raise Exception("Unkown build type %s" % buildobj['type'])
+  return check_builds(builds)
+
 def test_build(build, buildnum, fullrev, hook=None):
   mod = None
   try:
@@ -327,8 +328,7 @@ if __name__ == '__main__':
       sf = open(statfile, 'r')
       old_status = json.load(sf)
       sf.close()
-      for x in old_status['running'] + old_status['pending']:
-        pending.append(deserialize_build(x, args))
+      pending.extend(deserialize_builds(old_status['running'] + old_status['pending']))
   else:
     pending = queue_builds(args)
 
