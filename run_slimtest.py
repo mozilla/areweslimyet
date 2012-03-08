@@ -88,19 +88,21 @@ def parse_nightly_time(string):
   return datetime.date(int(string[0]), int(string[1]), int(string[2]))
 
 def have_test_data(build):
+  global sql
   if not sql:
     sql = sqlite3.connect('slimtest.sqlite')
     sql.row_factory = sqlite3.Row
 
-  res = sql.execute("SELECT `id` FROM `benchtester_builds` WHERE `name` = ?", [build.get_revision()])
+  res = sql.execute("SELECT `id` FROM `benchtester_builds` WHERE `name` = ?", [build.fullrev])
   row = res.fetchone()
   if not row: return False
 
-  res = sql.execute("SELECT `name` FROM `benchtester_tests` WHERE `build_id` = ?")
+  res = sql.execute("SELECT `name` FROM `benchtester_tests` WHERE `successful` = 1 AND `build_id` = ?")
   have_tests = set(map(lambda x: x['name'], res.fetchall()))
   for x in AreWeSlimYetTests:
     if not x in have_tests:
       return False
+  stat("Skipping build with test data: %s" % (build.fullrev,))
   return True
 
 def queue_builds(args):
@@ -109,8 +111,10 @@ def queue_builds(args):
 
   builds = []
   def pushbuilds(buildlist):
-    if args.get('skip_existing'):
-      buildlist = filter(have_test_data, buildlist)
+    stat("Queueing %u builds" % (len(buildlist),))
+    buildlist = filter(get_full_revision, buildlist)
+    if gArgs.get('skip_existing') or args.get('skip_existing'):
+      buildlist = filter(lambda x: not have_test_data(x), buildlist)
     builds.extend(buildlist)
 
   mode = args['mode']
@@ -250,6 +254,19 @@ def _test_build(build, buildindex):
   
   return True
 
+def get_full_revision(build):
+  build.fullrev = build.get_revision()
+  if len(build.fullrev) < 40:
+    # We want the full revision ID for database
+    revinfo = BuildGetter.get_hg_range(gArgs.get("repo"), build.fullrev, build.fullrev)
+    if revinfo and len(revinfo):
+      build.fullrev = revinfo[0]
+    else:
+      stat("!! Failed to lookup full commit ID for build %u" % (buildnum,))
+      build.fullrev = None
+      return False
+  return True
+
 def write_status(outfile, running, pending, preparing=None):
   status = {
             'starttime' : starttime,
@@ -272,7 +289,7 @@ def write_status(outfile, running, pending, preparing=None):
 
 if __name__ == '__main__':
   stat("Starting at %s with args \"%s\"" % (time.ctime(), sys.argv))
-  args = vars(parser.parse_args())
+  gArgs = args = vars(parser.parse_args())
 
   statfile = args.get("status_file")
   
@@ -327,9 +344,6 @@ if __name__ == '__main__':
         write_status(statfile, running, pending, build)
       stat("Preparing build %u :: %s" % (buildnum, serialize_build(build)))
       if build.prepare():
-        build.fullrev = build.get_revision()
-        if len(build.fullrev) != 40:
-          BuildGetter.get_hg_range(args.get("repo"), build.fullrev, build.fullrev)
         run = pool.apply_async(test_build, [build, buildnum, args['hook']])
         run.build = build
         run.num = buildnum
