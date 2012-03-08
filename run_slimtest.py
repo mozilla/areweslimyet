@@ -299,9 +299,9 @@ if __name__ == '__main__':
     def clean(task):
       if task.ready():
         if task.successful() and task.get():
-          stat("Build %u <%s> finished" % (task.num, task.build.get_name()))
+          stat("Build %u finished" % (task.num,))
         else:
-          stat("!! Build %u <%s> failed" % (task.num, task.build.get_name()))
+          stat("!! Build %u failed" % (task.num,))
         task.build.cleanup()
         return False
       return True
@@ -324,12 +324,14 @@ if __name__ == '__main__':
       pending.remove(build)
       if statfile:
         write_status(statfile, running, pending, build)
-      stat("Preparing build %u" % (buildnum,))
-      build.prepare()
-      run = pool.apply_async(test_build, [build, buildnum, args['hook']])
-      run.build = build
-      run.num = buildnum
-      running.append(run)
+      stat("Preparing build %u :: %s" % (buildnum, serialize_build(build)))
+      if build.prepare():
+        run = pool.apply_async(test_build, [build, buildnum, args['hook']])
+        run.build = build
+        run.num = buildnum
+        running.append(run)
+      else:
+        stat("!! Failed to prepare build %u" % (buildnum,))
       buildnum += 1
    
     if len(running) + len(pending) == 0:
