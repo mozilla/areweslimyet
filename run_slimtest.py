@@ -302,6 +302,9 @@ if __name__ == '__main__':
   stat("Starting at %s with args \"%s\"" % (time.ctime(), sys.argv))
   gArgs = args = vars(parser.parse_args())
 
+  if not gArgs.get('repo'):
+    raise Exception('--repo is required for resolving full commit IDs (even on non-compile builds)')
+
   statfile = args.get("status_file")
   
   if args.get('logdir'):
