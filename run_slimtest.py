@@ -232,7 +232,7 @@ def _test_build(build, buildindex):
   s.close()
 
   testinfo = {
-    'buildname': build.get_revision(),
+    'buildname': build.fullrev,
     'binary': build.get_binary(),
     'buildtime': build.get_buildtime(),
     'sqlitedb': "slimtest.sqlite",
@@ -327,6 +327,9 @@ if __name__ == '__main__':
         write_status(statfile, running, pending, build)
       stat("Preparing build %u :: %s" % (buildnum, serialize_build(build)))
       if build.prepare():
+        build.fullrev = build.get_revision()
+        if len(build.fullrev) != 40:
+          BuildGetter.get_hg_range(args.get("repo"), build.fullrev, build.fullrev)
         run = pool.apply_async(test_build, [build, buildnum, args['hook']])
         run.build = build
         run.num = buildnum
