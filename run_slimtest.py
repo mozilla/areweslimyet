@@ -258,11 +258,12 @@ def write_status(outfile, running, pending, preparing=None):
           }
   if preparing:
     status['preparing'] = serialize_build(preparing)
-  sf = open(".%s" % statfile, 'w')
+  tempfile = os.path.join(os.path.dirname(statfile), ".%s" % os.path.basename(statfile))
+  sf = open(tempfile, 'w')
   json.dump(status, sf, indent=2)
   if is_win:
     os.remove(statfile) # Can't do atomic renames on windows
-  os.rename(".%s" % statfile, statfile)
+  os.rename(tempfile, statfile)
   sf.close()
 
 #
