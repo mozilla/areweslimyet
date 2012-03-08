@@ -299,7 +299,6 @@ def write_status(outfile, running, pending, preparing=None):
 #
 
 if __name__ == '__main__':
-  stat("Starting at %s with args \"%s\"" % (time.ctime(), sys.argv))
   gArgs = args = vars(parser.parse_args())
 
   if not gArgs.get('repo'):
@@ -309,6 +308,8 @@ if __name__ == '__main__':
   
   if args.get('logdir'):
     logfile = open(os.path.join(args.get('logdir'), 'tester.log'), 'a')
+
+  stat("Starting at %s with args \"%s\"" % (time.ctime(), sys.argv))
 
   pool = multiprocessing.Pool(processes=args['processes'])
   buildnum = 0
