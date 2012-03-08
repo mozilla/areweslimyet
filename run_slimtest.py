@@ -90,7 +90,7 @@ def parse_nightly_time(string):
 def have_test_data(build):
   global sql
   if not sql:
-    if not os.exists('slimtest.sqlite'):
+    if not os.path.exists('slimtest.sqlite'):
       return False
     sql = sqlite3.connect('slimtest.sqlite')
     sql.row_factory = sqlite3.Row
