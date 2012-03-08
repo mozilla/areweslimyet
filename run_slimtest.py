@@ -213,14 +213,14 @@ def deserialize_build(buildobj, args):
   else:
     raise Exception("Unkown build type %s" % buildobj['type'])
     
-def test_build(build, buildnum, hook=None):
+def test_build(build, buildnum, fullrev, hook=None):
   mod = None
   try:
     if hook:
       mod = __import__(hook)
     if mod:
       mod.before(build, buildnum)
-    ret = _test_build(build, buildnum)
+    ret = _test_build(build, buildnum, fullrev)
   except (Exception, KeyboardInterrupt) as e:
     print("Test worker encountered an exception:\n%s :: %s" % (type(e), e))
     ret = False
@@ -231,7 +231,7 @@ def test_build(build, buildnum, hook=None):
     except: pass
   return ret
   
-def _test_build(build, buildindex):
+def _test_build(build, buildindex, fullrev):
   tester = BenchTester.BenchTester()
 
   # Load modules for tests we have
@@ -251,11 +251,11 @@ def _test_build(build, buildindex):
   s.close()
 
   if gArgs.get('logdir'):
-    logfile = os.path.join(gArgs.get('logdir'), "%s.test.log" % (build.fullrev,))
+    logfile = os.path.join(gArgs.get('logdir'), "%s.test.log" % (fullrev,))
   else:
     logfile = None
   testinfo = {
-    'buildname': build.fullrev,
+    'buildname': fullrev,
     'binary': build.get_binary(),
     'buildtime': build.get_buildtime(),
     'sqlitedb': "slimtest.sqlite",
@@ -367,7 +367,7 @@ if __name__ == '__main__':
         write_status(statfile, running, pending, build)
       stat("Preparing build %u :: %s" % (buildnum, serialize_build(build)))
       if build.prepare():
-        run = pool.apply_async(test_build, [build, buildnum, args['hook']])
+        run = pool.apply_async(test_build, [build, buildnum, build.fullrev, args['hook']])
         run.build = build
         run.num = buildnum
         running.append(run)
