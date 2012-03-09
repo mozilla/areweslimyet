@@ -63,6 +63,7 @@ parser.add_argument('--no-pull', action='store_true', help="For build mode, don'
 parser.add_argument('--status-file', help="A file to keep a json-dump of the currently running job status in. This file is mv'd into place to avoid read/write issues")
 parser.add_argument('--status-resume', action='store_true', help="Resume any jobs still present in the status file. Useful for interrupted sessions")
 parser.add_argument('--skip-existing', action='store_true', help="Check the sqlite database and skip a build if it already has complete test data")
+parser.add_argument('--prioritize', action='store_true', help="For batch'd builds, insert at the beginning of the pending queue rather than the end")
 
 ##
 ##
@@ -377,7 +378,11 @@ if __name__ == '__main__':
       bcmd = get_queued_job(batchmode)
       if not bcmd: break
       try:
-        pending.extend(queue_builds(vars(parser.parse_args(shlex.split(bcmd)))))
+        bcmd = vars(parser.parse_args(shlex.split(bcmd)))
+        if bcmd['prioritize']
+          pending = queue_builds(bcmd) + pending
+        else:
+          pending.extend(queue_builds(bcmd))
       except SystemExit, e: # Don't let argparser actually exit on fail
         stat("Failed to parse batch file command: \"%s\"" % (bcmd,))
 
