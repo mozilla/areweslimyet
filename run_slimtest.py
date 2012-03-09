@@ -119,7 +119,7 @@ def check_builds(buildlist):
     # or can't be fully looked up
     buildlist = filter(lambda x: x.get_revision() and get_full_revision(x), buildlist)
     if gArgs.get('skip_existing') or args.get('skip_existing'):
-      buildlist = filter(lambda x: not is_queued(x), buildlist)
+      buildlist = filter(lambda x: not build_is_queued(x), buildlist)
       buildlist = filter(lambda x: not have_test_data(x), buildlist)
     return buildlist
     stat("Queued %u builds" % (len(buildlist),))
