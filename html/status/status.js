@@ -9,6 +9,13 @@
 
 "use strict";
 
+// Types in status.json
+var gStatusTypes = {
+  "running" : "Running tests",
+  "queued" : "In run queue",
+  "pending" : "Pending"
+}
+
 jQuery.new = function(e, attrs, css) {
   var ret = jQuery(document.createElement(e));
   if (attrs) ret.attr(attrs);
@@ -16,17 +23,35 @@ jQuery.new = function(e, attrs, css) {
   return ret;
 };
 
+function statusTable(rows) {
+  var ret = $.new('div', { class: 'statusTable' });
+  var titleRow = $.new('div', { class: 'statusRow title' });
+  $.new('div', { class: 'statusCell' }).text('type').appendTo(titleRow);
+  $.new('div', { class: 'statusCell' }).text('revision').appendTo(titleRow);
+  $.new('div', { class: 'statusCell' }).text('build timestamp').appendTo(titleRow);
+  ret.append(titleRow);
+
+  for (var i in rows) {
+    var build = rows[i];
+    var type = build['type'].charAt(0).toUpperCase() + build['type'].slice(1);
+    var link = "https://hg.mozilla.org/mozilla-central/rev/" + build['revision'].slice(0, 12);
+    var time = (new Date(build['timestamp']*1000)).toString();
+
+    var row = $.new('div', { class: 'statusRow' });
+    $.new('div', { class: 'statusCell' }).text(type).appendTo(row);
+    $.new('div', { class: 'statusCell' }).append($.new('a', { href: link }).text(build['revision'])).appendTo(row);
+    $.new('div', { class: 'statusCell' }).text(time).appendTo(row);
+    ret.append(row);
+  }
+  return ret;
+}
+
 function updateStatus(data) {
   $('#status').empty();
-  $('#status').text('(placeholder)');
-  $('#status').append($.new('pre', null,
-                            {
-                              'text-align': 'left',
-                              'width' : '500px',
-                              'margin': 'auto',
-                              'background-color': '#433',
-                              'padding': '15px'
-                            }).text(data));
+  for (var x in gStatusTypes) {
+    $('#status').append($.new('h2').text(gStatusTypes[x]))
+                .append(statusTable(data[x]));
+  }
 }
 
 function statusUpdater() {
@@ -35,7 +60,7 @@ function statusUpdater() {
     success: function (data) {
       updateStatus(data);
     },
-    dataType: 'text'
+    dataType: 'json'
   });
 }
 
