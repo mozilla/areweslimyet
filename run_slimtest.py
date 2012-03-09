@@ -188,6 +188,8 @@ def serialize_build(build):
   }
   if hasattr(build, 'started'):
     ret['started'] = build.started
+if hasattr(build, 'finished'):
+    ret['finished'] = build.finished
 
   if isinstance(build, BuildGetter.CompileBuild):
     ret['type'] = 'compile'
@@ -351,6 +353,7 @@ if __name__ == '__main__':
           stat("!! Build %u failed" % (task.num,))
           failed.append(task.build)
         task.build.cleanup()
+        task.build.finished = time.time()
         return False
       return True
     running = filter(clean, running)
