@@ -114,14 +114,33 @@ def build_is_queued(build):
     if type(x) == type(build) and x.get_revision() == build.get_revision():
       return True
   return False
-
+  
 def check_builds(buildlist):
+    def filter_unknown_builds(build):
+      global failed
+      if build.get_revision() and get_full_revision(build):
+        return True
+      else:
+        build.note = "Could not find revision information in repository"
+        failed.append(build)
+        return False
+
+    def filter_existing_builds(build):
+      global failed
+      if build_is_queued(build):
+        build.note = "Build is duplicate of already-queued build -- skipped";
+        failed.append(build)
+        return False
+      if have_test_data(build):
+        build.note = "Build has complete test data -- skipped";
+        failed.append(build)
+        return False
+      return True
     # Remove builds that have no revision (not found on ftp.m.o, usually)
     # or can't be fully looked up
-    buildlist = filter(lambda x: x.get_revision() and get_full_revision(x), buildlist)
+    buildlist = filter(filter_unknown_builds, buildlist)
     if gArgs.get('skip_existing') or args.get('skip_existing'):
-      buildlist = filter(lambda x: not build_is_queued(x), buildlist)
-      buildlist = filter(lambda x: not have_test_data(x), buildlist)
+      buildlist = filter(filter_existing_builds, buildlist)
     return buildlist
     stat("Queued %u builds" % (len(buildlist),))
 
