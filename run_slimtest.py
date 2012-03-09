@@ -287,10 +287,12 @@ def get_full_revision(build):
       return False
   return True
 
-def write_status(outfile, running, pending, preparing=None):
+def write_status(outfile, running, pending, completed, failed, preparing=None):
   status = {
             'starttime' : starttime,
             'pending' : map(serialize_build, pending),
+            'completed' : map(serialize_build, completed),
+            'failed' : map(serialize_build, failed),
             'running' : map(lambda x: serialize_build(x.build), running[:gArgs.get('processes')]),
             'queued' : map(lambda x: serialize_build(x.build), running[gArgs.get('processes'):])
           }
@@ -325,14 +327,16 @@ if __name__ == '__main__':
   buildnum = 0
   running = []
   pending = []
+  completed = []
+  failed = []
 
   batchmode = args.get('batch')
   if batchmode:
     if statfile and os.path.exists(statfile) and args.get('status_resume'):
       sf = open(statfile, 'r')
-      old_status = json.load(sf)
+      ostat = json.load(sf)
       sf.close()
-      pending.extend(deserialize_builds(old_status['running'] + old_status['queued'] + old_status['preparing'] +  old_status['pending']))
+      pending.extend(deserialize_builds(ostat['running'] + ostat['queued'] + ostat['preparing'] +  ostat['pending']))
   else:
     pending = queue_builds(args)
 
@@ -342,8 +346,10 @@ if __name__ == '__main__':
       if task.ready():
         if task.successful() and task.get():
           stat("Build %u finished" % (task.num,))
+          completed.append(task.build)
         else:
           stat("!! Build %u failed" % (task.num,))
+          failed.append(task.build)
         task.build.cleanup()
         return False
       return True
@@ -365,7 +371,7 @@ if __name__ == '__main__':
       build = pending[0]
       pending.remove(build)
       if statfile:
-        write_status(statfile, running, pending, build)
+        write_status(statfile, running, pending, completed, failed, build)
       stat("Preparing build %u :: %s" % (buildnum, serialize_build(build)))
       if build.prepare():
         run = pool.apply_async(test_build, [build, buildnum, build.fullrev, args['hook']])
@@ -383,7 +389,7 @@ if __name__ == '__main__':
     else:
       # Wait a little and repeat loop
       if statfile:
-        write_status(statfile, running, pending)
+        write_status(statfile, running, pending, completed, failed)
       time.sleep(5)
 
   stat("No more tasks exiting")
