@@ -19,6 +19,10 @@ var gStatusTypes = {
   "pending" : "Pending"
 }
 
+// Average test duration in minutes
+// for estimates on this page
+var gTestTime = 94;
+
 jQuery.new = function(e, attrs, css) {
   var ret = jQuery(document.createElement(e));
   if (attrs) ret.attr(attrs);
@@ -26,12 +30,35 @@ jQuery.new = function(e, attrs, css) {
   return ret;
 };
 
-function statusTable(rows) {
+function prettyEta(seconds) {
+  seconds = +seconds;
+  if (seconds < 0) return "any moment";
+  var minutes = Math.floor(seconds / 60);
+  var hours = Math.floor(minutes / 60);
+  var ret = "";
+  if (hours)
+    ret += (hours + "h");
+  if (minutes % 60)
+    ret += (ret.length ? ", " : "") + (minutes % 60) + "m";
+  if (!ret.length || seconds % 60)
+    ret += (ret.length ? ", " : "") + Math.round(seconds % 60) + "s";
+  return "~ " + ret;
+}
+
+function statusTable(rows, mode) {
   var ret = $.new('div', { class: 'statusTable' });
   var titleRow = $.new('div', { class: 'statusRow title' });
-  $.new('div', { class: 'statusCell' }).text('type').appendTo(titleRow);
-  $.new('div', { class: 'statusCell' }).text('revision').appendTo(titleRow);
-  $.new('div', { class: 'statusCell' }).text('build timestamp').appendTo(titleRow);
+
+  function cell(row, text) {
+    var ret = $.new('div', { class: 'statusCell' });
+    if (text) ret.text(text);
+    return ret.appendTo(row);
+  }
+  
+  cell(titleRow, 'type');
+  cell(titleRow, 'revision');
+  cell(titleRow, 'build timestamp');
+  if (mode == "eta") cell(titleRow, 'estimated end');
   ret.append(titleRow);
 
   for (var i in rows) {
@@ -41,9 +68,12 @@ function statusTable(rows) {
     var time = (new Date(build['timestamp']*1000)).toString();
 
     var row = $.new('div', { class: 'statusRow' });
-    $.new('div', { class: 'statusCell' }).text(type).appendTo(row);
-    $.new('div', { class: 'statusCell' }).append($.new('a', { href: link }).text(build['revision'])).appendTo(row);
-    $.new('div', { class: 'statusCell' }).text(time).appendTo(row);
+    cell(row, type);
+    cell(row).append($.new('a', { href: link }).text(build['revision']));
+    cell(row, time);
+    if (mode == "eta")
+      cell(row, prettyEta((build['started'] + gTestTime * 60) - (Date.now() / 1000)));
+    
     ret.append(row);
   }
   return ret;
@@ -53,10 +83,11 @@ function updateStatus(data) {
   $('#status').empty();
   for (var x in gStatusTypes) {
     if (!data[x]) continue;
+    var mode = x == "running" ? "eta" : null;
     var title = $.new('h2').text(gStatusTypes[x])
                  .append($.new('span', { class: 'small' }).text(' {' + data[x].length + '} '));;
     $('#status').append(title)
-                .append(statusTable(data[x]));
+                .append(statusTable(data[x], mode));
   }
 }
 
