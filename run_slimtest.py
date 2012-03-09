@@ -329,7 +329,7 @@ if __name__ == '__main__':
       sf = open(statfile, 'r')
       old_status = json.load(sf)
       sf.close()
-      pending.extend(deserialize_builds(old_status['running'] + old_status['queued'] + old_status['pending']))
+      pending.extend(deserialize_builds(old_status['running'] + old_status['queued'] + old_status['preparing'] +  old_status['pending']))
   else:
     pending = queue_builds(args)
 
