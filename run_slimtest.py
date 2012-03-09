@@ -379,7 +379,7 @@ if __name__ == '__main__':
       if not bcmd: break
       try:
         bcmd = vars(parser.parse_args(shlex.split(bcmd)))
-        if bcmd['prioritize']
+        if bcmd['prioritize']:
           pending = queue_builds(bcmd) + pending
         else:
           pending.extend(queue_builds(bcmd))
