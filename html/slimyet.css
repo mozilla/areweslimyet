@@ -50,6 +50,10 @@ a:visited {
   color: #AFA;
 }
 
+a:visited:hover {
+  color: #EFE;
+}
+
 .graph {
   width: 100%;
   height: 800px;
