@@ -71,6 +71,6 @@ function statusUpdater() {
 }
 
 $(function () {
-  window.setInterval(statusUpdater, 10000);
+  window.setInterval(statusUpdater, 1000);
   statusUpdater();
 });
