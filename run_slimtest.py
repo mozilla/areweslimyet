@@ -110,7 +110,7 @@ def have_test_data(build):
 def build_is_queued(build):
   global pending, running
   for x in running + pending:
-    if type(x) == type(build) && x.get_revision() == build.get_revision():
+    if type(x) == type(build) and x.get_revision() == build.get_revision():
       return True
   return False
 
