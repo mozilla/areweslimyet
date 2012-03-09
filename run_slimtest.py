@@ -106,11 +106,20 @@ def have_test_data(build):
   stat("Skipping build with test data: %s" % (build.fullrev,))
   return True
 
+# Builds that are in the pending/running list already
+def build_is_queued(build):
+  global pending, running
+  for x in running + pending:
+    if type(x) == type(build) && x.get_revision() == build.get_revision():
+      return True
+  return False
+
 def check_builds(buildlist):
     # Remove builds that have no revision (not found on ftp.m.o, usually)
     # or can't be fully looked up
     buildlist = filter(lambda x: x.get_revision() and get_full_revision(x), buildlist)
     if gArgs.get('skip_existing') or args.get('skip_existing'):
+      buildlist = filter(lambda x: not is_queued(x), buildlist)
       buildlist = filter(lambda x: not have_test_data(x), buildlist)
     return buildlist
     stat("Queued %u builds" % (len(buildlist),))
@@ -314,6 +323,8 @@ def write_status(outfile, running, pending, completed, failed, preparing=None):
 #
 
 if __name__ == '__main__':
+  # gArgs is the 'global args', which is different in batch processes than
+  # the per-job args
   gArgs = args = vars(parser.parse_args())
 
   if not gArgs.get('repo'):
@@ -327,7 +338,9 @@ if __name__ == '__main__':
   stat("Starting at %s with args \"%s\"" % (time.ctime(), sys.argv))
 
   pool = multiprocessing.Pool(processes=args['processes'], maxtasksperchild=1)
+
   buildnum = 0
+  # Note: These are accessed as globals in some places
   running = []
   pending = []
   completed = []
