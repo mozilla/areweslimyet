@@ -396,7 +396,8 @@ if __name__ == '__main__':
       time.sleep(5)
 
   stat("No more tasks exiting")
-  if os.path.exists(statfile): os.remove(statfile)
+  if statfile:
+    write_status(statfile, running, pending, completed, failed)
   pool.close()
   pool.join()  
 
