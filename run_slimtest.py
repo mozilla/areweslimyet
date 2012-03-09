@@ -188,7 +188,7 @@ def serialize_build(build):
   }
   if hasattr(build, 'started'):
     ret['started'] = build.started
-if hasattr(build, 'finished'):
+  if hasattr(build, 'finished'):
     ret['finished'] = build.finished
 
   if isinstance(build, BuildGetter.CompileBuild):
