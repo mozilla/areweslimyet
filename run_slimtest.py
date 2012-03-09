@@ -296,10 +296,10 @@ def write_status(outfile, running, pending, completed, failed, preparing=None):
             'completed' : map(serialize_build, completed),
             'failed' : map(serialize_build, failed),
             'running' : map(lambda x: serialize_build(x.build), running[:gArgs.get('processes')]),
-            'queued' : map(lambda x: serialize_build(x.build), running[gArgs.get('processes'):])
+            'queued' : map(lambda x: serialize_build(x.build), running[gArgs.get('processes'):]),
+            'preparing': []
           }
-  if preparing:
-    status['preparing'] = [ serialize_build(preparing) ]
+  status['preparing'].append(serialize_build(preparing))
   tempfile = os.path.join(os.path.dirname(statfile), ".%s" % os.path.basename(statfile))
   sf = open(tempfile, 'w')
   json.dump(status, sf, indent=2)
