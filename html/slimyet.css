@@ -81,6 +81,12 @@ a:visited {
   color: #FFF;
 }
 
+.small {
+  font-size: 50%;
+  color: #AAA;
+  font-weight: normal;
+}
+
 /*
  * Internal status page
  */

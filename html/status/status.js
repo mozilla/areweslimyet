@@ -12,6 +12,7 @@
 // Types in status.json
 var gStatusTypes = {
   "running" : "Running tests",
+  "preparing" : "Building",
   "queued" : "In run queue",
   "pending" : "Pending"
 }
@@ -49,7 +50,10 @@ function statusTable(rows) {
 function updateStatus(data) {
   $('#status').empty();
   for (var x in gStatusTypes) {
-    $('#status').append($.new('h2').text(gStatusTypes[x]))
+    if (!data[x]) continue;
+    var title = $.new('h2').text(gStatusTypes[x])
+                 .append($.new('span', { class: 'small' }).text(' {' + data[x].length + '} '));;
+    $('#status').append(title)
                 .append(statusTable(data[x]));
   }
 }
