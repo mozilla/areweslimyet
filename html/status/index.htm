@@ -16,6 +16,34 @@
 <body>
   <h1>Are we <span class="emph">slim</span> yet?</h1>
 
+  <h2>Request builds</h2>
+  <p class="note">Use this responsibly! Ask in #memshrink if uncertain.</p>
+  <form id="requestBuilds">
+    <div>
+      <select id="reqBuildType">
+        <option value="" selected="selected">Select</option>
+        <option value="nightly">Nightly build</option>
+        <option value="tinderbox">Tinderbox build (mozilla-central)</option>
+        <!-- <option value="compile">Custom build</option> -->
+      </select>
+      <input type="checkbox" value="multi" id="reqBuildMulti"></input><label for="reqBuildMulti"> Build range</label>
+      <input type="checkbox" value="multi" id="reqPriority"></input><label for="reqPriority"> Insert at front of queue</label>
+    </div>
+    <div id="reqNote" style="display: none;" class="note"></div>
+    <div id="reqStartBox" style="display: none;">
+      <span id="reqStartLabel" class="note"></span>
+      <input type="text" id="reqStartBuild"></input>
+    </div>
+    <div id="reqEndBox" style="display: none;">
+      <span id="reqEndLabel" class="note"></span>
+      <input type="text" id="reqEndBuild"></input>
+    </div>
+    <div id="reqSubmitbox" style="display: none;">
+      <input id="reqSubmit" type="submit" value="Queue &laquo; no turning back &raquo;"></input>
+      <br /><span class="note" id="reqError"></span>
+    </div>
+    
+  </form>
   <div id="status">
     <b class="loading">Loading...</b>
   </div>

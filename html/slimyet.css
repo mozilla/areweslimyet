@@ -85,11 +85,15 @@ a:visited:hover {
   color: #FFF;
 }
 
-.small {
-  font-size: 50%;
+.note, .small {
   color: #AAA;
   font-weight: normal;
 }
+
+.note { font-size: 80%; }
+.small { font-size: 50%; }
+.error { color: #D99; }
+.success { color: #9D9; }
 
 /*
  * Internal status page
@@ -116,6 +120,11 @@ a:visited:hover {
 .statusRow.title {
   font-weight: bold;
   background-color: rgba(255, 255, 255, 0.05);
+}
+
+#reqNote { padding: 10px; }
+#requestBuilds input {
+  margin: 5px;
 }
 
 /*
