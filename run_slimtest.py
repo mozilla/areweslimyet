@@ -21,7 +21,6 @@ import json
 
 sys.path.append(os.path.abspath("benchtester"))
 import BuildGetter
-import BenchTester
 
 AreWeSlimYetTests = {
   "Slimtest-TalosTP5":
@@ -235,6 +234,7 @@ def test_build(build, buildnum, fullrev, hook=None):
   return ret
   
 def _test_build(build, buildindex, fullrev):
+  import BenchTester
   tester = BenchTester.BenchTester()
 
   # Load modules for tests we have
@@ -326,7 +326,7 @@ if __name__ == '__main__':
 
   stat("Starting at %s with args \"%s\"" % (time.ctime(), sys.argv))
 
-  pool = multiprocessing.Pool(processes=args['processes'])
+  pool = multiprocessing.Pool(processes=args['processes'], maxtasksperchild=1)
   buildnum = 0
   running = []
   pending = []
