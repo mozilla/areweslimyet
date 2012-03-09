@@ -14,6 +14,8 @@ var gStatusTypes = {
   "running" : "Running tests",
   "preparing" : "Building",
   "queued" : "In run queue",
+  "completed" : "Recently completed",
+  "failed" : "Recently failed",
   "pending" : "Pending"
 }
 
