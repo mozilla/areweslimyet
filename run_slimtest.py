@@ -288,7 +288,8 @@ def write_status(outfile, running, pending, preparing=None):
   status = {
             'starttime' : starttime,
             'pending' : map(serialize_build, pending),
-            'running' : map(lambda x: serialize_build(x.build), running)
+            'running' : map(lambda x: serialize_build(x.build), running[:gArgs.get('processes')]),
+            'queued' : map(lambda x: serialize_build(x.build), running[gArgs.get('processes'):])
           }
   if preparing:
     status['preparing'] = serialize_build(preparing)
@@ -328,7 +329,7 @@ if __name__ == '__main__':
       sf = open(statfile, 'r')
       old_status = json.load(sf)
       sf.close()
-      pending.extend(deserialize_builds(old_status['running'] + old_status['pending']))
+      pending.extend(deserialize_builds(old_status['running'] + old_status['queued'] + old_status['pending']))
   else:
     pending = queue_builds(args)
 
