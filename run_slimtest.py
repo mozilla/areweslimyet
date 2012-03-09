@@ -224,7 +224,7 @@ def test_build(build, buildnum, fullrev, hook=None):
       mod.before(build, buildnum)
     ret = _test_build(build, buildnum, fullrev)
   except (Exception, KeyboardInterrupt) as e:
-    print("Test worker encountered an exception:\n%s :: %s" % (type(e), e))
+    stat("Test worker encountered an exception:\n%s :: %s" % (type(e), e))
     ret = False
 
   if mod:
