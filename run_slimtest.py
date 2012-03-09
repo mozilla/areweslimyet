@@ -186,6 +186,9 @@ def serialize_build(build):
     'timestamp' : build.get_buildtime(),
     'revision' : build.fullrev
   }
+  if hasattr(build, 'started'):
+    ret['started'] = build.started
+
   if isinstance(build, BuildGetter.CompileBuild):
     ret['type'] = 'compile'
   elif isinstance(build, BuildGetter.TinderboxBuild):
@@ -368,6 +371,7 @@ if __name__ == '__main__':
         run = pool.apply_async(test_build, [build, buildnum, build.fullrev, args['hook']])
         run.build = build
         run.num = buildnum
+        run.build.started = time.time()
         running.append(run)
       else:
         stat("!! Failed to prepare build %u" % (buildnum,))
