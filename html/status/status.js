@@ -56,9 +56,9 @@ function statusTable(rows, mode) {
   }
 
   if (mode == "batches") {
+    cell(titleRow, 'when');
     cell(titleRow, 'command');
     cell(titleRow, 'result');
-    cell(titleRow, 'at');
   } else {
     cell(titleRow, 'type');
     cell(titleRow, 'revision');
@@ -69,19 +69,18 @@ function statusTable(rows, mode) {
   ret.append(titleRow);
 
   for (var i in rows) {
-    var row;
+    var row = $.new('div', { class: 'statusRow' });
     if (mode == "batches") {
       var batch = rows[i];
+      cell(row, (new Date(+batch['processed'] * 1000)).toString());
       cell(row, batch['command']);
       cell(row, batch['result']);
-      cell(row, (new Date(+batch['processed'] * 1000)).toString());
     } else {
       var build = rows[i];
       var type = build['type'].charAt(0).toUpperCase() + build['type'].slice(1);
       var link = "https://hg.mozilla.org/mozilla-central/rev/" + build['revision'].slice(0, 12);
       var time = (new Date(build['timestamp']*1000)).toString();
 
-      var row = $.new('div', { class: 'statusRow' });
       cell(row, type);
       cell(row).append($.new('a', { href: link }).text(build['revision']));
       cell(row, time);
