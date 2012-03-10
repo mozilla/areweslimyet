@@ -54,29 +54,42 @@ function statusTable(rows, mode) {
     if (content) ret.html(content);
     return ret.appendTo(row);
   }
-  
-  cell(titleRow, 'type');
-  cell(titleRow, 'revision');
-  cell(titleRow, 'build timestamp');
-  if (mode == "eta") cell(titleRow, 'estimated end');
-  else if (mode == "note") cell(titleRow, 'note');
+
+  if (mode == "batches") {
+    cell(titleRow, 'command');
+    cell(titleRow, 'result');
+    cell(titleRow, 'at');
+  } else {
+    cell(titleRow, 'type');
+    cell(titleRow, 'revision');
+    cell(titleRow, 'build timestamp');
+    if (mode == "eta") cell(titleRow, 'estimated end');
+    else if (mode == "note") cell(titleRow, 'note');
+  }
   ret.append(titleRow);
 
   for (var i in rows) {
-    var build = rows[i];
-    var type = build['type'].charAt(0).toUpperCase() + build['type'].slice(1);
-    var link = "https://hg.mozilla.org/mozilla-central/rev/" + build['revision'].slice(0, 12);
-    var time = (new Date(build['timestamp']*1000)).toString();
+    var row;
+    if (mode == "batches") {
+      var batch = rows[i];
+      cell(row, batch['command']);
+      cell(row, batch['result']);
+      cell(row, (new Date(+batch['processed'] * 1000)).toString());
+    } else {
+      var build = rows[i];
+      var type = build['type'].charAt(0).toUpperCase() + build['type'].slice(1);
+      var link = "https://hg.mozilla.org/mozilla-central/rev/" + build['revision'].slice(0, 12);
+      var time = (new Date(build['timestamp']*1000)).toString();
 
-    var row = $.new('div', { class: 'statusRow' });
-    cell(row, type);
-    cell(row).append($.new('a', { href: link }).text(build['revision']));
-    cell(row, time);
-    if (mode == "eta")
-      cell(row, prettyEta((build['started'] + gTestTime * 60) - (Date.now() / 1000)));
-    else if (mode == "note")
-      cell(row, build['note'] ? build['note'] : '<i class="small">none</i>');
-    
+      var row = $.new('div', { class: 'statusRow' });
+      cell(row, type);
+      cell(row).append($.new('a', { href: link }).text(build['revision']));
+      cell(row, time);
+      if (mode == "eta")
+        cell(row, prettyEta((build['started'] + gTestTime * 60) - (Date.now() / 1000)));
+      else if (mode == "note")
+        cell(row, build['note'] ? build['note'] : '<i class="small">none</i>');
+    }
     ret.append(row);
   }
   return ret;
@@ -84,6 +97,8 @@ function statusTable(rows, mode) {
 
 function updateStatus(data) {
   $('#status').empty();
+  $('#status').append($.new('h2').text("Recent Batches"));
+  $('#status').append(statusTable(data['batches'], 'batches'));
   for (var x in gStatusTypes) {
     if (!data[x] || !data[x].length) continue;
     var mode = null;
