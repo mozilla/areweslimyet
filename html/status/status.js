@@ -177,7 +177,7 @@ $(function () {
     if (mode == "tinderbox" && multi) {
       start = dParse(start);
       end = dParse(end);
-      if (isNaN(start) || isNaN(end)) return False;
+      if (isNaN(start) || isNaN(end)) return false;
     }
     
     var args = { 'mode': mode, 'startbuild': start };
