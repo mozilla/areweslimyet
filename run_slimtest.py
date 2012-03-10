@@ -349,6 +349,9 @@ def write_status(outfile, running, pending, completed, failed, preparing=None):
 #
 
 if __name__ == '__main__':
+  def make_pool():
+    return multiprocessing.Pool(processes=args['processes'], maxtasksperchild=1)
+
   # gArgs is the 'global args', which is different in batch processes than
   # the per-job args
   gArgs = args = vars(parser.parse_args())
@@ -363,7 +366,7 @@ if __name__ == '__main__':
 
   stat("Starting at %s with args \"%s\"" % (time.ctime(), sys.argv))
 
-  pool = multiprocessing.Pool(processes=args['processes'], maxtasksperchild=1)
+  pool = make_pool()
 
   buildnum = 0
   # Note: These are accessed as globals in some places
@@ -432,7 +435,16 @@ if __name__ == '__main__':
    
     if len(running) + len(pending) == 0:
       # out of things to do
-      break
+      if batchmode:
+        if buildnum > 0:
+          stat("All tasks complete. Resetting")
+          # Reset buildnum when empty to keep it from getting too large
+          # (it affects vnc display # and such, which isn't infinite)
+          buildnum = 0
+        else:
+          time.sleep(10)
+      else:
+        break
     else:
       # Wait a little and repeat loop
       if statfile:
@@ -443,5 +455,4 @@ if __name__ == '__main__':
   if statfile:
     write_status(statfile, running, pending, completed, failed)
   pool.close()
-  pool.join()  
-
+  pool.join()
