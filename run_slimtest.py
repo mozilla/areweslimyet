@@ -418,7 +418,7 @@ if __name__ == '__main__':
       try:
         bcmd = vars(parser.parse_args(shlex.split(rcmd)))
       except SystemExit, e: # Don't let argparser actually exit on fail
-        stat("Failed to parse batch file command: \"%s\"" % (bcmd,))
+        stat("Failed to parse batch file command: \"%s\"" % (rcmd,))
         ret = "Failed to parse arguments"
       if bcmd:
         try:
