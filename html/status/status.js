@@ -100,7 +100,7 @@ function updateStatus(data) {
 
 function statusUpdater() {
   $.ajax({
-    url: './status.json',
+    url: './status.json?time=' + Date.now(),
     success: function (data) {
       updateStatus(data);
     },
