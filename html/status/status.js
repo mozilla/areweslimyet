@@ -49,9 +49,9 @@ function statusTable(rows, mode) {
   var ret = $.new('div', { class: 'statusTable' });
   var titleRow = $.new('div', { class: 'statusRow title' });
 
-  function cell(row, text) {
+  function cell(row, content) {
     var ret = $.new('div', { class: 'statusCell' });
-    if (text) ret.text(text);
+    if (content) ret.html(content);
     return ret.appendTo(row);
   }
   
