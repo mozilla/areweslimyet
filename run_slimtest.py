@@ -212,6 +212,8 @@ def serialize_build(build):
     'timestamp' : build.get_buildtime(),
     'revision' : build.fullrev
   }
+  if hasattr(build, 'note'):
+    ret['note'] = build.note
   if hasattr(build, 'started'):
     ret['started'] = build.started
   if hasattr(build, 'finished'):
