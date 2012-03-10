@@ -117,23 +117,21 @@ def build_is_queued(build):
   
 def check_builds(buildlist):
     def filter_unknown_builds(build):
-      global failed
       if build.get_revision() and get_full_revision(build):
         return True
       else:
         build.note = "Could not find revision information in repository"
-        failed.append(build)
+        do_complete(build, True)
         return False
 
     def filter_existing_builds(build):
-      global failed
       if build_is_queued(build):
         build.note = "Build is duplicate of already-queued build -- skipped";
-        failed.append(build)
+        do_complete(build, True)
         return False
       if have_test_data(build):
         build.note = "Build has complete test data -- skipped";
-        failed.append(build)
+        do_complete(build, True)
         return False
       return True
     # Remove builds that have no revision (not found on ftp.m.o, usually)
@@ -305,6 +303,14 @@ def _test_build(build, buildindex, fullrev):
   
   return True
 
+def do_complete(build, fail=False):
+  global failed, completed
+  build.completed = time.time()
+  if fail:
+    failed.append(build)
+  else:
+    completed.append(build)
+  
 def get_full_revision(build):
   build.fullrev = build.get_revision()
   if len(build.fullrev) < 40:
@@ -382,10 +388,10 @@ if __name__ == '__main__':
       if task.ready():
         if task.successful() and task.get():
           stat("Build %u finished" % (task.num,))
-          completed.append(task.build)
+          do_complete(task.build)
         else:
           stat("!! Build %u failed" % (task.num,))
-          failed.append(task.build)
+          do_complete(task.build, True)
         task.build.cleanup()
         task.build.finished = time.time()
         return False
