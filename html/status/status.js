@@ -214,6 +214,7 @@ $(function () {
           e.addClass('success');
           e.html("Request succeeded. It may take a few minutes for it to appear here.<br />(Caveat: If a build is in progress, new requests arn't parsed until it is complete.)");
           $('#reqBuildType option:first').prop('selected', true);
+          $('#reqBuildType').change();
         } else {
           e.addClass('error');
           e.text("Error: " + data['error']);
