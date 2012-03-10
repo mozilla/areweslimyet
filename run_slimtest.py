@@ -121,6 +121,7 @@ def check_builds(buildlist):
         return True
       else:
         build.note = "Could not find revision information in repository"
+        build.fullrev = "unknown"
         do_complete(build, True)
         return False
 
