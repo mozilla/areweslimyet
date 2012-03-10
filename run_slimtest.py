@@ -395,7 +395,7 @@ if __name__ == '__main__':
     def clean(task):
       if task.ready():
         taskresult = task.get() if task.successful() else False
-        if taskresult === True:
+        if taskresult is True:
           stat("Build %u finished" % (task.num,))
           do_complete(task.build)
         else:
