@@ -85,7 +85,7 @@ function statusTable(rows, mode) {
 function updateStatus(data) {
   $('#status').empty();
   for (var x in gStatusTypes) {
-    if (!data[x]) continue;
+    if (!data[x] || !data[x].length) continue;
     var mode = null;
     
     if (x == "running") mode = "eta";
