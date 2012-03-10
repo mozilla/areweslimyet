@@ -423,12 +423,13 @@ if __name__ == '__main__':
         ret = "Failed to parse arguments"
       if bcmd:
         try:
+          previously_failed = len(failed)
           newbuilds = queue_builds(bcmd)
           if bcmd['prioritize']:
             pending = newbuilds + pending
           else:
             pending.extend(newbuilds)
-          ret = "Queued %u builds" % (len(newbuilds),)
+          ret = "Queued %u builds, %u skipped (see recently failed builds)" % (len(newbuilds), len(failed) - previously_failed)
         except Exception, e:
           ret = "Queuing builds triggered exception %s: %s" % (type(e), e)
       batches.append({ 'command': rcmd, 'result' : ret, 'processed' : time.time() })
