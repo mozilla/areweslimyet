@@ -329,7 +329,8 @@ def get_full_revision(build):
       return False
   return True
 
-def write_status(outfile, running, pending, completed, failed, preparing=None):
+def write_status(outfile, preparing=None):
+  global pending, completed, failed, running, batches
   status = {
             'starttime' : starttime,
             'pending' : map(serialize_build, pending),
@@ -337,7 +338,8 @@ def write_status(outfile, running, pending, completed, failed, preparing=None):
             'failed' : map(serialize_build, failed),
             'running' : map(lambda x: serialize_build(x.build), running[:gArgs.get('processes')]),
             'queued' : map(lambda x: serialize_build(x.build), running[gArgs.get('processes'):]),
-            'preparing': []
+            'preparing': [],
+            'batches' : batches
           }
   if preparing:
     status['preparing'].append(serialize_build(preparing))
@@ -379,6 +381,7 @@ if __name__ == '__main__':
   pending = []
   completed = []
   failed = []
+  batches = []
 
   batchmode = args.get('batch')
   if batchmode:
@@ -409,16 +412,26 @@ if __name__ == '__main__':
 
     # Read any pending jobs if we're in batchmode
     while batchmode:
-      bcmd = get_queued_job(batchmode)
-      if not bcmd: break
+      bcmd = None
+      rcmd = get_queued_job(batchmode)
+      if not rcmd: break
       try:
-        bcmd = vars(parser.parse_args(shlex.split(bcmd)))
-        if bcmd['prioritize']:
-          pending = queue_builds(bcmd) + pending
-        else:
-          pending.extend(queue_builds(bcmd))
+        bcmd = vars(parser.parse_args(shlex.split(rcmd)))
       except SystemExit, e: # Don't let argparser actually exit on fail
         stat("Failed to parse batch file command: \"%s\"" % (bcmd,))
+        ret = "Failed to parse arguments"
+      if bcmd:
+        try:
+          newbuilds = queue_builds(bcmd)
+          if bcmd['prioritize']:
+            pending = newbuilds + pending
+          else:
+            pending.extend(newbuilds)
+          ret = "Queued %u builds" % (len(newbuilds),)
+        except Exception, e:
+          ret = "Parsing triggered exception %s: %s" % (type(e), e)
+      batches.append({ 'command': rcmd, 'result' : ret, 'processed' : time.time() })
+
 
     # Prepare pending builds and put them in the run pool, but not more than
     # max + 10, as prepared builds takeup space (hundreds of queued builds would
@@ -427,7 +440,7 @@ if __name__ == '__main__':
       build = pending[0]
       pending.remove(build)
       if statfile:
-        write_status(statfile, running, pending, completed, failed, build)
+        write_status(statfile, build)
       stat("Preparing build %u :: %s" % (buildnum, serialize_build(build)))
       if build.prepare():
         run = pool.apply_async(test_build, [build, buildnum, build.fullrev, args['hook']])
@@ -438,7 +451,9 @@ if __name__ == '__main__':
       else:
         stat("!! Failed to prepare build %u" % (buildnum,))
       buildnum += 1
-   
+
+    if statfile:
+        write_status(statfile)
     if len(running) + len(pending) == 0:
       # out of things to do
       if batchmode:
@@ -450,18 +465,17 @@ if __name__ == '__main__':
           # Remove items older than 1 day from these lists
           completed = filter(lambda x: (x.completed + 60 * 60 * 24) > time.time(), completed)
           failed = filter(lambda x: (x.completed + 60 * 60 * 24) > time.time(), failed)
+          batches = filter(lambda x: (x.processed + 60 * 60 * 24) > time.time(), batches)
         else:
           time.sleep(10)
       else:
         break
     else:
       # Wait a little and repeat loop
-      if statfile:
-        write_status(statfile, running, pending, completed, failed)
       time.sleep(5)
 
   stat("No more tasks exiting")
   if statfile:
-    write_status(statfile, running, pending, completed, failed)
+    write_status(statfile)
   pool.close()
   pool.join()
