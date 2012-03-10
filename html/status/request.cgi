@@ -34,7 +34,7 @@ def main():
   if invalid.match(start) or (end and invalid.match(end)):
     error("Invalid input")
 
-  ret = "--mode \"%s\" --startbuild \"%s\"" % (mode, start)
+  ret = "--mode \"%s\" --firstbuild \"%s\"" % (mode, start)
   if end:
     ret = "%s --lastbuild \"%s\"" % (ret, end)
   if prioritize:
@@ -42,7 +42,7 @@ def main():
 
   reqname = "%s.webrequest" % int(time.time())
   f = open(os.path.join("batch", reqname), 'w')
-  f.write("%s\n" % (ret,))
+  f.write("%s" % (ret,))
   f.close()
   finish({ 'result': 'success', 'reqname': reqname })
   
