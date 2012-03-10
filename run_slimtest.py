@@ -442,6 +442,9 @@ if __name__ == '__main__':
           # Reset buildnum when empty to keep it from getting too large
           # (it affects vnc display # and such, which isn't infinite)
           buildnum = 0
+          # Remove items older than 1 day from these lists
+          completed = filter(lambda x: (x.completed + 60 * 60 * 24) > time.time(), completed)
+          failed = filter(lambda x: (x.completed + 60 * 60 * 24) > time.time(), failed)
         else:
           time.sleep(10)
       else:
