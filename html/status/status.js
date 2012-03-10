@@ -129,7 +129,7 @@ $(function () {
       }
     } else if (val == "tinderbox") {
       if (multi) {
-        note.text("Build Tinderbox builds between two date ranges. Dates are of format \"Jan 5th 2012\" or \"Jan 5th 2012 4:00 pm\"");
+        note.text("Build Tinderbox builds between two date ranges. Dates are of format \"Jan 5 2012\" or \"Jan 5 2012 4:00 pm\"");
         label.html("Builds starting at");
         elabel.text("And ending at");
       } else {
@@ -198,7 +198,7 @@ $(function () {
         $('#reqSubmit').prop('disabled', false);
         if (data['result'] == 'success') {
           e.addClass('success');
-          e.text("Request succeeded. It may take a few minutes for it to appear here. (Note: If a build is in progress, new requests arn't parsed until it is complete.)");
+          e.html("Request succeeded. It may take a few minutes for it to appear here.<br />(Caveat: If a build is in progress, new requests arn't parsed until it is complete.)");
         } else {
           e.addClass('error');
           e.text("Error: " + data['error']);
