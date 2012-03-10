@@ -253,8 +253,9 @@ def test_build(build, buildnum, fullrev, hook=None):
       mod.before(build, buildnum)
     ret = _test_build(build, buildnum, fullrev)
   except (Exception, KeyboardInterrupt) as e:
-    stat("Test worker encountered an exception:\n%s :: %s" % (type(e), e))
-    ret = False
+    err = "Test worker encountered an exception:\n%s :: %s" % (type(e), e)
+    stat(err)
+    ret = err
 
   if mod:
     try:
@@ -269,8 +270,9 @@ def _test_build(build, buildindex, fullrev):
   # Load modules for tests we have
   for test in AreWeSlimYetTests.values():
     if not tester.load_module(test['type']):
-      stat("Could not load module %s" % (test['type'],))
-      return False
+      err = "Could not load module %s" % (test['type'],)
+      stat(err)
+      return err
   
   # Setup tester
   # TODO BenchTester should actually dynamically pick a free port, rather than
@@ -300,8 +302,9 @@ def _test_build(build, buildindex, fullrev):
   # Run tests
   for testname, testinfo in AreWeSlimYetTests.items():
     if not tester.run_test(testname, testinfo['type'], testinfo['vars']):
-      stat("SlimTest: Failed at test %s\n" % testname)
-      return False
+      err = "SlimTest: Failed at test %s\n" % testname
+      stat(err)
+      return err
   
   return True
 
@@ -391,11 +394,13 @@ if __name__ == '__main__':
     # Clean up finished builds
     def clean(task):
       if task.ready():
-        if task.successful() and task.get():
+        taskresult = task.get() if task.successful() else False
+        if taskresult === True:
           stat("Build %u finished" % (task.num,))
           do_complete(task.build)
         else:
           stat("!! Build %u failed" % (task.num,))
+          task.build.note = "Task returned error %s" % (taskresult,)
           do_complete(task.build, True)
         task.build.cleanup()
         return False
