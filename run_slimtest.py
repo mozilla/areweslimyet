@@ -120,8 +120,11 @@ def check_builds(buildlist):
       if build.get_revision() and get_full_revision(build):
         return True
       else:
-        build.note = "Could not find revision information in repository"
-        build.fullrev = "unknown"
+        if hasattr(build, "fullrev"):
+          build.note = "Error looking up build information"
+        else:
+          build.note = "Failed to get build information from repository"
+          build.fullrev = "unknown"
         do_complete(build, True)
         return False
 
