@@ -430,7 +430,7 @@ if __name__ == '__main__':
             pending.extend(newbuilds)
           ret = "Queued %u builds" % (len(newbuilds),)
         except Exception, e:
-          ret = "Parsing triggered exception %s: %s" % (type(e), e)
+          ret = "Queuing builds triggered exception %s: %s" % (type(e), e)
       batches.append({ 'command': rcmd, 'result' : ret, 'processed' : time.time() })
 
 
