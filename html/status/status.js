@@ -59,6 +59,7 @@ function statusTable(rows, mode) {
   cell(titleRow, 'revision');
   cell(titleRow, 'build timestamp');
   if (mode == "eta") cell(titleRow, 'estimated end');
+  else if (mode == "note") cell(titleRow, 'note');
   ret.append(titleRow);
 
   for (var i in rows) {
@@ -73,6 +74,8 @@ function statusTable(rows, mode) {
     cell(row, time);
     if (mode == "eta")
       cell(row, prettyEta((build['started'] + gTestTime * 60) - (Date.now() / 1000)));
+    else if (mode == "note")
+      cell(row, build['note'] ? build['note'] : '<i class="small">none</i>');
     
     ret.append(row);
   }
@@ -83,7 +86,11 @@ function updateStatus(data) {
   $('#status').empty();
   for (var x in gStatusTypes) {
     if (!data[x]) continue;
-    var mode = x == "running" ? "eta" : null;
+    var mode = null;
+    
+    if (x == "running") mode = "eta";
+    else if (x == "completed" || x == "failed") mode = "note";
+    
     var title = $.new('h2').text(gStatusTypes[x])
                  .append($.new('span', { class: 'small' }).text(' {' + data[x].length + '} '));;
     $('#status').append(title)
