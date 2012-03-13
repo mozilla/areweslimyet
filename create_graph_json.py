@@ -117,6 +117,89 @@ gSeries = {
       # Brief period in may 2011 before heap-used became explicit
       "Iteration 5/TabsOpenSettled/heap-used/images"
     ],
+  },
+  ##
+  ## Slimtest-TalosTP5-Slow
+  ##
+  "MaxMemoryV2" : {
+    "test": "Slimtest-TalosTP5-Slow",
+    "datapoint": "Iteration 5/TabsOpen/explicit"
+  },
+  "MaxMemorySettledV2" : {
+    "test": "Slimtest-TalosTP5-Slow",
+    "datapoint": "Iteration 5/TabsOpenSettled/explicit"
+  },
+  "MaxMemoryForceGCV2" : {
+    "test": "Slimtest-TalosTP5-Slow",
+    "datapoint": "Iteration 5/TabsOpenForceGC/explicit"
+  },
+  "MaxMemoryResidentV2" : {
+    "test": "Slimtest-TalosTP5-Slow",
+    "datapoint": "Iteration 5/TabsOpen/resident"
+  },
+  "MaxMemoryResidentSettledV2" : {
+    "test": "Slimtest-TalosTP5-Slow",
+    "datapoint": "Iteration 5/TabsOpenSettled/resident"
+  },
+  "MaxMemoryResidentForceGCV2" : {
+    "test": "Slimtest-TalosTP5-Slow",
+    "datapoint": "Iteration 5/TabsOpenForceGC/resident"
+  },
+  "StartMemoryV2" : {
+    "test": "Slimtest-TalosTP5-Slow",
+    "datapoint": "Iteration 1/Start/explicit"
+  },
+  "StartMemoryResidentV2" : {
+    "test": "Slimtest-TalosTP5-Slow",
+    "datapoint": "Iteration 1/Start/resident"
+  },
+  "StartMemorySettledV2" : {
+    "test": "Slimtest-TalosTP5-Slow",
+    "datapoint": "Iteration 1/StartSettled/explicit"
+  },
+  "StartMemoryResidentSettledV2" : {
+    "test": "Slimtest-TalosTP5-Slow",
+    "datapoint": "Iteration 1/StartSettled/resident"
+  },
+  "EndMemoryV2" : {
+    "test": "Slimtest-TalosTP5-Slow",
+    "datapoint": "Iteration 5/TabsClosed/explicit"
+  },
+  "EndMemoryResidentV2" : {
+    "test": "Slimtest-TalosTP5-Slow",
+    "datapoint": "Iteration 5/TabsClosed/resident"
+  },
+  "EndMemorySettledV2" : {
+    "test": "Slimtest-TalosTP5-Slow",
+    "datapoint": "Iteration 5/TabsClosedSettled/explicit"
+  },
+  "EndMemoryResidentSettledV2" : {
+    "test": "Slimtest-TalosTP5-Slow",
+    "datapoint": "Iteration 5/TabsClosedSettled/resident"
+  },
+  "MaxHeapUnclassifiedV2" : {
+    "test": "Slimtest-TalosTP5-Slow",
+    "datapoint": "Iteration 5/TabsOpenSettled/explicit/heap-unclassified",
+  },
+  "MaxJSV2" : {
+    "test": "Slimtest-TalosTP5-Slow",
+    "datapoint": [
+      "Iteration 5/TabsOpenSettled/explicit/js",
+      # Old ~FF4 reporters
+      "Iteration 5/TabsOpenSettled/js",
+      # Brief period in may 2011 before heap-used became explicit
+      "Iteration 5/TabsOpenSettled/heap-used/js"
+    ],
+  },
+  "MaxImagesV2" : {
+    "test": "Slimtest-TalosTP5-Slow",
+    "datapoint": [
+      "Iteration 5/TabsOpenSettled/explicit/images",
+      # Old ~FF4 reporters
+      "Iteration 5/TabsOpenSettled/images",
+      # Brief period in may 2011 before heap-used became explicit
+      "Iteration 5/TabsOpenSettled/heap-used/images"
+    ],
   }
 }
 
