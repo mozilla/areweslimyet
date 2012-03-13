@@ -19,6 +19,24 @@ jQuery.new = function(e, attrs, css) {
 // Which series from series.json to graph where with what label
 var gSeries = {
   "Resident Memory" : {
+    'MaxMemoryResidentV2' : "TP5 opened in 30 tabs",
+    'MaxMemoryResidentSettledV2' : "TP5 opened in 30 tabs [+30s]",
+    'MaxMemoryResidentForceGCV2' : "TP5 opened in 30 tabs [+30s, forced GC]",
+    'StartMemoryResidentV2' : "Fresh start",
+    'StartMemoryResidentSettledV2' : "Fresh start [+30s]",
+    'EndMemoryResidentV2' : "Tabs closed",
+    'EndMemoryResidentSettledV2' : "Tabs closed [+30s]"
+  },
+  "Explicit Memory" : {
+    'MaxMemoryV2' : "TP5 opened in 30 tabs",
+    'MaxMemorySettledV2' : "TP5 opened in 30 tabs [+30s]",
+    'MaxMemoryForceGCV2' : "TP5 opened in 30 tabs [+30s, forced GC]",
+    'StartMemoryV2' : "Fresh start",
+    'StartMemorySettledV2' : "Fresh start [+30s]",
+    'EndMemoryV2' : "Tabs closed",
+    'EndMemorySettledV2' : "Tabs closed [+30s]"
+  },
+  "All-At-Once Test :: Resident Memory" : {
     'MaxMemoryResident' : "TP5 opened in 30 tabs",
     'MaxMemoryResidentSettled' : "TP5 opened in 30 tabs [+30s]",
     'MaxMemoryResidentForceGC' : "TP5 opened in 30 tabs [+30s, forced GC]",
@@ -27,7 +45,7 @@ var gSeries = {
     'EndMemoryResident' : "Tabs closed",
     'EndMemoryResidentSettled' : "Tabs closed [+30s]"
   },
-  "Explicit Memory" : {
+  "All-At-Once Test :: Explicit Memory" : {
     'MaxMemory' : "TP5 opened in 30 tabs",
     'MaxMemorySettled' : "TP5 opened in 30 tabs [+30s]",
     'MaxMemoryForceGC' : "TP5 opened in 30 tabs [+30s, forced GC]",
@@ -37,9 +55,9 @@ var gSeries = {
     'EndMemorySettled' : "Tabs closed [+30s]"
   },
   "Possibly Interesting Things" : {
-    'MaxHeapUnclassified' : "Heap Unclassified @ TP5 opened in 30 tabs [+30s]",
-    'MaxJS' : "JS @ TP5 opened in 30 tabs [+30s]",
-    'MaxImages' : "Images @ TP5 opened in 30 tabs [+30s]"
+    'MaxHeapUnclassifiedV2' : "Heap Unclassified @ TP5 opened in 30 tabs [+30s]",
+    'MaxJSV2' : "JS @ TP5 opened in 30 tabs [+30s]",
+    'MaxImagesV2' : "Images @ TP5 opened in 30 tabs [+30s]"
   }
 };
 
