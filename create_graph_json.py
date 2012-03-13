@@ -27,7 +27,11 @@ gTests = {
   "Slimtest-TalosTP5" : {
     "nodeize" : "/",
     "dump" : True
-  }
+  },
+  "Slimtest-TalosTP5-Slow" : {
+    "nodeize" : "/",
+    "dump" : True
+  },
 }
 
 # Series to generate plot-lines for.
