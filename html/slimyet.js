@@ -161,14 +161,15 @@ function renderMemoryTree(target, data, select, depth) {
   }
   
   function defval(obj) {
-    return obj['_val'] !== undefined ? obj['_val']
-           : (obj['_sum'] !== undefined ? obj['_sum'] : null);
+    if (typeof(obj) == 'number')
+      return obj
+    return obj['_val'] == undefined ? null : obj['_val'];
   }
   
   // Sort nodes
   var rows = [];
   for (var node in data) {
-    if (node == '_val' || node == '_sum')
+    if (node == '_val')
       continue;
     rows.push(node);
   }
@@ -188,6 +189,7 @@ function renderMemoryTree(target, data, select, depth) {
   var parentval = defval(data);
   var node;
   while (node = rows.shift()) {
+    var leaf = typeof(data[node]) == 'number';
     var treeNode = $.new('div')
                     .addClass('treeNode')
                     .data('nodeData', data[node])
@@ -213,13 +215,14 @@ function renderMemoryTree(target, data, select, depth) {
     }
     
     // Add label
-    var title = node, subtitle;
+    var title = node;
+    var subtitle;
     if (subtitle = /^(.+)\((.+)\)$/.exec(node)) {
-      node = subtitle[1];
+      title = subtitle[1];
       subtitle = subtitle[2];
     }
     var label = $.new('span').addClass('treeNodeLabel')
-                             .appendTo(nodeTitle).text(node);
+                             .appendTo(nodeTitle).text(title);
     if (subtitle) {
       $.new('span').addClass('subtitle').text(' '+subtitle).appendTo(label);
     }
@@ -227,13 +230,10 @@ function renderMemoryTree(target, data, select, depth) {
     // Add treeExpandClicker and click handler if node has children
     var expandClick = $.new('span').addClass('treeExpandClicker');
     nodeTitle.prepend(expandClick);
-    for (var x in data[node]) {
-      if (x !== '_val' && x !== '_sum') {
-        expandClick.text('[+]');
-        nodeTitle.click(function () { treeToggleNode($(this).parent()); });
-        treeNode.addClass('hasChildren');
-        break;
-      }
+    if (!leaf) {
+      expandClick.text('[+]');
+      nodeTitle.click(function () { treeToggleNode($(this).parent()); });
+      treeNode.addClass('hasChildren');
     }
     
     // Handle selecting a start node
