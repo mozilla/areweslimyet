@@ -436,7 +436,14 @@ function Plot(axis) {
       },
       xaxis: {
         tickFormatter: function(val, axis) {
-          return new Date(val * 1000).toDateString();
+          var abbrevMonths = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul',
+                              'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+          var date = new Date(val * 1000);
+
+          // Use <br> to force the year onto a separate line.  (It usually ends
+          // up on a separate line, anyway, until we zoom in.)
+          return date.getDate() + ' ' + abbrevMonths[date.getMonth()] +
+                 '<br>' + date.getFullYear();
         }
       },
       yaxis: {
