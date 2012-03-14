@@ -44,29 +44,29 @@ var gSeries = {
   "Explicit Memory" : {
     'StartMemoryV2':         "Explicit: Fresh start",
     'StartMemorySettledV2':  "Explicit: Fresh start [+30s]",
-    'MaxMemoryV2':           "Explicit: TP5 opened in 30 tabs",
-    'MaxMemorySettledV2':    "Explicit: TP5 opened in 30 tabs [+30s]",
-    'MaxMemoryForceGCV2':    "Explicit: TP5 opened in 30 tabs [+30s, forced GC]",
-    'EndMemoryV2':           "Explicit: Tabs closed",
-    'EndMemorySettledV2':    "Explicit: Tabs closed [+30s]"
+    'MaxMemoryV2':           "Explicit: After TP5",
+    'MaxMemorySettledV2':    "Explicit: After TP5 [+30s]",
+    'MaxMemoryForceGCV2':    "Explicit: After TP5 [+30s, forced GC]",
+    'EndMemoryV2':           "Explicit: After TP5, tabs closed",
+    'EndMemorySettledV2':    "Explicit: After TP5, tabs closed [+30s]"
   },
   "All-At-Once Test :: Resident Memory" : {
     'StartMemoryResident':         "RSS: Fresh start",
     'StartMemoryResidentSettled':  "RSS: Fresh start [+30s]",
-    'MaxMemoryResident':           "RSS: TP5 opened in 30 tabs",
-    'MaxMemoryResidentSettled':    "RSS: TP5 opened in 30 tabs [+30s]",
-    'MaxMemoryResidentForceGC':    "RSS: TP5 opened in 30 tabs [+30s, forced GC]",
-    'EndMemoryResident':           "RSS: Tabs closed",
-    'EndMemoryResidentSettled':    "RSS: Tabs closed [+30s]"
+    'MaxMemoryResident':           "RSS: After TP5",
+    'MaxMemoryResidentSettled':    "RSS: After TP5 [+30s]",
+    'MaxMemoryResidentForceGC':    "RSS: After TP5 [+30s, forced GC]",
+    'EndMemoryResident':           "RSS: After TP5, tabs closed",
+    'EndMemoryResidentSettled':    "RSS: After TP5, tabs closed [+30s]"
   },
   "All-At-Once Test :: Explicit Memory" : {
-    'MaxMemory':           "Explicit: TP5 opened in 30 tabs",
-    'MaxMemorySettled':    "Explicit: TP5 opened in 30 tabs [+30s]",
-    'MaxMemoryForceGC':    "Explicit: TP5 opened in 30 tabs [+30s, forced GC]",
     'StartMemory':         "Explicit: Fresh start",
     'StartMemorySettled':  "Explicit: Fresh start [+30s]",
-    'EndMemory':           "Explicit: Tabs closed",
-    'EndMemorySettled':    "Explicit: Tabs closed [+30s]"
+    'MaxMemory':           "Explicit: After TP5",
+    'MaxMemorySettled':    "Explicit: After TP5 [+30s]",
+    'MaxMemoryForceGC':    "Explicit: After TP5 [+30s, forced GC]",
+    'EndMemory':           "Explicit: After TP5, tabs closed",
+    'EndMemorySettled':    "Explicit: After TP5, tabs closed [+30s]"
   },
   "Possibly Interesting Things" : {
     'MaxHeapUnclassifiedV2':  "Heap Unclassified: TP5 opened in 30 tabs [+30s]",
