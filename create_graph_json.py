@@ -331,7 +331,11 @@ for build in builds:
     testfile.close()
 
 data['generated'] = time.time()
-data['test_info'] = gTests
+data['series_info'] = {}
+for test in gTests.keys():
+  for series in gTests[test]['series'].keys():
+    data['series_info'][series] = gTests[test]['series'][series]
+    data['series_info'][series]['test'] = test
 
 print("[%u/%u] Finished, writing series.json.gz" % (i, i))
 # Write out all the generated series into series.json.gz
