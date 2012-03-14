@@ -16,6 +16,20 @@ jQuery.new = function(e, attrs, css) {
   return ret;
 };
 
+// 10-class paired qualitative color scheme from http://colorbrewer2.org/.
+var gDefaultColors = [
+  "#1F78B4",
+  "#33A02C",
+  "#E31A1C",
+  "#FF7F00",
+  "#6A3D9A",
+  "#A6CEE3",
+  "#B2DF8A",
+  "#FB9A99",
+  "#FDBF6F",
+  "#CAB2D6",
+];
+
 // Which series from series.json to graph where with what label
 var gSeries = {
   "Resident Memory" : {
@@ -435,7 +449,8 @@ function Plot(axis) {
         margin: 10,
         position: 'nw',
         backgroundOpacity: 0.4
-      }
+      },
+      colors: gDefaultColors
     }
   );
   
