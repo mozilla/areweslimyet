@@ -33,45 +33,45 @@ var gDefaultColors = [
 // Which series from series.json to graph where with what label
 var gSeries = {
   "Resident Memory" : {
-    'MaxMemoryResidentV2' : "TP5 opened in 30 tabs",
-    'MaxMemoryResidentSettledV2' : "TP5 opened in 30 tabs [+30s]",
-    'MaxMemoryResidentForceGCV2' : "TP5 opened in 30 tabs [+30s, forced GC]",
-    'StartMemoryResidentV2' : "Fresh start",
-    'StartMemoryResidentSettledV2' : "Fresh start [+30s]",
-    'EndMemoryResidentV2' : "Tabs closed",
-    'EndMemoryResidentSettledV2' : "Tabs closed [+30s]"
+    'StartMemoryResidentV2':         "RSS: Fresh start",
+    'StartMemoryResidentSettledV2':  "RSS: Fresh start [+30s]",
+    'MaxMemoryResidentV2':           "RSS: After TP5",
+    'MaxMemoryResidentSettledV2':    "RSS: After TP5 [+30s]",
+    'MaxMemoryResidentForceGCV2':    "RSS: After TP5 [+30s, forced GC]",
+    'EndMemoryResidentV2':           "RSS: After TP5, tabs closed",
+    'EndMemoryResidentSettledV2':    "RSS: After TP5, tabs closed [+30s]"
   },
   "Explicit Memory" : {
-    'MaxMemoryV2' : "TP5 opened in 30 tabs",
-    'MaxMemorySettledV2' : "TP5 opened in 30 tabs [+30s]",
-    'MaxMemoryForceGCV2' : "TP5 opened in 30 tabs [+30s, forced GC]",
-    'StartMemoryV2' : "Fresh start",
-    'StartMemorySettledV2' : "Fresh start [+30s]",
-    'EndMemoryV2' : "Tabs closed",
-    'EndMemorySettledV2' : "Tabs closed [+30s]"
+    'StartMemoryV2':         "Explicit: Fresh start",
+    'StartMemorySettledV2':  "Explicit: Fresh start [+30s]",
+    'MaxMemoryV2':           "Explicit: TP5 opened in 30 tabs",
+    'MaxMemorySettledV2':    "Explicit: TP5 opened in 30 tabs [+30s]",
+    'MaxMemoryForceGCV2':    "Explicit: TP5 opened in 30 tabs [+30s, forced GC]",
+    'EndMemoryV2':           "Explicit: Tabs closed",
+    'EndMemorySettledV2':    "Explicit: Tabs closed [+30s]"
   },
   "All-At-Once Test :: Resident Memory" : {
-    'MaxMemoryResident' : "TP5 opened in 30 tabs",
-    'MaxMemoryResidentSettled' : "TP5 opened in 30 tabs [+30s]",
-    'MaxMemoryResidentForceGC' : "TP5 opened in 30 tabs [+30s, forced GC]",
-    'StartMemoryResident' : "Fresh start",
-    'StartMemoryResidentSettled' : "Fresh start [+30s]",
-    'EndMemoryResident' : "Tabs closed",
-    'EndMemoryResidentSettled' : "Tabs closed [+30s]"
+    'StartMemoryResident':         "RSS: Fresh start",
+    'StartMemoryResidentSettled':  "RSS: Fresh start [+30s]",
+    'MaxMemoryResident':           "RSS: TP5 opened in 30 tabs",
+    'MaxMemoryResidentSettled':    "RSS: TP5 opened in 30 tabs [+30s]",
+    'MaxMemoryResidentForceGC':    "RSS: TP5 opened in 30 tabs [+30s, forced GC]",
+    'EndMemoryResident':           "RSS: Tabs closed",
+    'EndMemoryResidentSettled':    "RSS: Tabs closed [+30s]"
   },
   "All-At-Once Test :: Explicit Memory" : {
-    'MaxMemory' : "TP5 opened in 30 tabs",
-    'MaxMemorySettled' : "TP5 opened in 30 tabs [+30s]",
-    'MaxMemoryForceGC' : "TP5 opened in 30 tabs [+30s, forced GC]",
-    'StartMemory' : "Fresh start",
-    'StartMemorySettled' : "Fresh start [+30s]",
-    'EndMemory' : "Tabs closed",
-    'EndMemorySettled' : "Tabs closed [+30s]"
+    'MaxMemory':           "Explicit: TP5 opened in 30 tabs",
+    'MaxMemorySettled':    "Explicit: TP5 opened in 30 tabs [+30s]",
+    'MaxMemoryForceGC':    "Explicit: TP5 opened in 30 tabs [+30s, forced GC]",
+    'StartMemory':         "Explicit: Fresh start",
+    'StartMemorySettled':  "Explicit: Fresh start [+30s]",
+    'EndMemory':           "Explicit: Tabs closed",
+    'EndMemorySettled':    "Explicit: Tabs closed [+30s]"
   },
   "Possibly Interesting Things" : {
-    'MaxHeapUnclassifiedV2' : "Heap Unclassified @ TP5 opened in 30 tabs [+30s]",
-    'MaxJSV2' : "JS @ TP5 opened in 30 tabs [+30s]",
-    'MaxImagesV2' : "Images @ TP5 opened in 30 tabs [+30s]"
+    'MaxHeapUnclassifiedV2':  "Heap Unclassified: TP5 opened in 30 tabs [+30s]",
+    'MaxJSV2':                "JS: TP5 opened in 30 tabs [+30s]",
+    'MaxImagesV2':            "Images: TP5 opened in 30 tabs [+30s]"
   }
 };
 
