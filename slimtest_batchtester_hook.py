@@ -17,14 +17,20 @@ import sys
 import os
 import subprocess
 import sqlite3
+import time
+import datetime
 
 execfile("slimtest_config.py")
 
 sql = None
 
+def database_for_timestamp(ts = time.time()):
+  date = datetime.date.fromtimestamp(ts)
+  return os.path.join("db", "areweslimyet-%u-%u.sqlite" % (date.year, date.month))
+
 def stat(msg, logfile=None):
   msg = "%s :: %s\n" % (time.ctime(), msg)
-  sys.stderr.write("[BatchTester] %s" % msg)
+  sys.stderr.write("[SlimTest] %s" % msg)
   if logfile:
     logfile.write(msg)
     logfile.flush()
@@ -33,10 +39,16 @@ def cli_hook(parser):
   parser.add_argument('--skip-existing', action='store_true', help="Check the sqlite database and skip a build if it already has complete test data")
 
 def should_test(build, args):
-  global sql
-  if not sql:
-    sql = sqlite3.connect("slimtest.sqlite")
-    sql.row_factory = sqlite3.Row
+  dbname = database_for_timestamp(build.build.get_buildtime())
+  try:
+    sql = sqlite3.connect(dbname)
+  except Exception, e:
+    build.note = "Internal Error: Failed to open database for given month (%s)" % (dbname,)
+    return False
+  if os.path.exists("%s.xz" % (dbname,)):
+    # Database is archived, don't create a duplicate
+    build.note = "Test database for this build's month (%s) has been archived, refusing to test" % (dbname,)
+    return False
 
   res = sql.execute("SELECT `id` FROM `benchtester_builds` WHERE `name` = ?", [build.revision])
   row = res.fetchone()
@@ -44,6 +56,7 @@ def should_test(build, args):
 
   res = sql.execute("SELECT `name` FROM `benchtester_tests` WHERE `successful` = 1 AND `build_id` = ?", [row['id']])
   have_tests = set(map(lambda x: x['name'], res.fetchall()))
+  sql.close()
   for x in AreWeSlimYetTests:
     if not x in have_tests:
       return True
@@ -68,7 +81,7 @@ def run_tests(build, args):
     'buildname': build.revision,
     'binary': build.build.get_binary(),
     'buildtime': build.build.get_buildtime(),
-    'sqlitedb': "slimtest.sqlite",
+    'sqlitedb': database_for_timestamp(build.build.get_buildtime()),
     'logfile': logfile,
     'jsbridge_port': 24242 + build.num # Use different jsbridge ports so as not to collide
   })
