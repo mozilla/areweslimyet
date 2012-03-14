@@ -532,7 +532,7 @@ Plot.prototype._buildSeries = function(start, stop) {
       series.push([ b['time'], gGraphData['series'][axis][ind] ]);
       buildinfo.push(b);
     }
-    seriesData.push({ name: axis, label: axis, data: series, buildinfo: buildinfo });
+    seriesData.push({ name: axis, label: this.axis[axis], data: series, buildinfo: buildinfo });
   }
   return seriesData;
 }
