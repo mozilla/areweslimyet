@@ -440,6 +440,25 @@ function Plot(axis) {
         }
       },
       yaxis: {
+        ticks: function(axis) {
+          var approxNumTicks = 10;
+          var interval = axis.max / approxNumTicks;
+
+          // Round interval up to nearest power of 2.
+          interval = Math.pow(2, Math.ceil(Math.log(interval) / Math.log(2)));
+
+          // Round axis.max up to the next interval.
+          var max = Math.ceil(axis.max / interval) * interval;
+
+          // Let res be [0, interval, 2 * interval, 3 * interval, ..., max].
+          var res = [];
+          for (var i = 0; i <= max; i += interval) {
+            res.push(i);
+          }
+
+          return res;
+        },
+
         tickFormatter: function(val, axis) {
           return formatBytes(val);
         }
