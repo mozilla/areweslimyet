@@ -28,8 +28,6 @@ import gzip
 #                    'nodeize', you can use a node-name; otherwise you must use a
 #                    full datapoint name.
 #                    If a list is given, interpret as alternate names for the datapoint
-#      - use_sum   : *If* this test is nodeized, always use the sum of this node,
-#                    even if it has an explicit value
 gTests = {
   "Slimtest-TalosTP5" : {
     "nodeize" : "/",
@@ -239,7 +237,10 @@ for build in builds:
                                WHERE test_id = ?
                             ''', [testrow['id']])
 
-      # Sort data, splitting it up into nodes if requested
+      # Sort data, splitting it up into nodes if requested. Calculate the value
+      # of each node - either a sum of its childnodes, or its explicit value if
+      # given. The idea is to reduce the amount of data juggling the frontend
+      # needs to do.
       for row in allrows:
         if nodeize:
           # Note that we perserve null values as 'none', to differentiate missing data from values of 0
@@ -261,7 +262,22 @@ for build in builds:
         else:
           # Flat data
           testdata[testname]['nodes'][row['datapoint']] = row['value']
-    
+
+    # Discard duplicate _sum/_val data after totalling, flatten node if there
+    # are no children
+    def discard(node):
+      if '_val' not in node:
+        node['_val'] = node['_sum'] if '_sum' in node else None
+      if '_sum' in node:
+        del node['_sum']
+      for x in node:
+        if x != '_val':
+          discard(node[x])
+          if len(node[x]) == 1:
+            node[x] = node[x]['_val']
+    for x in testdata:
+      discard(testdata[x]['nodes'])
+
     #
     # Build all series [[x,y], ...] from testdata object
     #
@@ -286,8 +302,8 @@ for build in builds:
         if nodeize:
           if node == None:
             value = None
-          elif sinfo.get('use_sum') or not '_val' in node:
-            value = node.get('_sum')
+          elif type(node) == int:
+            value = node
           else:
             value = node.get('_val')
         else:
