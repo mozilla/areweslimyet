@@ -6,6 +6,12 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
+# Lets you use BatchTester to batch-run the AWSY builds. The --status-file
+# BatchTester can generate is what html/status/status.json is, and what
+# html/status monitors
+#
+# python benchtester/BatchTester.py --hook slimtest_batchtester_hook <...>
+
 import sys
 import os
 import subprocess
