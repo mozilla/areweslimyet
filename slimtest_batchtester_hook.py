@@ -5,31 +5,7 @@ import os
 import subprocess
 import sqlite3
 
-AreWeSlimYetTests = {
-  "Slimtest-TalosTP5":
-  {
-    'type': "EnduranceTest",
-    'vars':
-      {
-        'test': [ 'mozmill_endurance_test' ],
-        'entities': 100,
-        'iterations': 5,
-        'delay': 0
-      }
-  },
-  "Slimtest-TalosTP5-Slow":
-  {
-    'type': "EnduranceTest",
-    'vars':
-      {
-        'test': [ 'mozmill_endurance_test' ],
-        'entities': 100,
-        'iterations': 5,
-        'delay': 0,
-        'perTabPause': 10
-      }
-  },
-};
+execfile("slimtest_config.py")
 
 sql = None
 
