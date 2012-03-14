@@ -8,7 +8,7 @@
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
 # For all builds in given sqlite db, finds the newest test run of that test and:
-# - Generate series.json.gz with all the series in gSeries, ready for graphing
+# - Generate series.json.gz with all the series in gTests, ready for graphing
 # - Generate a <buildname>.json.gz with all datapoints from the tests configured
 #   for dumping in gTests
 
@@ -19,191 +19,95 @@ import json
 import time
 import gzip
 
-# Extra config for specific tests. (not required to use a test in gSeries)
+# Config for which tests to export
 # - nodeize : [char] split this test's datapoints by the given character and
 #             build a tree, otherwise just export them as flat key/values
 # - dump    : [bool] dump this test in the per-build data file
+# - series  : series to generate plot-lines for.
+#      - datapoint : Name of datapoint to dump. If the test is configured above to
+#                    'nodeize', you can use a node-name; otherwise you must use a
+#                    full datapoint name.
+#                    If a list is given, interpret as alternate names for the datapoint
+#      - use_sum   : *If* this test is nodeized, always use the sum of this node,
+#                    even if it has an explicit value
 gTests = {
   "Slimtest-TalosTP5" : {
     "nodeize" : "/",
-    "dump" : True
+    "dump" : True,
+    "series" : {
+      "MaxMemory" : { "datapoint": "Iteration 5/TabsOpen/explicit" },
+      "MaxMemorySettled" : { "datapoint": "Iteration 5/TabsOpenSettled/explicit" },
+      "MaxMemoryForceGC" : { "datapoint": "Iteration 5/TabsOpenForceGC/explicit" },
+      "MaxMemoryResident" : { "datapoint": "Iteration 5/TabsOpen/resident" },
+      "MaxMemoryResidentSettled" : { "datapoint": "Iteration 5/TabsOpenSettled/resident" },
+      "MaxMemoryResidentForceGC" : { "datapoint": "Iteration 5/TabsOpenForceGC/resident" },
+      "StartMemory" : { "datapoint": "Iteration 1/Start/explicit" },
+      "StartMemoryResident" : { "datapoint": "Iteration 1/Start/resident" },
+      "StartMemorySettled" : { "datapoint": "Iteration 1/StartSettled/explicit" },
+      "StartMemoryResidentSettled" : { "datapoint": "Iteration 1/StartSettled/resident" },
+      "EndMemory" : { "datapoint": "Iteration 5/TabsClosed/explicit" },
+      "EndMemoryResident" : { "datapoint": "Iteration 5/TabsClosed/resident" },
+      "EndMemorySettled" : { "datapoint": "Iteration 5/TabsClosedSettled/explicit" },
+      "EndMemoryResidentSettled" : { "datapoint": "Iteration 5/TabsClosedSettled/resident" },
+      "MaxHeapUnclassified" : { "datapoint": "Iteration 5/TabsOpenSettled/explicit/heap-unclassified" },
+      "MaxJS" : {
+        "datapoint": [
+          "Iteration 5/TabsOpenSettled/explicit/js",
+          # Old ~FF4 reporters
+          "Iteration 5/TabsOpenSettled/js",
+          # Brief period in may 2011 before heap-used became explicit
+          "Iteration 5/TabsOpenSettled/heap-used/js"
+        ],
+      },
+      "MaxImages" : {
+        "datapoint": [
+          "Iteration 5/TabsOpenSettled/explicit/images",
+          # Old ~FF4 reporters
+          "Iteration 5/TabsOpenSettled/images",
+          # Brief period in may 2011 before heap-used became explicit
+          "Iteration 5/TabsOpenSettled/heap-used/images"
+        ]
+      }
+    }
   },
   "Slimtest-TalosTP5-Slow" : {
     "nodeize" : "/",
-    "dump" : True
-  },
-}
-
-# Series to generate plot-lines for.
-# - test      : Name of test to look at
-# - datapoint : Name of datapoint to dump. If the test is configured above to
-#               'nodeize', you can use a node-name; otherwise you must use a
-#               full datapoint name
-# - use_sum   : *If* this test is nodeized, always use the sum of this node,
-#               even if it has an explicit value
-gSeries = {
-  "MaxMemory" : {
-    "test": "Slimtest-TalosTP5",
-    "datapoint": "Iteration 5/TabsOpen/explicit"
-  },
-  "MaxMemorySettled" : {
-    "test": "Slimtest-TalosTP5",
-    "datapoint": "Iteration 5/TabsOpenSettled/explicit"
-  },
-  "MaxMemoryForceGC" : {
-    "test": "Slimtest-TalosTP5",
-    "datapoint": "Iteration 5/TabsOpenForceGC/explicit"
-  },
-  "MaxMemoryResident" : {
-    "test": "Slimtest-TalosTP5",
-    "datapoint": "Iteration 5/TabsOpen/resident"
-  },
-  "MaxMemoryResidentSettled" : {
-    "test": "Slimtest-TalosTP5",
-    "datapoint": "Iteration 5/TabsOpenSettled/resident"
-  },
-  "MaxMemoryResidentForceGC" : {
-    "test": "Slimtest-TalosTP5",
-    "datapoint": "Iteration 5/TabsOpenForceGC/resident"
-  },
-  "StartMemory" : {
-    "test": "Slimtest-TalosTP5",
-    "datapoint": "Iteration 1/Start/explicit"
-  },
-  "StartMemoryResident" : {
-    "test": "Slimtest-TalosTP5",
-    "datapoint": "Iteration 1/Start/resident"
-  },
-  "StartMemorySettled" : {
-    "test": "Slimtest-TalosTP5",
-    "datapoint": "Iteration 1/StartSettled/explicit"
-  },
-  "StartMemoryResidentSettled" : {
-    "test": "Slimtest-TalosTP5",
-    "datapoint": "Iteration 1/StartSettled/resident"
-  },
-  "EndMemory" : {
-    "test": "Slimtest-TalosTP5",
-    "datapoint": "Iteration 5/TabsClosed/explicit"
-  },
-  "EndMemoryResident" : {
-    "test": "Slimtest-TalosTP5",
-    "datapoint": "Iteration 5/TabsClosed/resident"
-  },
-  "EndMemorySettled" : {
-    "test": "Slimtest-TalosTP5",
-    "datapoint": "Iteration 5/TabsClosedSettled/explicit"
-  },
-  "EndMemoryResidentSettled" : {
-    "test": "Slimtest-TalosTP5",
-    "datapoint": "Iteration 5/TabsClosedSettled/resident"
-  },
-  "MaxHeapUnclassified" : {
-    "test": "Slimtest-TalosTP5",
-    "datapoint": "Iteration 5/TabsOpenSettled/explicit/heap-unclassified",
-  },
-  "MaxJS" : {
-    "test": "Slimtest-TalosTP5",
-    "datapoint": [
-      "Iteration 5/TabsOpenSettled/explicit/js",
-      # Old ~FF4 reporters
-      "Iteration 5/TabsOpenSettled/js",
-      # Brief period in may 2011 before heap-used became explicit
-      "Iteration 5/TabsOpenSettled/heap-used/js"
-    ],
-  },
-  "MaxImages" : {
-    "test": "Slimtest-TalosTP5",
-    "datapoint": [
-      "Iteration 5/TabsOpenSettled/explicit/images",
-      # Old ~FF4 reporters
-      "Iteration 5/TabsOpenSettled/images",
-      # Brief period in may 2011 before heap-used became explicit
-      "Iteration 5/TabsOpenSettled/heap-used/images"
-    ],
-  },
-  ##
-  ## Slimtest-TalosTP5-Slow
-  ##
-  "MaxMemoryV2" : {
-    "test": "Slimtest-TalosTP5-Slow",
-    "datapoint": "Iteration 5/TabsOpen/explicit"
-  },
-  "MaxMemorySettledV2" : {
-    "test": "Slimtest-TalosTP5-Slow",
-    "datapoint": "Iteration 5/TabsOpenSettled/explicit"
-  },
-  "MaxMemoryForceGCV2" : {
-    "test": "Slimtest-TalosTP5-Slow",
-    "datapoint": "Iteration 5/TabsOpenForceGC/explicit"
-  },
-  "MaxMemoryResidentV2" : {
-    "test": "Slimtest-TalosTP5-Slow",
-    "datapoint": "Iteration 5/TabsOpen/resident"
-  },
-  "MaxMemoryResidentSettledV2" : {
-    "test": "Slimtest-TalosTP5-Slow",
-    "datapoint": "Iteration 5/TabsOpenSettled/resident"
-  },
-  "MaxMemoryResidentForceGCV2" : {
-    "test": "Slimtest-TalosTP5-Slow",
-    "datapoint": "Iteration 5/TabsOpenForceGC/resident"
-  },
-  "StartMemoryV2" : {
-    "test": "Slimtest-TalosTP5-Slow",
-    "datapoint": "Iteration 1/Start/explicit"
-  },
-  "StartMemoryResidentV2" : {
-    "test": "Slimtest-TalosTP5-Slow",
-    "datapoint": "Iteration 1/Start/resident"
-  },
-  "StartMemorySettledV2" : {
-    "test": "Slimtest-TalosTP5-Slow",
-    "datapoint": "Iteration 1/StartSettled/explicit"
-  },
-  "StartMemoryResidentSettledV2" : {
-    "test": "Slimtest-TalosTP5-Slow",
-    "datapoint": "Iteration 1/StartSettled/resident"
-  },
-  "EndMemoryV2" : {
-    "test": "Slimtest-TalosTP5-Slow",
-    "datapoint": "Iteration 5/TabsClosed/explicit"
-  },
-  "EndMemoryResidentV2" : {
-    "test": "Slimtest-TalosTP5-Slow",
-    "datapoint": "Iteration 5/TabsClosed/resident"
-  },
-  "EndMemorySettledV2" : {
-    "test": "Slimtest-TalosTP5-Slow",
-    "datapoint": "Iteration 5/TabsClosedSettled/explicit"
-  },
-  "EndMemoryResidentSettledV2" : {
-    "test": "Slimtest-TalosTP5-Slow",
-    "datapoint": "Iteration 5/TabsClosedSettled/resident"
-  },
-  "MaxHeapUnclassifiedV2" : {
-    "test": "Slimtest-TalosTP5-Slow",
-    "datapoint": "Iteration 5/TabsOpenSettled/explicit/heap-unclassified",
-  },
-  "MaxJSV2" : {
-    "test": "Slimtest-TalosTP5-Slow",
-    "datapoint": [
-      "Iteration 5/TabsOpenSettled/explicit/js",
-      # Old ~FF4 reporters
-      "Iteration 5/TabsOpenSettled/js",
-      # Brief period in may 2011 before heap-used became explicit
-      "Iteration 5/TabsOpenSettled/heap-used/js"
-    ],
-  },
-  "MaxImagesV2" : {
-    "test": "Slimtest-TalosTP5-Slow",
-    "datapoint": [
-      "Iteration 5/TabsOpenSettled/explicit/images",
-      # Old ~FF4 reporters
-      "Iteration 5/TabsOpenSettled/images",
-      # Brief period in may 2011 before heap-used became explicit
-      "Iteration 5/TabsOpenSettled/heap-used/images"
-    ],
+    "dump" : True,
+    "series" : {
+      "MaxMemoryV2" : { "datapoint": "Iteration 5/TabsOpen/explicit" },
+      "MaxMemorySettledV2" : { "datapoint": "Iteration 5/TabsOpenSettled/explicit" },
+      "MaxMemoryForceGCV2" : { "datapoint": "Iteration 5/TabsOpenForceGC/explicit" },
+      "MaxMemoryResidentV2" : { "datapoint": "Iteration 5/TabsOpen/resident" },
+      "MaxMemoryResidentSettledV2" : { "datapoint": "Iteration 5/TabsOpenSettled/resident" },
+      "MaxMemoryResidentForceGCV2" : { "datapoint": "Iteration 5/TabsOpenForceGC/resident" },
+      "StartMemoryV2" : { "datapoint": "Iteration 1/Start/explicit" },
+      "StartMemoryResidentV2" : { "datapoint": "Iteration 1/Start/resident" },
+      "StartMemorySettledV2" : { "datapoint": "Iteration 1/StartSettled/explicit" },
+      "StartMemoryResidentSettledV2" : { "datapoint": "Iteration 1/StartSettled/resident" },
+      "EndMemoryV2" : { "datapoint": "Iteration 5/TabsClosed/explicit" },
+      "EndMemoryResidentV2" : { "datapoint": "Iteration 5/TabsClosed/resident" },
+      "EndMemorySettledV2" : { "datapoint": "Iteration 5/TabsClosedSettled/explicit" },
+      "EndMemoryResidentSettledV2" : { "datapoint": "Iteration 5/TabsClosedSettled/resident" },
+      "MaxHeapUnclassifiedV2" : { "datapoint": "Iteration 5/TabsOpenSettled/explicit/heap-unclassified" },
+      "MaxJSV2" : {
+        "datapoint": [
+          "Iteration 5/TabsOpenSettled/explicit/js",
+          # Old ~FF4 reporters
+          "Iteration 5/TabsOpenSettled/js",
+          # Brief period in may 2011 before heap-used became explicit
+          "Iteration 5/TabsOpenSettled/heap-used/js"
+        ]
+      },
+      "MaxImagesV2" : {
+        "datapoint": [
+          "Iteration 5/TabsOpenSettled/explicit/images",
+          # Old ~FF4 reporters
+          "Iteration 5/TabsOpenSettled/images",
+          # Brief period in may 2011 before heap-used became explicit
+          "Iteration 5/TabsOpenSettled/heap-used/images"
+        ]
+      }
+    }
   }
 }
 
@@ -255,8 +159,11 @@ builds = cur.fetchall()
 #             of test data for each build (many series can reference the same
 #             test). This data is saved separately per build/test, and XHR'd in
 #             when desired.
+
+gSeriesNames = [y for x in gTests.values() for y in x['series'].keys()]
+
 data = {
-  'series' : dict((n, []) for n in gSeries.keys()),
+  'series' : dict((n, []) for n in gSeriesNames),
   'builds' : []
 }
 
@@ -293,7 +200,7 @@ for build in builds:
       and os.path.exists(os.path.join(gOutDir, build['name'] + '.json.gz'))):
     print("[%u/%u] Using existing data for build %s" % (i, len(builds), build['name'])) 
     data['builds'].append(old_data['builds'][i - 1])
-    for sname, sinfo in gSeries.items():
+    for sname in gSeriesNames:
       data['series'][sname].append(old_data['series'][sname][i - 1])
   else:
     print("[%u/%u] Processing build %s" % (i, len(builds), build['name']))
@@ -304,10 +211,9 @@ for build in builds:
     testdata = {}
     
     #
-    # For each test gSeries or gTests references, pull all of its data into testdata
+    # For each test gTests references, pull all of its data into testdata
     #
-    for testname in set(gTests.keys()) | \
-                    set(map(lambda x: x['test'], gSeries.values())):
+    for testname in gTests.keys():
 
       testdata[testname] = { 'time' : None, 'id' : None, 'nodes' : {} }
 
@@ -359,38 +265,36 @@ for build in builds:
     #
     # Build all series [[x,y], ...] from testdata object
     #
-    for sname, sinfo in gSeries.items():
-      nodes = testdata[sinfo['test']]['nodes']
-      # Is this nodeized data?
-      if sinfo['test'] in gTests:
-        nodeize = gTests[sinfo['test']].get('nodeize')
-      else:
-        nodeize = False
-        
-      node = None
-      if type(sinfo['datapoint']) == list:
-        datapoint = None
-        # If datapoint has alternate names, find the first one defined in the
-        # nodes
-        for dp in sinfo['datapoint']:
-          node = _findNode(nodes, dp, nodeize)
-          if node: 
-            break
-      else:
-        node = _findNode(nodes, sinfo['datapoint'], nodeize)
-        
-      if nodeize:
-        if node == None:
-          value = None
-        elif sinfo.get('use_sum') or not '_val' in node:
-          value = node.get('_sum')
+    for test, testinfo in gTests.items():
+      for sname, sinfo in testinfo['series'].items():
+        nodes = testdata[test]['nodes']
+        # Is this nodeized data?
+        nodeize = gTests[test].get('nodeize')
+
+        node = None
+        if type(sinfo['datapoint']) == list:
+          datapoint = None
+          # If datapoint has alternate names, find the first one defined in the
+          # nodes
+          for dp in sinfo['datapoint']:
+            node = _findNode(nodes, dp, nodeize)
+            if node:
+              break
         else:
-          value = node.get('_val')
-      else:
-        # Flat data
-        value = node
-        
-      data['series'][sname].append(value)
+          node = _findNode(nodes, sinfo['datapoint'], nodeize)
+
+        if nodeize:
+          if node == None:
+            value = None
+          elif sinfo.get('use_sum') or not '_val' in node:
+            value = node.get('_sum')
+          else:
+            value = node.get('_val')
+        else:
+          # Flat data
+          value = node
+
+        data['series'][sname].append(value)
     
     #
     # Discard data for tests not requested to be dumped
@@ -409,7 +313,7 @@ for build in builds:
     testfile.close()
 
 data['generated'] = time.time()
-data['series_info'] = gSeries
+data['test_info'] = gTests
 
 print("[%u/%u] Finished, writing series.json.gz" % (i, i))
 # Write out all the generated series into series.json.gz
