@@ -57,7 +57,7 @@ function statusTable(rows, mode) {
   }
 
   if (mode == "batches") {
-    cell(titleRow, 'when');
+    cell(titleRow, 'requested');
     cell(titleRow, 'command');
     cell(titleRow, 'note');
   } else {
@@ -73,7 +73,7 @@ function statusTable(rows, mode) {
     var row = $.new('div', { class: 'statusRow' });
     if (mode == "batches") {
       var batch = rows[i];
-      cell(row, (new Date(+batch['processed'] * 1000)).toString());
+      cell(row, (new Date(+batch['requested'] * 1000)).toString());
       cell(row, JSON.stringify(batch['args']));
       cell(row, batch['note']);
     } else {
@@ -97,8 +97,11 @@ function statusTable(rows, mode) {
 
 function updateStatus(data) {
   $('#status').empty();
+  $('#status').append($.new('h2').text("Pending Batches"));
+  $('#status').append(statusTable(data['pendingbatches'] ? data['pendingbatches'] : [], 'batches'));
   $('#status').append($.new('h2').text("Recent Batches"));
   $('#status').append(statusTable(data['batches'], 'batches'));
+  
   for (var x in gStatusTypes) {
     if (!data[x] || (!gStatusTypes[x].single && !data[x].length)) continue;
     var dat = data[x];
