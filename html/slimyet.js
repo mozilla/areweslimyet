@@ -460,7 +460,7 @@ function Plot(axis) {
         },
 
         tickFormatter: function(val, axis) {
-          return formatBytes(val);
+          return val / (1024 * 1024) + ' MiB';
         }
       },
       legend: {
