@@ -165,14 +165,17 @@ data = {
   'builds' : []
 }
 
-i = 0
-
 # Open the old file, if possible, to skip generating redundant data
-try:
-  last_series = gzip.open(os.path.join(gOutDir, 'series.json.gz'), 'r')
+old_data = None
+old_series_file = os.path.join(gOutDir, 'series.json.gz')
+if os.path.exists(old_series_file):
+  last_series = gzip.open(old_series_file, 'r')
   old_data = json.loads(last_series.read())
-except Exception:
-  old_data = None
+  last_series.close()
+  # Old builds by index
+  old_builds_map = {}
+  for i in range(len(old_data["builds"])):
+    old_builds_map[old_data["builds"][i]["revision"]] = i
 
 # Helper to find a node by datapoint
 def _findNode(nodes, datapoint, nodeize):
@@ -186,20 +189,19 @@ def _findNode(nodes, datapoint, nodeize):
     return node
   else:
     return nodes.get(datapoint)
-  
+
+i = 0
 for build in builds:
   i += 1
   #
   # Determine if we should process this build or use the existing data
   #
-  if old_data and (
-      len(old_data['builds']) >= i
-      and old_data['builds'][i - 1]['revision'] == build['name']
-      and os.path.exists(os.path.join(gOutDir, build['name'] + '.json.gz'))):
-    print("[%u/%u] Using existing data for build %s" % (i, len(builds), build['name'])) 
-    data['builds'].append(old_data['builds'][i - 1])
+  if old_data and build['name'] in old_builds_map:
+    print("[%u/%u] Using existing data for build %s" % (i, len(builds), build['name']))
+    oldindex = old_builds_map[build['name']]
+    data['builds'].append(old_data['builds'][oldindex])
     for sname in gSeriesNames:
-      data['series'][sname].append(old_data['series'][sname][i - 1])
+      data['series'][sname].append(old_data['series'][sname][oldindex])
   else:
     print("[%u/%u] Processing build %s" % (i, len(builds), build['name']))
     test_ids = {}
