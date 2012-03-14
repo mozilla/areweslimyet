@@ -11,17 +11,18 @@
 
 // Types in status.json
 var gStatusTypes = {
-  "running" : "Running tests",
-  "preparing" : "Building",
-  "queued" : "In run queue",
-  "completed" : "Recently completed",
-  "failed" : "Recently failed",
-  "pending" : "Pending"
+  "running" : { label: "Running tests", mode: "eta" },
+  "building" : { label: "Building", single: true },
+  "skipped" : { label: "Recently skipped", mode: "note" },
+  "prepared" : { label: "In run queue" },
+  "completed" : { label: "Recently completed", mode: "note" },
+  "failed" : { label: "Recently failed", mode: "note" },
+  "pending" : { label: "Pending" }
 }
 
 // Average test duration in minutes
 // for estimates on this page
-var gTestTime = 94;
+var gTestTime = 108;
 
 jQuery.new = function(e, attrs, css) {
   var ret = jQuery(document.createElement(e));
@@ -58,7 +59,7 @@ function statusTable(rows, mode) {
   if (mode == "batches") {
     cell(titleRow, 'when');
     cell(titleRow, 'command');
-    cell(titleRow, 'result');
+    cell(titleRow, 'note');
   } else {
     cell(titleRow, 'type');
     cell(titleRow, 'revision');
@@ -73,8 +74,8 @@ function statusTable(rows, mode) {
     if (mode == "batches") {
       var batch = rows[i];
       cell(row, (new Date(+batch['processed'] * 1000)).toString());
-      cell(row, batch['command']);
-      cell(row, batch['result']);
+      cell(row, JSON.stringify(batch['args']));
+      cell(row, batch['note']);
     } else {
       var build = rows[i];
       var type = build['type'].charAt(0).toUpperCase() + build['type'].slice(1);
@@ -99,16 +100,15 @@ function updateStatus(data) {
   $('#status').append($.new('h2').text("Recent Batches"));
   $('#status').append(statusTable(data['batches'], 'batches'));
   for (var x in gStatusTypes) {
-    if (!data[x] || !data[x].length) continue;
-    var mode = null;
-    
-    if (x == "running") mode = "eta";
-    else if (x == "completed" || x == "failed") mode = "note";
+    if (!data[x] || (!gStatusTypes[x].single && !data[x].length)) continue;
+    var dat = data[x];
+    if (gStatusTypes[x].single)
+      dat = [ dat ];
     
     var title = $.new('h2').text(gStatusTypes[x])
                  .append($.new('span', { class: 'small' }).text(' {' + data[x].length + '} '));;
     $('#status').append(title)
-                .append(statusTable(data[x], mode));
+                .append(statusTable(dat, gStatusTypes[x].mode));
   }
 }
 
