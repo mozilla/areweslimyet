@@ -20,6 +20,8 @@ var gStatusTypes = {
   "pending" : { label: "Pending" }
 }
 
+var gStatusTables = {};
+
 // Average test duration in minutes
 // for estimates on this page
 var gTestTime = 108;
@@ -35,9 +37,10 @@ function htmlSanitize(str) {
   return str.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, "<br />\n");
 }
 
-function prettyEta(seconds) {
+function prettyEta(started) {
+  var seconds = (started + gTestTime * 60) - (Date.now() / 1000);
   seconds = +seconds;
-  if (seconds < 0) return "any moment";
+  if (seconds < 60) return "any moment";
   var minutes = Math.floor(seconds / 60);
   var hours = Math.floor(minutes / 60);
   var ret = "";
@@ -50,10 +53,35 @@ function prettyEta(seconds) {
   return "~ " + ret;
 }
 
-function statusTable(rows, mode) {
-  var ret = $.new('div', { class: 'statusTableBox' });
-  var table = $.new('div', { class: 'statusTable' }).appendTo(ret);
-  var titleRow = $.new('div', { class: 'statusRow title' }).appendTo(table);
+function statusTable(name, rows, mode) {
+  var ret, table, titleRow, olddata;
+  if (gStatusTables[name]) {
+    // Existing table
+    ret = gStatusTables[name]['obj'];
+    table = ret.find('.statusTable');
+    olddata = gStatusTables[name]['olddata'];
+    gStatusTables[name]['olddata'] = rows;
+  } else {
+    // New table
+    var ret = $.new('div', { class: 'statusTableBox' });
+    var title = $.new('h2').text(name)
+                 .append($.new('span', { class: 'small' }));
+    ret.append(title);
+    gStatusTables[name] = { obj: ret, olddata: rows };
+    var table = $.new('div', { class: 'statusTable' }).appendTo(ret);
+    var titleRow = $.new('div', { class: 'statusRow title' }).appendTo(table);
+    if (mode == "batches") {
+      cell(titleRow, 'requested');
+      cell(titleRow, 'command');
+      cell(titleRow, 'note');
+    } else {
+      cell(titleRow, 'type');
+      cell(titleRow, 'revision');
+      cell(titleRow, 'build timestamp');
+      if (mode == "eta") cell(titleRow, 'estimated end');
+      else if (mode == "note") cell(titleRow, 'note');
+    }
+  }
 
   function cell(row, content) {
     var ret = $.new('div', { class: 'statusCell' });
@@ -61,52 +89,92 @@ function statusTable(rows, mode) {
     return ret.appendTo(row);
   }
 
-  if (mode == "batches") {
-    cell(titleRow, 'requested');
-    cell(titleRow, 'command');
-    cell(titleRow, 'note');
-  } else {
-    cell(titleRow, 'type');
-    cell(titleRow, 'revision');
-    cell(titleRow, 'build timestamp');
-    if (mode == "eta") cell(titleRow, 'estimated end');
-    else if (mode == "note") cell(titleRow, 'note');
-  }
-
-  for (var i in rows) {
+  function makeRow(data) {
     var row = $.new('div', { class: 'statusRow' });
     if (mode == "batches") {
-      var batch = rows[i];
-      cell(row, (new Date(+batch['requested'] * 1000)).toString());
-      cell(row, JSON.stringify(batch['args']));
-      cell(row, htmlSanitize(batch['note']));
+      cell(row, (new Date(+data['requested'] * 1000)).toString());
+      cell(row, JSON.stringify(data['args']));
+      cell(row, htmlSanitize(data['note']));
     } else {
-      var build = rows[i];
-      var type = build['type'].charAt(0).toUpperCase() + build['type'].slice(1);
-      var time = (new Date(build['timestamp']*1000)).toString();
+      var type = data['type'].charAt(0).toUpperCase() + data['type'].slice(1);
+      var time = (new Date(data['timestamp']*1000)).toString();
 
       cell(row, type);
-      if (build['revision']) {
-        var link = "https://hg.mozilla.org/mozilla-central/rev/" + build['revision'].slice(0, 12);
-        cell(row).append($.new('a', { href: link }).text(build['revision']));
+      if (data['revision']) {
+        var link = "https://hg.mozilla.org/mozilla-central/rev/" + data['revision'].slice(0, 12);
+        cell(row).append($.new('a', { href: link }).text(data['revision']));
       } else {
         cell(row, '<i class="small">none</i>');
       }
         
       cell(row, time);
       if (mode == "eta")
-        cell(row, prettyEta((build['started'] + gTestTime * 60) - (Date.now() / 1000)));
+        cell(row, prettyEta(data['started']));
       else if (mode == "note")
-        cell(row, build['note'] ? htmlSanitize(build['note']) : '<i class="small">none</i>');
+        cell(row, data['note'] ? htmlSanitize(data['note']) : '<i class="small">none</i>');
     }
-    table.append(row);
+    return row;
   }
+
+  function find(data, start, uid) {
+    while (start < data.length) {
+      if (data[start]['uid'] == uid) return start
+      start++
+    }
+    return -1;
+  }
+
+  if (olddata) {
+    // Only add/remove the neccessary rows, using the uid given in status.json
+    var newind = 0;
+    var oldind = 0;
+    var jrows = table.find('.statusRow').not('.dying, .title');
+    while (newind < rows.length) {
+      if (oldind < olddata.length) {
+        if (olddata[oldind]['uid'] == rows[newind]['uid']) {
+          // Row is the same, update note/eta
+          if (mode == "eta") {
+            var update = $(jrows[oldind]).find('.statusCell:last');
+            update.text(prettyEta(rows[newind]['started']));
+          } else if (mode == "note") {
+            var update = $(jrows[oldind]).find('.statusCell:last');
+            var newnote = htmlSanitize(rows[newind].note);
+            if (update.text() != newnote) { update.text(newnote); }
+          }
+          newind++;
+          oldind++;
+          continue;
+        }
+        var skip = find(olddata, oldind, rows[newind]['uid']);
+        window.console.log("Skip: "+skip);
+        if (skip != -1) {
+          // Delete x rows
+          for (var delrows = 0; delrows < skip - oldind; delrows++) {
+            $(jrows[oldind + delrows]).slideUp(function () { $(this).remove(); }).addClass('dying');
+          }
+          oldind += delrows;
+        }
+      }
+      // Insert here
+      makeRow(rows[newind]).insertAfter($(jrows[oldind]));
+      newind++;
+    }
+    var remaining = table.find('statusRow').not('.dying');
+    for (var trim = 0; trim < remaining.length - newind; trim++) {
+      $(remaining[newind + trim]).slideUp(function () { $(this).remove(); }).addClass('dying');
+    }
+  } else {
+    // new data, insert all rows, append to body
+    for (var i in rows) table.append(makeRow(rows[i]));
+    ret.appendTo($('#status'));
+  }
+
+  // Update title count
+  ret.find('h2 .small').text(' {' + rows.length + '} ');
   return ret;
 }
 
 function updateStatus(data) {
-  $('#status').empty();
-  $('#status').append($.new('h2').text("Recent batch requests"));
   var batches = [];
   batches.push.apply(batches, data['batches']);
   if (data['pendingbatches']) for (var x in data['pendingbatches']) {
@@ -115,7 +183,7 @@ function updateStatus(data) {
     batches.push(b);
   }
   batches.reverse();
-  $('#status').append(statusTable(batches, 'batches'));
+  statusTable('batch', batches, 'batches');
   
   for (var x in gStatusTypes) {
     if (!data[x] || (!gStatusTypes[x].single && !data[x].length)) continue;
@@ -123,11 +191,10 @@ function updateStatus(data) {
     if (gStatusTypes[x].single)
       dat = [ dat ];
     
-    var title = $.new('h2').text(gStatusTypes[x].label)
-                 .append($.new('span', { class: 'small' }).text(' {' + (gStatusTypes[x].single ? 1 : data[x].length) + '} '));;
-    $('#status').append(title)
-                .append(statusTable(dat, gStatusTypes[x].mode));
+    statusTable(gStatusTypes[x].label, dat, gStatusTypes[x].mode);
   }
+
+  $('#status .loading').remove();
 }
 
 function statusUpdater() {
