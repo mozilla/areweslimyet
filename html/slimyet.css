@@ -54,10 +54,6 @@ a:visited:hover {
   color: #EFE;
 }
 
-.graph-header {
-  text-align: center;
-}
-
 .graph {
   width: 100%;
   height: 800px;
@@ -72,6 +68,10 @@ a:visited:hover {
   position: relative;
   width: 1000px;
   margin: auto;
+}
+
+#graphs h2, #graphs h3 {
+  text-align: center;
 }
 
 #footer {
@@ -103,12 +103,16 @@ a:visited:hover {
  * Internal status page
  */
 
+.statusPage {
+  text-align: center;
+}
+
 .statusTable {
   display: table;
   margin-left: auto;
   margin-right: auto;
   border-spacing: 5px;
-  text-align: center;
+  text-align: left;
 }
 
 .statusRow {
@@ -122,12 +126,13 @@ a:visited:hover {
 }
 
 .statusRow.title {
+  text-align: center;
   font-weight: bold;
   background-color: rgba(255, 255, 255, 0.05);
 }
 
-#reqNote { padding: 10px; }
-#requestBuilds input {
+.statusPage #reqNote { padding: 10px; }
+.statusPage #requestBuilds input {
   margin: 5px;
 }
 

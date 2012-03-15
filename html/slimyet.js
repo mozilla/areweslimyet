@@ -710,7 +710,7 @@ $(function () {
       gGraphData = data;
       $('#graphs h3').remove();
       for (var graphname in gSeries) {
-        $.new('h2').addClass('graph-header').text(graphname).appendTo($('#graphs'));
+        $.new('h2').text(graphname).appendTo($('#graphs'));
         new Plot(gSeries[graphname]);
       }
     },
