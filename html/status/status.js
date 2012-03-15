@@ -31,6 +31,10 @@ jQuery.new = function(e, attrs, css) {
   return ret;
 };
 
+function htmlSanitize(str) {
+  return str.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, "<br />\n");
+}
+
 function prettyEta(seconds) {
   seconds = +seconds;
   if (seconds < 0) return "any moment";
@@ -75,7 +79,7 @@ function statusTable(rows, mode) {
       var batch = rows[i];
       cell(row, (new Date(+batch['requested'] * 1000)).toString());
       cell(row, JSON.stringify(batch['args']));
-      cell(row, batch['note'].replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, "<br />\n"));
+      cell(row, htmlSanitize(batch['note']));
     } else {
       var build = rows[i];
       var type = build['type'].charAt(0).toUpperCase() + build['type'].slice(1);
@@ -88,7 +92,7 @@ function statusTable(rows, mode) {
       if (mode == "eta")
         cell(row, prettyEta((build['started'] + gTestTime * 60) - (Date.now() / 1000)));
       else if (mode == "note")
-        cell(row, build['note'] ? build['note'] : '<i class="small">none</i>');
+        cell(row, build['note'] ? htmlSanitize(build['note']) : '<i class="small">none</i>');
     }
     ret.append(row);
   }
