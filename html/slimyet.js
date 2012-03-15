@@ -81,6 +81,17 @@ var gSeries = {
 // When we zoom in, ajax requests further data.
 var gGraphData;
 var gPerBuildData = {};
+var gQueryVars = (function () {
+  var ret = {};
+  if (document.location.search) {
+    var vars = document.location.search.slice(1).split('&');
+    for (var x in vars) {
+      x = vars[x].split('=');
+      ret[decodeURIComponent(x[0])] = x.length > 1 ? decodeURIComponent(x[1]) : true;
+    }
+  }
+  return ret;
+})();
 
 //
 // Utility
@@ -704,8 +715,11 @@ Plot.prototype.onHover = function(item, pos) {
 
 $(function () {
   // Load graph data
+  // Allow selecting an alternate series
+  var series = gQueryVars['series'] ? gQueryVars['series'] : 'series';
+  var url = './data/' + series + '.json';
   $.ajax({
-    url: './data/series.json',
+    url: url,
     success: function (data) {
       gGraphData = data;
       $('#graphs h3').remove();
@@ -715,8 +729,8 @@ $(function () {
       }
     },
     error: function(xhr, status, error) {
-      $('#graphs h3').text("An error occured while loading the graph data");
-      $('#graphs').append($.new('p', null, { color: '#F55' }).text(status + ': ' + error));
+      $('#graphs h3').text("An error occured while loading the graph data (" + url + ")");
+      $('#graphs').append($.new('p', null, { 'text-align': 'center', color: '#F55' }).text(status + ': ' + error));
     },
     dataType: 'json'
   });
