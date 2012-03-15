@@ -34,15 +34,15 @@ def main():
   if invalid.match(start) or (end and invalid.match(end)):
     error("Invalid input")
 
-  ret = "--mode \"%s\" --firstbuild \"%s\"" % (mode, start)
+  ret = { "mode": mode, "firstbuild": start }
   if end:
-    ret = "%s --lastbuild \"%s\"" % (ret, end)
+    ret['lastbuild'] = end
   if prioritize:
-    ret = "%s --prioritize" % (ret,)
+    ret['prioritize'] = True
 
   reqname = "%s.webrequest" % int(time.time())
   f = open(os.path.join("batch", reqname), 'w')
-  f.write("%s" % (ret,))
+  json.dump(ret, f)
   f.close()
   finish({ 'result': 'success', 'reqname': reqname })
   
