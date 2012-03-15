@@ -226,6 +226,7 @@ a:visited:hover {
   right: 15px;
   font-family: monospace;
   font-size: 1.5em;
+  cursor: pointer;
 }
 
 .tooltip h2, p {
