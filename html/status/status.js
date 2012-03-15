@@ -97,10 +97,16 @@ function statusTable(rows, mode) {
 
 function updateStatus(data) {
   $('#status').empty();
-  $('#status').append($.new('h2').text("Pending Batches"));
-  $('#status').append(statusTable(data['pendingbatches'] ? data['pendingbatches'] : [], 'batches'));
-  $('#status').append($.new('h2').text("Recent Batches"));
-  $('#status').append(statusTable(data['batches'], 'batches'));
+  $('#status').append($.new('h2').text("Recent batch requests"));
+  var batches = [];
+  batches.push.apply(batches, data['recentbatches']);
+  if (data['pendingbatches']) for (var x in data['pendingbatches']) {
+    var b = $.extend({}, data['pendingbatches'][x]);
+    b.note = "[Pending] " + b.note;
+    batches.push(b);
+  }
+  batches.reverse();
+  $('#status').append(statusTable(batches, 'batches'));
   
   for (var x in gStatusTypes) {
     if (!data[x] || (!gStatusTypes[x].single && !data[x].length)) continue;
@@ -108,7 +114,7 @@ function updateStatus(data) {
     if (gStatusTypes[x].single)
       dat = [ dat ];
     
-    var title = $.new('h2').text(gStatusTypes[x])
+    var title = $.new('h2').text(gStatusTypes[x].label)
                  .append($.new('span', { class: 'small' }).text(' {' + data[x].length + '} '));;
     $('#status').append(title)
                 .append(statusTable(dat, gStatusTypes[x].mode));
