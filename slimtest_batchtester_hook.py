@@ -26,7 +26,7 @@ sql = None
 
 def database_for_timestamp(ts = time.time()):
   date = datetime.date.fromtimestamp(ts)
-  return os.path.join("db", "areweslimyet-%u-%u.sqlite" % (date.year, date.month))
+  return os.path.join("db", "areweslimyet-%04u-%02u.sqlite" % (date.year, date.month))
 
 def stat(msg, logfile=None):
   msg = "%s :: %s\n" % (time.ctime(), msg)
