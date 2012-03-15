@@ -16,48 +16,62 @@ jQuery.new = function(e, attrs, css) {
   return ret;
 };
 
+// 10-class paired qualitative color scheme from http://colorbrewer2.org/.
+var gDefaultColors = [
+  "#1F78B4",
+  "#33A02C",
+  "#E31A1C",
+  "#FF7F00",
+  "#6A3D9A",
+  "#A6CEE3",
+  "#B2DF8A",
+  "#FB9A99",
+  "#FDBF6F",
+  "#CAB2D6",
+];
+
 // Which series from series.json to graph where with what label
 var gSeries = {
   "Resident Memory" : {
-    'MaxMemoryResidentV2' : "TP5 opened in 30 tabs",
-    'MaxMemoryResidentSettledV2' : "TP5 opened in 30 tabs [+30s]",
-    'MaxMemoryResidentForceGCV2' : "TP5 opened in 30 tabs [+30s, forced GC]",
-    'StartMemoryResidentV2' : "Fresh start",
-    'StartMemoryResidentSettledV2' : "Fresh start [+30s]",
-    'EndMemoryResidentV2' : "Tabs closed",
-    'EndMemoryResidentSettledV2' : "Tabs closed [+30s]"
+    'StartMemoryResidentV2':         "RSS: Fresh start",
+    'StartMemoryResidentSettledV2':  "RSS: Fresh start [+30s]",
+    'MaxMemoryResidentV2':           "RSS: After TP5",
+    'MaxMemoryResidentSettledV2':    "RSS: After TP5 [+30s]",
+    'MaxMemoryResidentForceGCV2':    "RSS: After TP5 [+30s, forced GC]",
+    'EndMemoryResidentV2':           "RSS: After TP5, tabs closed",
+    'EndMemoryResidentSettledV2':    "RSS: After TP5, tabs closed [+30s]"
   },
   "Explicit Memory" : {
-    'MaxMemoryV2' : "TP5 opened in 30 tabs",
-    'MaxMemorySettledV2' : "TP5 opened in 30 tabs [+30s]",
-    'MaxMemoryForceGCV2' : "TP5 opened in 30 tabs [+30s, forced GC]",
-    'StartMemoryV2' : "Fresh start",
-    'StartMemorySettledV2' : "Fresh start [+30s]",
-    'EndMemoryV2' : "Tabs closed",
-    'EndMemorySettledV2' : "Tabs closed [+30s]"
+    'StartMemoryV2':         "Explicit: Fresh start",
+    'StartMemorySettledV2':  "Explicit: Fresh start [+30s]",
+    'MaxMemoryV2':           "Explicit: After TP5",
+    'MaxMemorySettledV2':    "Explicit: After TP5 [+30s]",
+    'MaxMemoryForceGCV2':    "Explicit: After TP5 [+30s, forced GC]",
+    'EndMemoryV2':           "Explicit: After TP5, tabs closed",
+    'EndMemorySettledV2':    "Explicit: After TP5, tabs closed [+30s]"
   },
   "All-At-Once Test :: Resident Memory" : {
-    'MaxMemoryResident' : "TP5 opened in 30 tabs",
-    'MaxMemoryResidentSettled' : "TP5 opened in 30 tabs [+30s]",
-    'MaxMemoryResidentForceGC' : "TP5 opened in 30 tabs [+30s, forced GC]",
-    'StartMemoryResident' : "Fresh start",
-    'StartMemoryResidentSettled' : "Fresh start [+30s]",
-    'EndMemoryResident' : "Tabs closed",
-    'EndMemoryResidentSettled' : "Tabs closed [+30s]"
+    'StartMemoryResident':         "RSS: Fresh start",
+    'StartMemoryResidentSettled':  "RSS: Fresh start [+30s]",
+    'MaxMemoryResident':           "RSS: After TP5",
+    'MaxMemoryResidentSettled':    "RSS: After TP5 [+30s]",
+    'MaxMemoryResidentForceGC':    "RSS: After TP5 [+30s, forced GC]",
+    'EndMemoryResident':           "RSS: After TP5, tabs closed",
+    'EndMemoryResidentSettled':    "RSS: After TP5, tabs closed [+30s]"
   },
   "All-At-Once Test :: Explicit Memory" : {
-    'MaxMemory' : "TP5 opened in 30 tabs",
-    'MaxMemorySettled' : "TP5 opened in 30 tabs [+30s]",
-    'MaxMemoryForceGC' : "TP5 opened in 30 tabs [+30s, forced GC]",
-    'StartMemory' : "Fresh start",
-    'StartMemorySettled' : "Fresh start [+30s]",
-    'EndMemory' : "Tabs closed",
-    'EndMemorySettled' : "Tabs closed [+30s]"
+    'StartMemory':         "Explicit: Fresh start",
+    'StartMemorySettled':  "Explicit: Fresh start [+30s]",
+    'MaxMemory':           "Explicit: After TP5",
+    'MaxMemorySettled':    "Explicit: After TP5 [+30s]",
+    'MaxMemoryForceGC':    "Explicit: After TP5 [+30s, forced GC]",
+    'EndMemory':           "Explicit: After TP5, tabs closed",
+    'EndMemorySettled':    "Explicit: After TP5, tabs closed [+30s]"
   },
   "Possibly Interesting Things" : {
-    'MaxHeapUnclassifiedV2' : "Heap Unclassified @ TP5 opened in 30 tabs [+30s]",
-    'MaxJSV2' : "JS @ TP5 opened in 30 tabs [+30s]",
-    'MaxImagesV2' : "Images @ TP5 opened in 30 tabs [+30s]"
+    'MaxHeapUnclassifiedV2':  "Heap Unclassified: TP5 opened in 30 tabs [+30s]",
+    'MaxJSV2':                "JS: TP5 opened in 30 tabs [+30s]",
+    'MaxImagesV2':            "Images: TP5 opened in 30 tabs [+30s]"
   }
 };
 
@@ -422,12 +436,38 @@ function Plot(axis) {
       },
       xaxis: {
         tickFormatter: function(val, axis) {
-          return new Date(val * 1000).toDateString();
+          var abbrevMonths = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul',
+                              'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+          var date = new Date(val * 1000);
+
+          // Use <br> to force the year onto a separate line.  (It usually ends
+          // up on a separate line, anyway, until we zoom in.)
+          return date.getDate() + ' ' + abbrevMonths[date.getMonth()] +
+                 '<br>' + date.getFullYear();
         }
       },
       yaxis: {
+        ticks: function(axis) {
+          var approxNumTicks = 10;
+          var interval = axis.max / approxNumTicks;
+
+          // Round interval up to nearest power of 2.
+          interval = Math.pow(2, Math.ceil(Math.log(interval) / Math.log(2)));
+
+          // Round axis.max up to the next interval.
+          var max = Math.ceil(axis.max / interval) * interval;
+
+          // Let res be [0, interval, 2 * interval, 3 * interval, ..., max].
+          var res = [];
+          for (var i = 0; i <= max; i += interval) {
+            res.push(i);
+          }
+
+          return res;
+        },
+
         tickFormatter: function(val, axis) {
-          return formatBytes(val);
+          return val / (1024 * 1024) + ' MiB';
         }
       },
       legend: {
@@ -435,7 +475,8 @@ function Plot(axis) {
         margin: 10,
         position: 'nw',
         backgroundOpacity: 0.4
-      }
+      },
+      colors: gDefaultColors
     }
   );
   
@@ -517,7 +558,7 @@ Plot.prototype._buildSeries = function(start, stop) {
       series.push([ b['time'], gGraphData['series'][axis][ind] ]);
       buildinfo.push(b);
     }
-    seriesData.push({ name: axis, label: axis, data: series, buildinfo: buildinfo });
+    seriesData.push({ name: axis, label: this.axis[axis], data: series, buildinfo: buildinfo });
   }
   return seriesData;
 }
@@ -669,7 +710,7 @@ $(function () {
       gGraphData = data;
       $('#graphs h3').remove();
       for (var graphname in gSeries) {
-        $.new('h2').text(graphname).appendTo($('#graphs'));
+        $.new('h2').addClass('graph-header').text(graphname).appendTo($('#graphs'));
         new Plot(gSeries[graphname]);
       }
     },
