@@ -103,7 +103,7 @@ function updateStatus(data) {
   $('#status').empty();
   $('#status').append($.new('h2').text("Recent batch requests"));
   var batches = [];
-  batches.push.apply(batches, data['recentbatches']);
+  batches.push.apply(batches, data['batches']);
   if (data['pendingbatches']) for (var x in data['pendingbatches']) {
     var b = $.extend({}, data['pendingbatches'][x]);
     b.note = "[Pending] " + b.note;
