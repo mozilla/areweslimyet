@@ -225,7 +225,7 @@ $(function () {
         $('#reqSubmit').prop('disabled', false);
         if (data['result'] == 'success') {
           e.addClass('success');
-          e.html("Request succeeded. It may take a few minutes for it to appear here.<br />(Caveat: If a build is in progress, new requests arn't parsed until it is complete.)");
+          e.text("Request succeeded. It should appear below within a few moments.");
           $('#reqStartBuild, #reqEndBuild').val('');
         } else {
           e.addClass('error');
