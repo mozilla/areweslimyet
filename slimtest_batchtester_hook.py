@@ -51,6 +51,7 @@ def should_test(build, args):
 
   try:
     sql = sqlite3.connect(dbname)
+    sql.row_factory = sqlite3.Row
   except Exception, e:
     build.note = "Internal Error: Failed to open database for given month (%s)" % (dbname,)
     return False
