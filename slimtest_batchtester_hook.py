@@ -67,6 +67,7 @@ def should_test(build, args):
   for x in AreWeSlimYetTests:
     if not x in have_tests:
       return True
+  build.note = "Build has complete test data"
   stat("Skipping build with test data: %s" % (build.revision,))
   return False
 
