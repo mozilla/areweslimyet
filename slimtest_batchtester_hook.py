@@ -40,15 +40,21 @@ def cli_hook(parser):
 
 def should_test(build, args):
   dbname = database_for_timestamp(build.build.get_buildtime())
+  if os.path.exists("%s.xz" % (dbname,)):
+    # Database is archived, don't create a duplicate
+    build.note = "Test database for this build's month (%s) has been archived, refusing to test" % (dbname,)
+    return False
+
+  # No builds for this month yet
+  if not os.path.exists("%s" % (dbname,)):
+    return True
+
   try:
     sql = sqlite3.connect(dbname)
   except Exception, e:
     build.note = "Internal Error: Failed to open database for given month (%s)" % (dbname,)
     return False
-  if os.path.exists("%s.xz" % (dbname,)):
-    # Database is archived, don't create a duplicate
-    build.note = "Test database for this build's month (%s) has been archived, refusing to test" % (dbname,)
-    return False
+
 
   res = sql.execute("SELECT `id` FROM `benchtester_builds` WHERE `name` = ?", [build.revision])
   row = res.fetchone()
