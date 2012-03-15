@@ -75,7 +75,7 @@ function statusTable(rows, mode) {
       var batch = rows[i];
       cell(row, (new Date(+batch['requested'] * 1000)).toString());
       cell(row, JSON.stringify(batch['args']));
-      cell(row, batch['note']);
+      cell(row, batch['note'].replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, "<br />\n"));
     } else {
       var build = rows[i];
       var type = build['type'].charAt(0).toUpperCase() + build['type'].slice(1);
