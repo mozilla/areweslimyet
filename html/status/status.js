@@ -83,11 +83,16 @@ function statusTable(rows, mode) {
     } else {
       var build = rows[i];
       var type = build['type'].charAt(0).toUpperCase() + build['type'].slice(1);
-      var link = "https://hg.mozilla.org/mozilla-central/rev/" + build['revision'].slice(0, 12);
       var time = (new Date(build['timestamp']*1000)).toString();
 
       cell(row, type);
-      cell(row).append($.new('a', { href: link }).text(build['revision']));
+      if (build['revision']) {
+        var link = "https://hg.mozilla.org/mozilla-central/rev/" + build['revision'].slice(0, 12);
+        cell(row).append($.new('a', { href: link }).text(build['revision']));
+      } else {
+        cell(row, '<i class="small">none</i>');
+      }
+        
       cell(row, time);
       if (mode == "eta")
         cell(row, prettyEta((build['started'] + gTestTime * 60) - (Date.now() / 1000)));
