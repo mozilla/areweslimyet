@@ -51,8 +51,9 @@ function prettyEta(seconds) {
 }
 
 function statusTable(rows, mode) {
-  var ret = $.new('div', { class: 'statusTable' });
-  var titleRow = $.new('div', { class: 'statusRow title' });
+  var ret = $.new('div', { class: 'statusTableBox' });
+  var table = $.new('div', { class: 'statusTable' }).appendTo(ret);
+  var titleRow = $.new('div', { class: 'statusRow title' }).appendTo(table);
 
   function cell(row, content) {
     var ret = $.new('div', { class: 'statusCell' });
@@ -71,7 +72,6 @@ function statusTable(rows, mode) {
     if (mode == "eta") cell(titleRow, 'estimated end');
     else if (mode == "note") cell(titleRow, 'note');
   }
-  ret.append(titleRow);
 
   for (var i in rows) {
     var row = $.new('div', { class: 'statusRow' });
@@ -99,7 +99,7 @@ function statusTable(rows, mode) {
       else if (mode == "note")
         cell(row, build['note'] ? htmlSanitize(build['note']) : '<i class="small">none</i>');
     }
-    ret.append(row);
+    table.append(row);
   }
   return ret;
 }
@@ -124,7 +124,7 @@ function updateStatus(data) {
       dat = [ dat ];
     
     var title = $.new('h2').text(gStatusTypes[x].label)
-                 .append($.new('span', { class: 'small' }).text(' {' + data[x].length + '} '));;
+                 .append($.new('span', { class: 'small' }).text(' {' + (gStatusTypes[x].single ? 1 : data[x].length) + '} '));;
     $('#status').append(title)
                 .append(statusTable(dat, gStatusTypes[x].mode));
   }

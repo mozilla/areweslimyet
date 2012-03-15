@@ -107,16 +107,21 @@ a:visited:hover {
   text-align: center;
 }
 
-.statusTable {
-  display: table;
+.statusTableBox {
+  width: 80%;
   margin-left: auto;
   margin-right: auto;
+}
+
+.statusTable {
   border-spacing: 5px;
-  text-align: left;
+  width: 100%;
+  display: table;
 }
 
 .statusRow {
   display: table-row;
+  margin: 5px;
 }
 
 .statusCell {
