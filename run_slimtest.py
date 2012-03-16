@@ -33,3 +33,11 @@ for testname, testinfo in AreWeSlimYetTests.items():
   if not tester.run_test(testname, testinfo['type'], testinfo['vars']):
     sys.stderr.write("SlimTest: Failed at test %s -- Errors: %s -- Warnings: %s\n" % (testname, tester.errors, tester.warnings))
     sys.exit(1)
+
+if len(tester.warnings):
+  sys.stderr.write("SlimTest: Generated %u warnings: %s" % (len(tester.warnings), tester.warnings))
+if len(tester.errors):
+  sys.stderr.write("!! SlimTest: Completed with %u errors: %s" % (len(tester.errors), tester.errors))
+  sys.exit(1)
+
+sys.stderr.write("SlimTest: Test run successful")
