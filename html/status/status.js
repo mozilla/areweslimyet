@@ -158,7 +158,7 @@ function statusTable(name, rows, mode) {
         } else if (mode == "note" || mode == "batches") {
           var update = $(jrows[oldind]).find('.statusCell:last');
           var newnote = htmlSanitize(rows[newind].note);
-          if (update.text() != newnote) { update.html(newnote); }
+          if (update.html() != newnote) { update.html(newnote); }
         }
         newind++;
         oldind++;
