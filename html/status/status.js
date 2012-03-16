@@ -155,7 +155,7 @@ function statusTable(name, rows, mode) {
         if (mode == "eta") {
           var update = $(jrows[oldind]).find('.statusCell:last');
           update.text(prettyEta(rows[newind]['started']));
-        } else if (mode == "note") {
+        } else if (mode == "note" || mode == "batch") {
           var update = $(jrows[oldind]).find('.statusCell:last');
           var newnote = htmlSanitize(rows[newind].note);
           if (update.text() != newnote) { update.text(newnote); }
