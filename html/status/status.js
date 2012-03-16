@@ -21,6 +21,26 @@ var gStatusTypes = {
 }
 
 var gStatusTables = {};
+var gStartTime;
+
+function logMsg(msg) {
+  if (window.console && window.console.log)
+    window.console.log(msg);
+}
+
+function logErr(msg) {
+  if (window.console && window.console.error)
+    window.console.error(msg);
+  else
+    logMsg("ERROR: " + msg);
+}
+
+function logWarn(msg) {
+  if (window.console && window.console.warn)
+    window.console.error(msg);
+  else
+    logMsg("ERROR: " + msg);
+}
 
 // Average test duration in minutes
 // for estimates on this page
@@ -116,56 +136,45 @@ function statusTable(name, rows, mode) {
     return row;
   }
 
-  function find(data, start, uid) {
-    while (start < data.length) {
-      if (data[start]['uid'] == uid) return start
-      start++
-    }
-    return -1;
-  }
-
   if (olddata) {
     // Only add/remove the neccessary rows, using the uid given in status.json
     var newind = 0;
     var oldind = 0;
     var jrows = table.find('.statusRow').not('.dying, .title');
+    if (jrows.length != olddata.length)
+      logErr("Consistency error - jrows != olddata");
     while (newind < rows.length) {
-      if (oldind < olddata.length) {
-        if (olddata[oldind]['uid'] == rows[newind]['uid']) {
-          // Row is the same, update note/eta
-          if (mode == "eta") {
-            var update = $(jrows[oldind]).find('.statusCell:last');
-            update.text(prettyEta(rows[newind]['started']));
-          } else if (mode == "note") {
-            var update = $(jrows[oldind]).find('.statusCell:last');
-            var newnote = htmlSanitize(rows[newind].note);
-            if (update.text() != newnote) { update.text(newnote); }
-          }
-          newind++;
-          oldind++;
-          continue;
-        }
-        var skip = find(olddata, oldind, rows[newind]['uid']);
-        window.console.log("Skip: "+skip);
-        if (skip != -1) {
-          // Delete x rows
-          for (var delrows = 0; delrows < skip - oldind; delrows++) {
-            $(jrows[oldind + delrows]).slideUp(function () { $(this).remove(); }).addClass('dying');
-          }
-          oldind += delrows;
+      if (oldind < olddata.length && olddata[oldind]['uid'] != rows[newind]['uid']) {
+        // Rows don't match, delete remainder
+        for (; oldind < olddata.length; oldind++) {
+          $(jrows[oldind]).remove();
         }
       }
-      // Insert here
-      makeRow(rows[newind]).insertAfter($(jrows[oldind]));
-      newind++;
+      if (oldind < olddata.length) {
+        // Found row, update ETA/note
+        if (mode == "eta") {
+          var update = $(jrows[oldind]).find('.statusCell:last');
+          update.text(prettyEta(rows[newind]['started']));
+        } else if (mode == "note") {
+          var update = $(jrows[oldind]).find('.statusCell:last');
+          var newnote = htmlSanitize(rows[newind].note);
+          if (update.text() != newnote) { update.text(newnote); }
+        }
+        newind++;
+        oldind++;
+      } else {
+        // Did not find row, insert
+        var ins = makeRow(rows[newind]).appendTo(table);
+        newind++;
+      }
     }
-    var remaining = table.find('statusRow').not('.dying');
-    for (var trim = 0; trim < remaining.length - newind; trim++) {
-      $(remaining[newind + trim]).slideUp(function () { $(this).remove(); }).addClass('dying');
+    while (newind < olddata.length) {
+      $(jrows[newind++]).remove();
     }
   } else {
     // new data, insert all rows, append to body
-    for (var i in rows) table.append(makeRow(rows[i]));
+    for (var i in rows)
+      table.append(makeRow(rows[i]));
     ret.appendTo($('#status'));
   }
 
@@ -175,6 +184,14 @@ function statusTable(name, rows, mode) {
 }
 
 function updateStatus(data) {
+  if (gStartTime != data['starttime']) {
+    if (gStartTime)
+      logWarn("Tester restarted, IDs of status items are not in sync. Rebuilding page.");
+    gStartTime = data['starttime']
+    $('#status').empty();
+    gStatusTables = {};
+  }
+    
   var batches = [];
   batches.push.apply(batches, data['batches']);
   if (data['pendingbatches']) for (var x in data['pendingbatches']) {
@@ -186,11 +203,10 @@ function updateStatus(data) {
   statusTable('batch', batches, 'batches');
   
   for (var x in gStatusTypes) {
-    if (!data[x] || (!gStatusTypes[x].single && !data[x].length)) continue;
     var dat = data[x];
-    if (gStatusTypes[x].single)
-      dat = [ dat ];
-    
+    if (dat && gStatusTypes[x].single) dat = [ dat ];
+    if (!dat) dat = [];
+
     statusTable(gStatusTypes[x].label, dat, gStatusTypes[x].mode);
   }
 
@@ -283,8 +299,7 @@ $(function () {
     if (multi) args['endbuild'] = end;
     if (priority) args['priority'] = 'true';
 
-    if (window.console && window.console.log)
-      window.console.log("Submitting request " + JSON.stringify(args));
+    logMsg("Submitting request " + JSON.stringify(args));
 
     var e = $('#reqError').removeClass('error').removeClass('success');
     e.text('submitting...');
