@@ -103,9 +103,12 @@ def run_tests(build, args):
   subprocess.check_output([ "vncserver", display ])
   os.environ['DISPLAY'] = display
   # Run tests
-  for testname, testinfo in AreWeSlimYetTests.items():
-    if not tester.run_test(testname, testinfo['type'], testinfo['vars']):
-      raise Exception("SlimTest: Failed at test %s\n" % (testname,))
-  
-  # Shutdown VNC
-  subprocess.check_output([ "vncserver", "-kill", display ])
+  try:
+    for testname, testinfo in AreWeSlimYetTests.items():
+      if not tester.run_test(testname, testinfo['type'], testinfo['vars']):
+        raise Exception("SlimTest: Failed at test %s -- Errors: %s -- Warnings: %s\n" % (testname, tester.errors, tester.warnings))
+  finally:
+    subprocess.check_output([ "vncserver", "-kill", display ])
+
+  if len(tester.errors):
+    raise Exception("Build completed, but generated errors: %s" % (tester.errors,))
