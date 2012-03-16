@@ -31,5 +31,5 @@ if not args or not tester.setup(args):
 # Run tests
 for testname, testinfo in AreWeSlimYetTests.items():
   if not tester.run_test(testname, testinfo['type'], testinfo['vars']):
-    sys.stderr.write("SlimTest: Failed at test %s\n" % testname)
+    sys.stderr.write("SlimTest: Failed at test %s -- Errors: %s -- Warnings: %s\n" % (testname, tester.errors, tester.warnings))
     sys.exit(1)
