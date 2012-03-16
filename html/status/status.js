@@ -68,8 +68,8 @@ function prettyEta(started) {
     ret += (hours + "h");
   if (minutes % 60)
     ret += (ret.length ? ", " : "") + (minutes % 60) + "m";
-  if (!ret.length || seconds % 60)
-    ret += (ret.length ? ", " : "") + Math.round(seconds % 60) + "s";
+  //if (!ret.length || seconds % 60)
+  //  ret += (ret.length ? ", " : "") + Math.round(seconds % 60) + "s";
   return "~ " + ret;
 }
 
