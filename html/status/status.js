@@ -13,11 +13,11 @@
 var gStatusTypes = {
   "running" : { label: "Running tests", mode: "eta" },
   "building" : { label: "Building", single: true },
-  "skipped" : { label: "Recently skipped", mode: "note" },
   "prepared" : { label: "In run queue" },
   "completed" : { label: "Recently completed", mode: "note" },
   "failed" : { label: "Recently failed", mode: "note" },
-  "pending" : { label: "Pending" }
+  "pending" : { label: "Pending" },
+  "skipped" : { label: "Recently skipped", mode: "note" },
 }
 
 var gStatusTables = {};
@@ -200,7 +200,7 @@ function updateStatus(data) {
     batches.push(b);
   }
   batches.reverse();
-  statusTable('batch', batches, 'batches');
+  statusTable('Recent batch requests', batches, 'batches');
   
   for (var x in gStatusTypes) {
     var dat = data[x];
