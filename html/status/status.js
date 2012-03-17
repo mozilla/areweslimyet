@@ -54,7 +54,7 @@ jQuery.new = function(e, attrs, css) {
 };
 
 function htmlSanitize(str) {
-  return str.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, "<br />\n");
+  return str ? str.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, "<br />\n") : str;
 }
 
 function prettyEta(started) {
