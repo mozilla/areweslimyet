@@ -8,15 +8,15 @@
  */
 
 html, body {
-  background-color: #2D2A27;
-  color: #EEE;
+  background-color: white;
+  color: black;
 }
 
 h1 {
   font-family: serif;
   margin: 30px;
   font-size: 4em;
-  text-shadow: #000 2px 2px 1px;
+  text-shadow: #aaa 2px 2px 1px;
   text-align: center;
 }
 
@@ -78,19 +78,34 @@ a:visited:hover {
   margin-top: 50px;
 }
 
-.zoomSelector {
-  padding-top: 10px;
+.legendLabel, .tickLabel {
+  color: #555;
+}
+
+.zoomSelector, #zoomOutButton {
   position: absolute;
-  opacity: 0; /* Start hidden */
-  background-color: rgba(100,50,50,0.5);
-  text-align: center;
   font-size: 80%;
-  font-family: monospace;
-  color: #FFF;
+  color: #555;
+}
+
+.zoomSelector {
+  padding-top: 11px;
+  opacity: 0; /* Start hidden */
+  background-color: rgba(220,220,220,0.5);
+  text-align: center;
+}
+
+#zoomOutButton {
+  cursor: pointer;
+  top: 15px;
+  right: 15px;
+}
+
+#zoomOutButton:hover {
+  text-decoration: underline;
 }
 
 .note, .small {
-  color: #AAA;
   font-weight: normal;
 }
 
@@ -203,7 +218,7 @@ a:visited:hover {
 .tooltip {
   font-family: sans-serif;
   color: #EEE;
-  background-color: rgba(0, 0, 0, 0.9);
+  background-color: rgba(0, 0, 0, 0.95);
   border-radius: 5px;
   padding: 15px;
   line-height: 1.4em;

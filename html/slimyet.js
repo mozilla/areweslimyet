@@ -353,7 +353,7 @@ Tooltip.prototype.zoom = function(callback) {
   
   // Close button
   var self = this;
-  $.new('a', { class: 'closeButton', href: '#' }).addClass('closeButton')
+  $.new('a', { class: 'closeButton', href: '#' })
    .text('[x]')
    .appendTo(this.obj).css('display', 'none')
    .fadeIn(500).click(function () {
@@ -441,7 +441,7 @@ function Plot(axis) {
         points: { show: true }
       },
       grid: {
-        color: "#FFF",
+        color: "#aaa",
         hoverable: true,
         clickable: true
       },
@@ -486,10 +486,10 @@ function Plot(axis) {
         }
       },
       legend: {
-        backgroundColor: "#000",
+        backgroundColor: "#fff",
         margin: 10,
         position: 'nw',
-        backgroundOpacity: 0.4
+        backgroundOpacity: 0.9
       },
       colors: gDefaultColors
     }
@@ -505,7 +505,7 @@ function Plot(axis) {
                          height: this.flot.height() - 10 + 'px', // padding-top is 10px
                        })
                        .addClass('zoomSelector')
-                       .text("[zoom]")
+                       .text("zoom")
                        .insertBefore(fcanvas);
   // For proper layering
   $(fcanvas).css('position', 'relative');
@@ -534,13 +534,13 @@ Plot.prototype.setZoomRange = function(range) {
     
     var self = this;
     if (this.zoomed && zoomOut) {
-      // Zooming back out, remove close button
+      // Zooming back out, remove zoom out button
       this.zoomed = false;
-      this.obj.children('.closeButton').remove();
+      this.obj.children('#zoomOutButton').remove();
     } else if (!this.zoomed && !zoomOut) {
-      // Zoomed out -> zoomed in. Add close button
+      // Zoomed out -> zoomed in. Add zoom out button.
       this.zoomed = true;
-      self.obj.append($.new('div').addClass('closeButton').text('[zoom out]').click(function () {
+      self.obj.append($.new('div', {id: 'zoomOutButton'}).text('zoom out').click(function () {
         self.setZoomRange();
       }));
     }
