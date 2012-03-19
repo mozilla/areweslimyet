@@ -30,6 +30,41 @@ var gDefaultColors = [
   "#CAB2D6",
 ];
 
+var gReleases = [
+  {dateStr: "2011-03-03", name: "FF 5"},
+  {dateStr: "2011-04-12", name: "FF 6"},
+  {dateStr: "2011-05-24", name: "FF 7"},
+  {dateStr: "2011-07-05", name: "FF 8"},
+  {dateStr: "2011-08-16", name: "FF 9"},
+  {dateStr: "2011-09-27", name: "FF 10"},
+  {dateStr: "2011-11-08", name: "FF 11"},
+  {dateStr: "2011-12-20", name: "FF 12"},
+  {dateStr: "2012-01-31", name: "FF 13"},
+  {dateStr: "2012-03-13", name: "FF 14"},
+  {dateStr: "2012-04-24", name: "FF 15"},
+  {dateStr: "2012-06-05", name: "FF 16"},
+  {dateStr: "2012-07-17", name: "FF 17"},
+  {dateStr: "2012-08-28", name: "FF 18"},
+  {dateStr: "2012-10-09", name: "FF 19"}
+];
+
+var gReleaseLookup = {};
+
+(function() {
+  for (var i = 0; i < gReleases.length; i++) {
+    // Seconds from epoch.
+    gReleases[i].date = Date.parse(gReleases[i].dateStr) / 1000;
+  }
+})();
+
+var gReleaseLookup = function() {
+  var lookup = {};
+  for (var i = 0; i < gReleases.length; i++) {
+    lookup[gReleases[i].date] = gReleases[i].name;
+  }
+  return lookup;
+}();
+
 // Which series from series.json to graph where with what label
 var gSeries = {
   "Resident Memory" : {
@@ -134,6 +169,21 @@ function formatBytes(raw) {
   } else {
     return prettyFloat(raw / Math.pow(1024, 3)) + "GiB";
   }
+}
+
+// Round a date (seconds since epoch) to the nearest day.
+function roundDay(date) {
+  return Math.round(date / (24 * 60 * 60)) * 24 * 60 * 60;
+}
+
+// Round a date (seconds since epoch) up to the next day.
+function roundDayUp(date) {
+  return Math.ceil(date / (24 * 60 * 60)) * 24 * 60 * 60;
+}
+
+// Round a date (seconds since epoch) down to the previous day.
+function roundDayDown(date) {
+  return Math.floor(date / (24 * 60 * 60)) * 24 * 60 * 60;
 }
 
 //
@@ -446,15 +496,53 @@ function Plot(axis) {
         clickable: true
       },
       xaxis: {
+        ticks: function(axis) {
+          var points = [];
+          for (var i = 0; i < gReleases.length; i++) {
+            var date = gReleases[i].date;
+            if (axis.min <= date && date <= axis.max) {
+              points.push(date);
+            }
+          }
+          
+          if (points.length >= 2) {
+            return points;
+          }
+
+          if (points.length == 1) {
+            var minDay = roundDayUp(axis.min);
+            var maxDay = roundDayDown(axis.max);
+
+            if (Math.abs(points[0] - minDay) > Math.abs(points[0] - maxDay)) {
+              points.push(minDay);
+            }
+            else {
+              points.push(maxDay);
+            }
+
+            return points;
+          }
+
+          points.push(roundDayUp(axis.min));
+          points.push(roundDayDown(axis.max));
+
+          return points;
+        },
+
         tickFormatter: function(val, axis) {
           var abbrevMonths = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul',
                               'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
           var date = new Date(val * 1000);
 
-          // Use <br> to force the year onto a separate line.  (It usually ends
-          // up on a separate line, anyway, until we zoom in.)
-          return date.getDate() + ' ' + abbrevMonths[date.getMonth()] +
-                 '<br>' + date.getFullYear();
+          var releaseName = "";
+          if (gReleaseLookup[val]) {
+            releaseName = '<div class="tick-release-name">' + gReleaseLookup[val] + '</div>';
+          }
+
+          return '<div class="tick-day-month">' + date.getUTCDate() + ' ' +
+                 abbrevMonths[date.getUTCMonth()] + '</div>' +
+                 '<div class="tick-year">' + date.getUTCFullYear() + '</div>' +
+                 releaseName;
         }
       },
       yaxis: {
@@ -690,7 +778,7 @@ Plot.prototype.onHover = function(item, pos) {
       // Tooltip Content
       this.tooltip.empty();
       var rev = item.series.buildinfo[item.dataIndex]['revision'].slice(0,12);
-      var date = new Date(item.datapoint[0] * 1000).toDateString();
+      var date = new Date(item.datapoint[0] * 1000).toUTCString();
       
       // Label
       this.tooltip.append($.new('h3').text(item.series['label']));
