@@ -68,7 +68,7 @@ var gSeries = {
     'EndMemory':           "Explicit: After TP5, tabs closed",
     'EndMemorySettled':    "Explicit: After TP5, tabs closed [+30s]"
   },
-  "Possibly Interesting Things" : {
+  "Miscellaneous Measurements" : {
     'MaxHeapUnclassifiedV2':  "Heap Unclassified: TP5 opened in 30 tabs [+30s]",
     'MaxJSV2':                "JS: TP5 opened in 30 tabs [+30s]",
     'MaxImagesV2':            "Images: TP5 opened in 30 tabs [+30s]"
