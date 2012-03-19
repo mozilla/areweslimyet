@@ -65,6 +65,10 @@ a:visited:hover {
   height: 800px;
 }
 
+.graphContainer {
+  position: relative;
+}
+
 #graphs {
   position: relative;
   width: 1270px; /* .graph width + rhsContainer width */

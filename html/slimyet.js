@@ -615,7 +615,7 @@ function Plot(axis) {
   // Graph Tooltip
   //
 
-  this.tooltip = new Tooltip(this.obj);
+  this.tooltip = new Tooltip(this.container);
   var self = this;
   this.obj.bind("plotclick", function(event, pos, item) { self.onClick(item); });
   this.obj.bind("plothover", function(event, pos, item) { self.onHover(item, pos); });
