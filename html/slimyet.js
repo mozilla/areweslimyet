@@ -16,6 +16,9 @@ jQuery.new = function(e, attrs, css) {
   return ret;
 };
 
+// Width in pixels of highlight (zoom) selector
+var gHighlightWidth = 400;
+
 // 10-class paired qualitative color scheme from http://colorbrewer2.org/.
 var gDefaultColors = [
   "#1F78B4",
@@ -649,6 +652,10 @@ Plot.prototype.setZoomRange = function(range) {
     // setupGrid() reparents the grid, so we need to reparent the tooltip
     // such that it is last in the z-ordering
     this.tooltip.obj.appendTo(this.obj);
+
+    // The highlight has the wrong range now that we mucked with the graph
+    if (this.highlighted)
+      this.showHighlight(this._highlightLoc, this._highlightWidth);
 }
 
 // RebuildsFIXME FIXME FIXME
@@ -741,18 +748,23 @@ Plot.prototype.onClick = function(item) {
   } else if (this.highlighted) {
     // Clicked on highlighted zoom space, do a graph zoom
     this.setZoomRange(this.highlightRange);
-
-    // FIXME for issue #6, and also so the highlight range disappears when
-    // we're zoomed all the way in, we should call onHover here.  But I don't
-    // know how to do this.
   }
 }
 
+// Shows the zoom/highlight bar centered [location] pixels from the left of the
+// graph.
+//
+// EX To turn a mouse event into graph coordinates:
+// var location = event.pageX - this.flot.offset().left
+//                + this.flot.getPlotOffset().left;
 Plot.prototype.showHighlight = function(location, width) {
   if (!this.highlighted) {
     this.zoomSelector.stop().fadeTo(250, 1);
     this.highlighted = true;
   }
+
+  this._highlightLoc = location;
+  this._highlightWidth = width;
 
   var minZoomDays = 3;
   var xaxis = this.flot.getAxes().xaxis;
@@ -818,7 +830,7 @@ Plot.prototype.onHover = function(item, pos) {
         this.tooltip.unHover();
       // Move hover highlight for zooming
       var left = pos.pageX - this.flot.offset().left + this.flot.getPlotOffset().left;
-      this.showHighlight(left, 400);
+      this.showHighlight(left, gHighlightWidth);
     }
     this.hoveredItem = item;
   }
