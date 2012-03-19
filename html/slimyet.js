@@ -30,6 +30,41 @@ var gDefaultColors = [
   "#CAB2D6",
 ];
 
+var gReleases = [
+  {dateStr: "2011-03-03", name: "FF 5"},
+  {dateStr: "2011-04-12", name: "FF 6"},
+  {dateStr: "2011-05-24", name: "FF 7"},
+  {dateStr: "2011-07-05", name: "FF 8"},
+  {dateStr: "2011-08-16", name: "FF 9"},
+  {dateStr: "2011-09-27", name: "FF 10"},
+  {dateStr: "2011-11-08", name: "FF 11"},
+  {dateStr: "2011-12-20", name: "FF 12"},
+  {dateStr: "2012-01-31", name: "FF 13"},
+  {dateStr: "2012-03-13", name: "FF 14"},
+  {dateStr: "2012-04-24", name: "FF 15"},
+  {dateStr: "2012-06-05", name: "FF 16"},
+  {dateStr: "2012-07-17", name: "FF 17"},
+  {dateStr: "2012-08-28", name: "FF 18"},
+  {dateStr: "2012-10-09", name: "FF 19"}
+];
+
+var gReleaseLookup = {};
+
+(function() {
+  for (var i = 0; i < gReleases.length; i++) {
+    // Seconds from epoch.
+    gReleases[i].date = Date.parse(gReleases[i].dateStr) / 1000;
+  }
+})();
+
+var gReleaseLookup = function() {
+  var lookup = {};
+  for (var i = 0; i < gReleases.length; i++) {
+    lookup[gReleases[i].date] = gReleases[i].name;
+  }
+  return lookup;
+}();
+
 // Which series from series.json to graph where with what label
 var gSeries = {
   "Resident Memory" : {
@@ -68,10 +103,10 @@ var gSeries = {
     'EndMemory':           "Explicit: After TP5, tabs closed",
     'EndMemorySettled':    "Explicit: After TP5, tabs closed [+30s]"
   },
-  "Possibly Interesting Things" : {
-    'MaxHeapUnclassifiedV2':  "Heap Unclassified: TP5 opened in 30 tabs [+30s]",
-    'MaxJSV2':                "JS: TP5 opened in 30 tabs [+30s]",
-    'MaxImagesV2':            "Images: TP5 opened in 30 tabs [+30s]"
+  "Miscellaneous Measurements" : {
+    'MaxHeapUnclassifiedV2':  "Heap Unclassified: After TP5 [+30s]",
+    'MaxJSV2':                "JS: After TP5 [+30s]",
+    'MaxImagesV2':            "Images: After TP5 [+30s]"
   }
 };
 
@@ -134,6 +169,21 @@ function formatBytes(raw) {
   } else {
     return prettyFloat(raw / Math.pow(1024, 3)) + "GiB";
   }
+}
+
+// Round a date (seconds since epoch) to the nearest day.
+function roundDay(date) {
+  return Math.round(date / (24 * 60 * 60)) * 24 * 60 * 60;
+}
+
+// Round a date (seconds since epoch) up to the next day.
+function roundDayUp(date) {
+  return Math.ceil(date / (24 * 60 * 60)) * 24 * 60 * 60;
+}
+
+// Round a date (seconds since epoch) down to the previous day.
+function roundDayDown(date) {
+  return Math.floor(date / (24 * 60 * 60)) * 24 * 60 * 60;
 }
 
 //
@@ -353,7 +403,7 @@ Tooltip.prototype.zoom = function(callback) {
   
   // Close button
   var self = this;
-  $.new('a', { class: 'closeButton', href: '#' }).addClass('closeButton')
+  $.new('a', { class: 'closeButton', href: '#' })
    .text('[x]')
    .appendTo(this.obj).css('display', 'none')
    .fadeIn(500).click(function () {
@@ -430,7 +480,19 @@ function Plot(axis) {
                      gGraphData['builds'][gGraphData['builds'].length - 1]['time'] ];
   this.zoomRange = this.dataRange;
   
-  this.obj = $.new('div').addClass('graph').appendTo($('#graphs'));
+  this.container = $.new('div').addClass('graphContainer').appendTo($('#graphs'));
+  this.rhsContainer = $.new('div').addClass('rhsContainer').appendTo(this.container);
+  this.zoomOutButton = $.new('a', { href: '#', class: 'zoomOutButton' })
+                        .appendTo(this.rhsContainer)
+                        .text('Zoom Out')
+                        .hide()
+                        .click(function () {
+                          self.setZoomRange();
+                          return false;
+                        });
+  this.legendContainer = $.new('div').addClass('legendContainer').appendTo(this.rhsContainer);
+  
+  this.obj = $.new('div').addClass('graph').appendTo(this.container);
   this.flot = $.plot(this.obj,
     // Data
     this._buildSeries(),
@@ -441,32 +503,74 @@ function Plot(axis) {
         points: { show: true }
       },
       grid: {
-        color: "#FFF",
+        color: "#aaa",
         hoverable: true,
         clickable: true
       },
       xaxis: {
+        ticks: function(axis) {
+          var points = [];
+          for (var i = 0; i < gReleases.length; i++) {
+            var date = gReleases[i].date;
+            if (axis.min <= date && date <= axis.max) {
+              points.push(date);
+            }
+          }
+          
+          if (points.length >= 2) {
+            return points;
+          }
+
+          if (points.length == 1) {
+            var minDay = roundDayUp(axis.min);
+            var maxDay = roundDayDown(axis.max);
+
+            if (Math.abs(points[0] - minDay) > Math.abs(points[0] - maxDay)) {
+              points.push(minDay);
+            }
+            else {
+              points.push(maxDay);
+            }
+
+            return points;
+          }
+
+          points.push(roundDayUp(axis.min));
+          points.push(roundDayDown(axis.max));
+
+          return points;
+        },
+
         tickFormatter: function(val, axis) {
           var abbrevMonths = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul',
                               'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
           var date = new Date(val * 1000);
 
-          // Use <br> to force the year onto a separate line.  (It usually ends
-          // up on a separate line, anyway, until we zoom in.)
-          return date.getDate() + ' ' + abbrevMonths[date.getMonth()] +
-                 '<br>' + date.getFullYear();
+          var releaseName = "";
+          if (gReleaseLookup[val]) {
+            releaseName = '<div class="tick-release-name">' + gReleaseLookup[val] + '</div>';
+          }
+
+          return '<div class="tick-day-month">' + date.getUTCDate() + ' ' +
+                 abbrevMonths[date.getUTCMonth()] + '</div>' +
+                 '<div class="tick-year">' + date.getUTCFullYear() + '</div>' +
+                 releaseName;
         }
       },
       yaxis: {
         ticks: function(axis) {
+          // If you zoom in and there are no points to show, axis.max will be
+          // very small.  So let's say that we'll always graph at least 32mb.
+          var axisMax = Math.max(axis.max, 32 * 1024 * 1024);
+
           var approxNumTicks = 10;
-          var interval = axis.max / approxNumTicks;
+          var interval = axisMax / approxNumTicks;
 
           // Round interval up to nearest power of 2.
           interval = Math.pow(2, Math.ceil(Math.log(interval) / Math.log(2)));
 
           // Round axis.max up to the next interval.
-          var max = Math.ceil(axis.max / interval) * interval;
+          var max = Math.ceil(axisMax / interval) * interval;
 
           // Let res be [0, interval, 2 * interval, 3 * interval, ..., max].
           var res = [];
@@ -482,10 +586,7 @@ function Plot(axis) {
         }
       },
       legend: {
-        backgroundColor: "#000",
-        margin: 10,
-        position: 'nw',
-        backgroundOpacity: 0.4
+        container: this.legendContainer
       },
       colors: gDefaultColors
     }
@@ -501,8 +602,9 @@ function Plot(axis) {
                          height: this.flot.height() - 10 + 'px', // padding-top is 10px
                        })
                        .addClass('zoomSelector')
-                       .text("[zoom]")
+                       .text("zoom")
                        .insertBefore(fcanvas);
+
   // For proper layering
   $(fcanvas).css('position', 'relative');
   
@@ -527,18 +629,16 @@ Plot.prototype.setZoomRange = function(range) {
       zoomOut = true;
       range = this.dataRange;
     }
-    
+
     var self = this;
     if (this.zoomed && zoomOut) {
-      // Zooming back out, remove close button
+      // Zooming back out, remove zoom out button
       this.zoomed = false;
-      this.obj.children('.closeButton').remove();
+      self.zoomOutButton.hide();
     } else if (!this.zoomed && !zoomOut) {
-      // Zoomed out -> zoomed in. Add close button
+      // Zoomed out -> zoomed in. Add zoom out button.
       this.zoomed = true;
-      self.obj.append($.new('div').addClass('closeButton').text('[zoom out]').click(function () {
-        self.setZoomRange();
-      }));
+      self.zoomOutButton.show();
     }
 
     this.zoomRange = range;
@@ -641,6 +741,10 @@ Plot.prototype.onClick = function(item) {
   } else if (this.highlighted) {
     // Clicked on highlighted zoom space, do a graph zoom
     this.setZoomRange(this.highlightRange);
+
+    // FIXME for issue #6, and also so the highlight range disappears when
+    // we're zoomed all the way in, we should call onHover here.  But I don't
+    // know how to do this.
   }
 }
 
@@ -648,6 +752,14 @@ Plot.prototype.showHighlight = function(location, width) {
   if (!this.highlighted) {
     this.zoomSelector.stop().fadeTo(250, 1);
     this.highlighted = true;
+  }
+
+  var minZoomDays = 3;
+  var xaxis = this.flot.getAxes().xaxis;
+  if (xaxis.max - xaxis.min <= minZoomDays * 24 * 60 * 60) {
+    this.highlighted = false;
+    this.zoomSelector.stop().fadeTo(50, 0);
+    return;
   }
 
   var off = this.flot.getPlotOffset();
@@ -663,7 +775,6 @@ Plot.prototype.showHighlight = function(location, width) {
   }
   
   // Calculate the x-axis range of the data we're highlighting
-  var xaxis = this.flot.getAxes().xaxis;
   this.highlightRange = [ xaxis.c2p(left - off.left), xaxis.c2p(left + width - off.left) ];
   
   this.zoomSelector.css({
@@ -686,7 +797,7 @@ Plot.prototype.onHover = function(item, pos) {
       // Tooltip Content
       this.tooltip.empty();
       var rev = item.series.buildinfo[item.dataIndex]['revision'].slice(0,12);
-      var date = new Date(item.datapoint[0] * 1000).toDateString();
+      var date = new Date(item.datapoint[0] * 1000).toUTCString();
       
       // Label
       this.tooltip.append($.new('h3').text(item.series['label']));
