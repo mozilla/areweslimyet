@@ -10,10 +10,10 @@
 html, body {
   background-color: white;
   color: black;
+  font-family: Verdana, sans-serif;
 }
 
 h1 {
-  font-family: serif;
   margin: 30px;
   font-size: 4em;
   text-shadow: #aaa 2px 2px 1px;
