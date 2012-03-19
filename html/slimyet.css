@@ -75,7 +75,7 @@ a:visited:hover {
   text-align: center;
 }
 
-.legend-container {
+.rhsContainer {
   position: absolute;
   left: 1020px;
 
@@ -95,26 +95,28 @@ a:visited:hover {
   font-weight: bold;
 }
 
-.zoomSelector, #zoomOutButton {
-  position: absolute;
+.zoomSelector, .zoomOutButton {
   font-size: 80%;
   color: #555;
 }
 
 .zoomSelector {
+  position: absolute;
   padding-top: 11px;
   opacity: 0; /* Start hidden */
   background-color: rgba(220,220,220,0.5);
   text-align: center;
 }
 
-#zoomOutButton {
-  cursor: pointer;
-  top: 15px;
-  right: 15px;
+.zoomOutContainer {
+  height: 2em;
 }
 
-#zoomOutButton:hover {
+.zoomOutButton {
+  cursor: pointer;
+}
+
+.zoomOutButton:hover {
   text-decoration: underline;
 }
 

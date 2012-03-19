@@ -104,9 +104,9 @@ var gSeries = {
     'EndMemorySettled':    "Explicit: After TP5, tabs closed [+30s]"
   },
   "Miscellaneous Measurements" : {
-    'MaxHeapUnclassifiedV2':  "Heap Unclassified: TP5 opened in 30 tabs [+30s]",
-    'MaxJSV2':                "JS: TP5 opened in 30 tabs [+30s]",
-    'MaxImagesV2':            "Images: TP5 opened in 30 tabs [+30s]"
+    'MaxHeapUnclassifiedV2':  "Heap Unclassified: After TP5 [+30s]",
+    'MaxJSV2':                "JS: After TP5 [+30s]",
+    'MaxImagesV2':            "Images: After TP5 [+30s]"
   }
 };
 
@@ -480,8 +480,15 @@ function Plot(axis) {
                      gGraphData['builds'][gGraphData['builds'].length - 1]['time'] ];
   this.zoomRange = this.dataRange;
   
-  this.container = $.new('div').addClass('graph-container').appendTo($('#graphs'));
-  this.legendContainer = $.new('div').addClass('legend-container').appendTo(this.container);
+  this.container = $.new('div').addClass('graphContainer').appendTo($('#graphs'));
+  this.rhsContainer = $.new('div').addClass('rhsContainer').appendTo(this.container);
+  var zoomOutContainer = $.new('div', {class: 'zoomOutContainer'}).appendTo(this.rhsContainer);
+  this.zoomOutButton = $.new('div', {class: 'zoomOutButton'}).appendTo(zoomOutContainer)
+                        .text('Zoom Out').hide()
+                        .click(function () {
+                          self.setZoomRange();
+                        });
+  this.legendContainer = $.new('div').addClass('legendContainer').appendTo(this.rhsContainer);
   this.obj = $.new('div').addClass('graph').appendTo(this.container);
   this.flot = $.plot(this.obj,
     // Data
@@ -594,6 +601,7 @@ function Plot(axis) {
                        .addClass('zoomSelector')
                        .text("zoom")
                        .insertBefore(fcanvas);
+
   // For proper layering
   $(fcanvas).css('position', 'relative');
   
@@ -618,18 +626,16 @@ Plot.prototype.setZoomRange = function(range) {
       zoomOut = true;
       range = this.dataRange;
     }
-    
+
     var self = this;
     if (this.zoomed && zoomOut) {
       // Zooming back out, remove zoom out button
       this.zoomed = false;
-      this.obj.children('#zoomOutButton').remove();
+      self.zoomOutButton.hide();
     } else if (!this.zoomed && !zoomOut) {
       // Zoomed out -> zoomed in. Add zoom out button.
       this.zoomed = true;
-      self.obj.append($.new('div', {id: 'zoomOutButton'}).text('zoom out').click(function () {
-        self.setZoomRange();
-      }));
+      self.zoomOutButton.show();
     }
 
     this.zoomRange = range;
