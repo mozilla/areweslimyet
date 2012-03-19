@@ -482,13 +482,16 @@ function Plot(axis) {
   
   this.container = $.new('div').addClass('graphContainer').appendTo($('#graphs'));
   this.rhsContainer = $.new('div').addClass('rhsContainer').appendTo(this.container);
-  var zoomOutContainer = $.new('div', {class: 'zoomOutContainer'}).appendTo(this.rhsContainer);
-  this.zoomOutButton = $.new('div', {class: 'zoomOutButton'}).appendTo(zoomOutContainer)
-                        .text('Zoom Out').hide()
+  this.zoomOutButton = $.new('a', { href: '#', class: 'zoomOutButton' })
+                        .appendTo(this.rhsContainer)
+                        .text('Zoom Out')
+                        .hide()
                         .click(function () {
                           self.setZoomRange();
+                          return false;
                         });
   this.legendContainer = $.new('div').addClass('legendContainer').appendTo(this.rhsContainer);
+  
   this.obj = $.new('div').addClass('graph').appendTo(this.container);
   this.flot = $.plot(this.obj,
     // Data

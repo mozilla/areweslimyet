@@ -67,7 +67,7 @@ a:visited:hover {
 
 #graphs {
   position: relative;
-  width: 1000px;
+  width: 1270px; /* .graph width + rhsContainer width */
   margin: auto;
 }
 
@@ -76,15 +76,18 @@ a:visited:hover {
 }
 
 .rhsContainer {
-  position: absolute;
-  left: 1020px;
-
-  width: 20em;
-  width: -moz-max-content;
+  padding-top: 0.5em;
+  float: right;
+  padding-left: 20px;
+  width: 250px;
 }
 
 #footer {
   margin-top: 50px;
+}
+
+.legendContainer {
+  margin-top: 1.5em;
 }
 
 .legendLabel, .tickLabel {
@@ -95,7 +98,11 @@ a:visited:hover {
   font-weight: bold;
 }
 
-.zoomSelector, .zoomOutButton {
+.zoomSelector, .zoomOutButton,
+.zoomOutButton:visited,
+.zoomOutButton:active,
+.zoomOutButton:hover,
+.zoomOutButton:visited:hover {
   font-size: 80%;
   color: #555;
 }
@@ -108,12 +115,8 @@ a:visited:hover {
   text-align: center;
 }
 
-.zoomOutContainer {
-  height: 2em;
-}
-
 .zoomOutButton {
-  cursor: pointer;
+  float: left;
 }
 
 .zoomOutButton:hover {
