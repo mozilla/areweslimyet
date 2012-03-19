@@ -118,11 +118,12 @@ def error(msg):
   sys.stderr.write(msg + '\n')
   sys.exit(1)
 
-if len(sys.argv) != 3:
-  error("Usage: %s <database> <outdir>" % sys.argv[0])
+if len(sys.argv) != 4:
+  error("Usage: %s <database> <seriesname> <outdir>" % sys.argv[0])
 
 gDatabase = os.path.normpath(sys.argv[1])
-gOutDir = os.path.normpath(sys.argv[2])
+gSeriesName = sys.argv[2]
+gOutDir = os.path.normpath(sys.argv[3])
 
 if not os.path.isfile(gDatabase):
   error("Database '%s' not found")
@@ -167,7 +168,7 @@ data = {
 
 # Open the old file, if possible, to skip generating redundant data
 old_data = None
-old_series_file = os.path.join(gOutDir, 'series.json.gz')
+old_series_file = os.path.join(gOutDir, gSeriesName + '.json.gz')
 if os.path.exists(old_series_file):
   last_series = gzip.open(old_series_file, 'r')
   old_data = json.loads(last_series.read())
@@ -337,9 +338,9 @@ for test in gTests.keys():
     data['series_info'][series] = gTests[test]['series'][series]
     data['series_info'][series]['test'] = test
 
-print("[%u/%u] Finished, writing series.json.gz" % (i, i))
+print("[%u/%u] Finished, writing %s.json.gz" % (i, i, gSeriesName))
 # Write out all the generated series into series.json.gz
-datafile = gzip.open(os.path.join(gOutDir, 'series.json.gz'), 'w', 9)
+datafile = gzip.open(os.path.join(gOutDir, gSeriesName + '.json.gz'), 'w', 9)
 datafile.write(bytes(json.dumps(data, indent=2), encoding="utf-8"))
 datafile.write(bytes('\n', encoding="utf-8"))
 datafile.close()
