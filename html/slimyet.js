@@ -733,6 +733,10 @@ Plot.prototype.onClick = function(item) {
   } else if (this.highlighted) {
     // Clicked on highlighted zoom space, do a graph zoom
     this.setZoomRange(this.highlightRange);
+
+    // FIXME for issue #6, and also so the highlight range disappears when
+    // we're zoomed all the way in, we should call onHover here.  But I don't
+    // know how to do this.
   }
 }
 
@@ -740,6 +744,14 @@ Plot.prototype.showHighlight = function(location, width) {
   if (!this.highlighted) {
     this.zoomSelector.stop().fadeTo(250, 1);
     this.highlighted = true;
+  }
+
+  var minZoomDays = 3;
+  var xaxis = this.flot.getAxes().xaxis;
+  if (xaxis.max - xaxis.min <= minZoomDays * 24 * 60 * 60) {
+    this.highlighted = false;
+    this.zoomSelector.stop().fadeTo(50, 0);
+    return;
   }
 
   var off = this.flot.getPlotOffset();
@@ -755,7 +767,6 @@ Plot.prototype.showHighlight = function(location, width) {
   }
   
   // Calculate the x-axis range of the data we're highlighting
-  var xaxis = this.flot.getAxes().xaxis;
   this.highlightRange = [ xaxis.c2p(left - off.left), xaxis.c2p(left + width - off.left) ];
   
   this.zoomSelector.css({
