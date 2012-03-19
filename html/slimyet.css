@@ -61,7 +61,7 @@ a:visited:hover {
 }
 
 .graph {
-  width: 100%;
+  width: 1000px;
   height: 800px;
 }
 
@@ -73,6 +73,14 @@ a:visited:hover {
 
 #graphs h2, #graphs h3 {
   text-align: center;
+}
+
+.legend-container {
+  position: absolute;
+  left: 1020px;
+
+  width: 20em;
+  width: -moz-max-content;
 }
 
 #footer {

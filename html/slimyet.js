@@ -480,7 +480,9 @@ function Plot(axis) {
                      gGraphData['builds'][gGraphData['builds'].length - 1]['time'] ];
   this.zoomRange = this.dataRange;
   
-  this.obj = $.new('div').addClass('graph').appendTo($('#graphs'));
+  this.container = $.new('div').addClass('graph-container').appendTo($('#graphs'));
+  this.legendContainer = $.new('div').addClass('legend-container').appendTo(this.container);
+  this.obj = $.new('div').addClass('graph').appendTo(this.container);
   this.flot = $.plot(this.obj,
     // Data
     this._buildSeries(),
@@ -574,10 +576,7 @@ function Plot(axis) {
         }
       },
       legend: {
-        backgroundColor: "#fff",
-        margin: 10,
-        position: 'nw',
-        backgroundOpacity: 0.9
+        container: this.legendContainer
       },
       colors: gDefaultColors
     }
