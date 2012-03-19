@@ -35,7 +35,7 @@ files = list(filter(lambda x: x != seriesname + '.json.gz' and x.startswith(seri
 
 print("Merging %u files: %s" % (len(files), files))
 
-totaldata = { 'builds' : [], 'series' : {}, 'series_info' : {},  }
+totaldata = { 'builds' : [], 'series' : {}, 'series_info' : {}, 'allseries' : [] }
 
 # Returns the timestamp of this build's day @ midnight UTC
 def dayof(timestamp):
@@ -83,7 +83,13 @@ for fname in files:
   f = gzip.open(os.path.join(outdir, fname), 'r')
   fdata = json.loads(f.read())
   f.close()
+  if not len(fdata['builds']): continue
   cdata = condense_data(fdata)
+  totaldata['allseries'].append({
+      'fromtime' : fdata['builds'][0]['time'],
+      'totime' : fdata['builds'][-1]['time'],
+      'dataname' : fname.replace('.json.gz', '')
+    })
   totaldata['builds'].extend(cdata['builds'])
   for x in cdata['series'].keys():
     totaldata['series'].setdefault(x, [])
