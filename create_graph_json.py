@@ -18,6 +18,8 @@ import sqlite3
 import json
 import time
 import gzip
+import datetime
+import calendar
 
 # Config for which tests to export
 # - nodeize : [char] split this test's datapoints by the given character and
@@ -118,11 +120,12 @@ def error(msg):
   sys.stderr.write(msg + '\n')
   sys.exit(1)
 
-if len(sys.argv) != 3:
-  error("Usage: %s <database> <outdir>" % sys.argv[0])
+if len(sys.argv) != 4:
+  error("Usage: %s <database> <seriesname> <outdir>" % sys.argv[0])
 
 gDatabase = os.path.normpath(sys.argv[1])
-gOutDir = os.path.normpath(sys.argv[2])
+gSeriesName = sys.argv[2]
+gOutDir = os.path.normpath(sys.argv[3])
 
 if not os.path.isfile(gDatabase):
   error("Database '%s' not found")
@@ -167,7 +170,7 @@ data = {
 
 # Open the old file, if possible, to skip generating redundant data
 old_data = None
-old_series_file = os.path.join(gOutDir, 'series.json.gz')
+old_series_file = os.path.join(gOutDir, gSeriesName + '.json.gz')
 if os.path.exists(old_series_file):
   last_series = gzip.open(old_series_file, 'r')
   old_data = json.loads(last_series.read())
@@ -330,16 +333,67 @@ for build in builds:
     testfile.write(bytes('\n', encoding="utf-8"))
     testfile.close()
 
-data['generated'] = time.time()
-data['series_info'] = {}
+#
+# Generate a one-datapoint-per-day condensed version with min/max/median
+# per datapoint
+#
+
+print("Generating condensed data")
+
+# Returns the timestamp of this build's day @ midnight UTC
+def dayof(timestamp):
+  return int(calendar.timegm(datetime.date.fromtimestamp(timestamp).timetuple()))
+
+cdata = {
+  'builds': [],
+  'series' : dict((n, []) for n in gSeriesNames)
+}
+
+cday = -1
+ranges = []
+start = 0
+for i in range(len(data['builds'])):
+  day = dayof(data['builds'][i]['time'])
+  if day != cday:
+    if cday != -1: ranges.append((start, i))
+    cday = day
+
+for point in ranges:
+  build = {}
+  build['firstrev'] = data['builds'][point[0]]['revision']
+  build['lastrev'] = data['builds'][point[1]]['revision']
+  build['time'] = dayof(data['builds'][point[0]]['time'])
+
+  cdata['builds'].append(build)
+  
+  for test, testinfo in gTests.items():
+    for sname, sinfo in testinfo['series'].items():
+      series = data['series'][sname][point[0]:point[1]]
+      iseries = filter(lambda x: x is not None, series)
+      if len(iseries) == 0:
+        cdata['series'][sname].append([ None, None, None ])
+      else:
+        iseries.sort()
+        if len(series) % 2 == 1:
+          median = iseries[(len(iseries) - 1) / 2]
+        else:
+          median = int(round(float(iseries[len(iseries) / 2] + iseries[len(iseries) / 2 - 1])/2, 0))
+        cdata['series'][sname].append([iseries[0], median, iseries[-1]])
+
+print("Done, writing %s.json.gz and %s.json.gz" % (gSeriesName, gSeriesName))
+
+cdata['generated'] = data['generated'] = time.time()
+cdata['series_info'] = {}
 for test in gTests.keys():
   for series in gTests[test]['series'].keys():
-    data['series_info'][series] = gTests[test]['series'][series]
-    data['series_info'][series]['test'] = test
+    cdata['series_info'][series] = gTests[test]['series'][series]
+    cdata['series_info'][series]['test'] = test
 
-print("[%u/%u] Finished, writing series.json.gz" % (i, i))
-# Write out all the generated series into series.json.gz
-datafile = gzip.open(os.path.join(gOutDir, 'series.json.gz'), 'w', 9)
-datafile.write(bytes(json.dumps(data, indent=2), encoding="utf-8"))
-datafile.write(bytes('\n', encoding="utf-8"))
-datafile.close()
+def writeout(data, fname):
+  datafile = gzip.open(os.path.join(gOutDir, fname), 'w', 9)
+  datafile.write(bytes(json.dumps(data, indent=2), encoding="utf-8"))
+  datafile.write(bytes('\n', encoding="utf-8"))
+  datafile.close()
+
+writeout(data, gSeriesName + '.json.gz')
+writeout(cdata, gSeriesName + '-condensed.json.gz')
