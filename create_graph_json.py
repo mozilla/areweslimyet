@@ -380,7 +380,7 @@ for point in ranges:
           median = int(round(float(iseries[len(iseries) / 2] + iseries[len(iseries) / 2 - 1])/2, 0))
         cdata['series'][sname].append([iseries[0], median, iseries[-1]])
 
-print("Done, writing %s.json.gz and %s.json.gz" % (gSeriesName, gSeriesName))
+print("Done, writing %s.json.gz and %s-condensed.json.gz" % (gSeriesName, gSeriesName))
 
 cdata['generated'] = data['generated'] = time.time()
 cdata['series_info'] = {}
