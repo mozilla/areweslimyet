@@ -80,7 +80,7 @@ def condense_data(data):
         cdata['series'][sname].append(None)
       else:
         iseries.sort()
-        if len(series) % 2 == 1:
+        if len(iseries) % 2 == 1:
           median = iseries[(len(iseries) - 1) / 2]
         else:
           median = int(round(float(iseries[len(iseries) / 2] + iseries[len(iseries) / 2 - 1])/2, 0))
