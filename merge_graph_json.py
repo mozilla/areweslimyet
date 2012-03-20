@@ -32,6 +32,7 @@ outdir = sys.argv[2]
 os.listdir(outdir)
 
 files = list(filter(lambda x: x != seriesname + '.json.gz' and x.startswith(seriesname) and x.endswith('.json.gz'), os.listdir(outdir)))
+files.sort()
 
 print("Merging %u files: %s" % (len(files), files))
 
