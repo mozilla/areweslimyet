@@ -716,6 +716,16 @@ Plot.prototype._getInvolvedSeries = function(range) {
 // Uses series returned by _getInvolvedSeries *if they are all downloaded*,
 // otherwise always uses overview data.
 Plot.prototype._buildSeries = function(start, stop) {
+  if (stop === undefined) {
+    var lb = gGraphData['builds'][gGraphData['builds'].length - 1];
+    stop = lb['timerange'] ? lb['timerange'][1] : lb['time'];
+  }
+  if (start === undefined) {
+    var fb = gGraphData['builds'][0];
+    start = fb['timerange'] ? fb['timerange'][0] : fb['time'];
+  }
+
+  var self = this; // for closures
   var involvedseries = this._getInvolvedSeries([start, stop]);
 
   // Don't use the involved series if they're not all downloaded
@@ -737,6 +747,20 @@ Plot.prototype._buildSeries = function(start, stop) {
 
   // Grouping distance
   var groupdist = Math.round((stop - start) / gMaxPoints);
+
+  function pushdp(series, buildinf, ctime) {
+    // Push a datapoint onto builds/ranges/data
+    if (ctime != -1) {
+      if (!buildinf['lastrev'])
+        delete buildinf['timerange']
+      builds.push(buildinf);
+      for (axis in self.axis) {
+        var flat = flatten(series[axis]);
+        data[axis].push([ +buildinf['time'], flat[1] ]);
+        ranges[axis].push([flat[0], flat[2]]);
+      }
+    }
+  }
   function groupin(timestamp) {
     return timestamp - (timestamp % groupdist);
   }
@@ -771,20 +795,10 @@ Plot.prototype._buildSeries = function(start, stop) {
 
         var time = groupin(b['time']);
         if (time != ctime) {
-          // Move on to new datapoint
-          if (ctime != -1) {
-            if (!buildinf['lastrev'])
-              delete buildinf['timerange']
-            builds.push(buildinf);
-            for (axis in this.axis) {
-              var flat = flatten(series[axis]);
-              data[axis].push([ +buildinf['time'], flat[1] ]);
-              ranges[axis].push([flat[0], flat[2]]);
-            }
-          }
+          pushdp(series, buildinf, ctime);
+          ctime = time;
           series = {};
           buildinf = { time: time };
-          ctime = time;
         }
 
         var rev = b['revision'];
@@ -801,12 +815,14 @@ Plot.prototype._buildSeries = function(start, stop) {
         }
       }
     }
+    pushdp(series, buildinf, ctime);
+
   } else {
     // Using overview data, which is already condensed.
     // Merge every N points to get close to our desired density.
-    var merge = Math.round(groupdist / gGraphData['condensed']);
+    var merge = Math.max(Math.round(groupdist / gGraphData['condensed']), 1);
     var nbuilds = gGraphData['builds'].length;
-    for (var i = 0; i < gGraphData['builds'].length; i += merge) {
+    for (var i = 0; i < nbuilds; i += merge) {
       var b = gGraphData['builds'][i];
       var ilast = i + merge - 1 < nbuilds ? i + merge - 1 : nbuilds - 1;
       var blast = gGraphData['builds'][ilast];
@@ -815,7 +831,7 @@ Plot.prototype._buildSeries = function(start, stop) {
       for (var x = 0; x + i <= ilast; x++) {
         time += +gGraphData['builds'][x + i]['time'];
       }
-      time = Math.round(time / merge);
+      time = Math.round(time / (ilast - i + 1));
       b['time'] = time;
       b['lastrev'] = gGraphData['builds'][ilast]['lastrev'];
       var from = b['timerange'] ? b['timerange'][0] : b['time'];
@@ -838,7 +854,7 @@ Plot.prototype._buildSeries = function(start, stop) {
         // wont be the true median of all involved builds. This only happens
         // when significantly zoomed out, but ack. (this should just graph
         // averages to begin with probably)
-        median = Math.round(median / merge);
+        median = Math.round(median / (ilast - i + 1));
         var min = gGraphData['series'][axis][i];
         min = min instanceof Array ? +min[0] : +min;
         var max = +gGraphData['series'][axis][ilast];
