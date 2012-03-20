@@ -674,7 +674,7 @@ Plot.prototype.setZoomRange = function(range) {
       if (!gFullData[fullseries[x]]) {
         pending++;
         var self = this;
-        getFullSeries(fetch[x]['dataname'], function () {
+        getFullSeries(fullseries[x], function () {
           if (--pending == 0 && self.zoomed)
             self.setZoomRange(self.zoomRange);
         });
@@ -702,11 +702,9 @@ Plot.prototype._getInvolvedSeries = function(range) {
   for (var x in gGraphData['allseries']) {
     var s = gGraphData['allseries'][x];
     if (range[1] > s['fromtime'] && range[0] < s['totime'])
-      ret.push(x);
+      ret.push(s['dataname']);
   }
-
-  // !! This assumes series objects are in alphanumeric order
-  ret.sort();
+;
   return ret;
 }
 
@@ -787,8 +785,10 @@ Plot.prototype._buildSeries = function(start, stop) {
         } else {
           buildinf['lastrev'] = b['revision'];
         }
-        for (var axis in this.axis)
+        for (var axis in this.axis) {
+          if (!series[axis]) series[axis] = [];
           series[axis].push(sourceData['series'][axis][ind]);
+        }
       }
     }
   } else {
@@ -808,7 +808,6 @@ Plot.prototype._buildSeries = function(start, stop) {
   for (var axis in this.axis)
     seriesData.push({ name: axis, range: ranges[axis], label: this.axis[axis], data: data[axis], buildinfo: builds });
 
-  logMsg(seriesData);
   return seriesData;
 }
 
@@ -934,29 +933,39 @@ Plot.prototype.hideHighlight = function() {
 }
 
 Plot.prototype.onHover = function(item, pos) {
+  function revlink(rev) {
+    return $.new('a')
+            .attr('href', "http://hg.mozilla.org/mozilla-central/rev/" + rev)
+            .text(rev);
+  }
   if ((!item || item !== this.hoveredItem) && !this.tooltip.isZoomed()) {
     if (item) {
       this.hideHighlight();
       // Tooltip Content
       this.tooltip.empty();
-      var rev = item.series.buildinfo[item.dataIndex]['revision'].slice(0,12);
+      var buildinfo = item.series.buildinfo[item.dataIndex];
+      var rev = buildinfo['firstrev'].slice(0,12);
       var date = new Date(item.datapoint[0] * 1000).toUTCString();
 
       // Label
       this.tooltip.append($.new('h3').text(item.series['label']));
       // Build link / time
-      this.tooltip.append($.new('p').append($.new('p').text(formatBytes(item.datapoint[1])))
-                      .append($.new('b').text('build '))
-                      .append($.new('a')
-                              .attr('href', "http://hg.mozilla.org/mozilla-central/rev/" + rev)
-                              .text(rev))
-                      .append($.new('span').text(' @ ' + date)));
+      var ttinner = $.new('p');
+      ttinner.append($.new('p').text(formatBytes(item.datapoint[1])));
+      ttinner.append($.new('b').text('build '));
+      ttinner.append(revlink(rev));
+      if (buildinfo['lastrev']) {
+        //FIXME
+        ttinner.append(' .. ');
+        ttinner.append(revlink(buildinfo['lastrev'].slice(0,12)));
+      }
+      ttinner.append($.new('p').text(' @ ' + date));
+      this.tooltip.append(ttinner);
 
       // Tooltips move relative to the plot, not the page
       var offset = this.obj.offset();
       this.tooltip.hover(item.pageX - offset.left, item.pageY - offset.top, this.hoveredItem ? true : false);
-    }
-    else {
+    } else {
       if (this.hoveredItem)
         this.tooltip.unHover();
       // Move hover highlight for zooming
