@@ -1,7 +1,7 @@
 
 /*
  * Copyright © 2012 Mozilla Corporation
- * 
+ *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this file,
  * You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -18,6 +18,9 @@ jQuery.new = function(e, attrs, css) {
 
 // Width in pixels of highlight (zoom) selector
 var gHighlightWidth = 400;
+
+// Coalesce datapoints to keep them under this many per zoom level
+var gMaxPoints = 250;
 
 // 10-class paired qualitative color scheme from http://colorbrewer2.org/.
 var gDefaultColors = [
@@ -116,6 +119,7 @@ var gSeries = {
 // Contains info about graphs to create and sparse data for initial graphing.
 // When we zoom in, ajax requests further data.
 var gGraphData;
+var gFullData = {};
 var gPerBuildData = {};
 var gQueryVars = (function () {
   var ret = {};
@@ -153,7 +157,7 @@ function prettyFloat(aFloat) {
   if (ret == "0") return ret;
   if (ret.length < 3)
     ret = (ret.length < 2 ? "00" : "0") + ret;
-  
+
   var clen = (ret.length - 2) % 3;
   ret = ret.slice(0, clen) + ret.slice(clen, -2).replace(/[0-9]{3}/g, ',$&') + '.' + ret.slice(-2);
   return clen ? ret : ret.slice(1);
@@ -194,7 +198,7 @@ function roundDayDown(date) {
 // TODO document selectedNode return val
 function treeExpandNode(node, noanimate) {
   if (!node.is('.hasChildren')) return;
-  
+
   var subtree = node.find('.subtree');
   if (!subtree.length) {
     var subtree = $.new('div').addClass('subtree').hide();
@@ -226,22 +230,22 @@ function treeToggleNode(node) {
 function renderMemoryTree(target, data, select, depth) {
   if (depth === undefined)
     depth = 0;
-  
+
   // TODO Better selection of nodes that should show Mem/Pct
   var showMem = depth >= 2;
   var showPct = depth >= 3;
-  
+
   // if select is passed as "a/b/c", split it so it is an array
   if (typeof(select) == "string") {
     select = select.split('/');
   }
-  
+
   function defval(obj) {
     if (typeof(obj) == 'number')
       return obj
     return obj['_val'] == undefined ? null : obj['_val'];
   }
-  
+
   // Sort nodes
   var rows = [];
   for (var node in data) {
@@ -260,7 +264,7 @@ function renderMemoryTree(target, data, select, depth) {
     // Sort reverse alphanumeric
     rows = rows.sort(function (a, b) { return a == b ? 0 : a < b ? 1 : -1 });
   }
-  
+
   // Add rows
   var parentval = defval(data);
   var node;
@@ -273,7 +277,7 @@ function renderMemoryTree(target, data, select, depth) {
     var nodeTitle = $.new('div')
                      .addClass('treeNodeTitle')
                      .appendTo(treeNode);
-    
+
     // Add value if inside a memNode
     var val = defval(data[node]);
     if (showMem && val != null) {
@@ -289,7 +293,7 @@ function renderMemoryTree(target, data, select, depth) {
                     .appendTo(nodeTitle);
       }
     }
-    
+
     // Add label
     var title = node;
     var subtitle;
@@ -311,17 +315,17 @@ function renderMemoryTree(target, data, select, depth) {
       nodeTitle.click(function () { treeToggleNode($(this).parent()); });
       treeNode.addClass('hasChildren');
     }
-    
+
     // Handle selecting a start node
     if (select && node == select[0]) {
       if (select.length == 1) {
-        treeNode.addClass('highlight'); 
+        treeNode.addClass('highlight');
       } else {
         treeNode.data('select', select.splice(1));
       }
       treeExpandNode(treeNode, true);
     }
-    
+
     target.append(treeNode);
   }
 }
@@ -339,7 +343,7 @@ function Tooltip(parent) {
   this.content = $.new('div', { 'class' : 'content' }).appendTo(this.obj);
   if (parent)
     this.obj.appendTo(parent);
-  
+
   this.obj.data('owner', this);
   this.onUnzoomFuncs = [];
 }
@@ -357,9 +361,9 @@ Tooltip.prototype.empty = function() {
 Tooltip.prototype.hover = function(x, y, nofade) {
   if (this.isZoomed())
     return;
-  
+
   var poffset = this.obj.parent().offset();
-  
+
   var h = this.obj.outerHeight();
   var w = this.obj.outerWidth();
   var pad = 5;
@@ -372,12 +376,12 @@ Tooltip.prototype.hover = function(x, y, nofade) {
   // Move left of cursor if too far right
   if (window.innerWidth + document.body.scrollLeft < poffset.left + left + w + 30)
     left = x - w - pad;
-  
+
   this.obj.css({
     top: top,
     left: left
   });
-  
+
   // Show tooltip
   if (!nofade)
     this.obj.stop().fadeTo(200, 1);
@@ -392,7 +396,7 @@ Tooltip.prototype.unHover = function(nofade) {
 Tooltip.prototype.zoom = function(callback) {
   var w = this.obj.parent().width();
   var h = this.obj.parent().height();
-    
+
   this.obj.show();
   this.obj.stop().addClass('zoomed').animate({
     width: '110%',
@@ -401,7 +405,7 @@ Tooltip.prototype.zoom = function(callback) {
     top: '-5%',
     opacity: 1
   }, 500, null, callback);
-  
+
   // Close button
   var self = this;
   $.new('a', { class: 'closeButton', href: '#' })
@@ -432,7 +436,7 @@ Tooltip.prototype.unzoom = function() {
         self.obj.removeAttr('style').hide().removeClass('zoomed');
         self.obj.find('.closeButton').remove();
     });
-    
+
     var callback;
     while (callback = this.onUnzoomFuncs.pop())
       callback.apply(this);
@@ -442,6 +446,24 @@ Tooltip.prototype.unzoom = function() {
 //
 // Ajax for getting more graph data
 //
+
+function getFullSeries(dataname, success, fail) {
+  if (gFullData[dataname] !== undefined) {
+    if (success instanceof Function) success.apply(null);
+  } else {
+    $.ajax({
+      url: './data/' + dataname + '.json',
+      success: function (data) {
+        gFullData[dataname] = data;
+        if (success instanceof Function) success.call(null);
+      },
+      error: function(xhr, status, error) {
+        if (fail instanceof Function) fail.call(null, error);
+      },
+      dataType: 'json'
+    });
+  }
+}
 
 function getPerBuildData(buildname, success, fail) {
   if (gPerBuildData[buildname] !== undefined) {
@@ -480,7 +502,7 @@ function Plot(axis) {
   this.dataRange = [ gGraphData['builds'][0]['time'],
                      gGraphData['builds'][gGraphData['builds'].length - 1]['time'] ];
   this.zoomRange = this.dataRange;
-  
+
   this.container = $.new('div').addClass('graphContainer').appendTo($('#graphs'));
   this.rhsContainer = $.new('div').addClass('rhsContainer').appendTo(this.container);
   this.zoomOutButton = $.new('a', { href: '#', class: 'zoomOutButton' })
@@ -492,7 +514,7 @@ function Plot(axis) {
                           return false;
                         });
   this.legendContainer = $.new('div').addClass('legendContainer').appendTo(this.rhsContainer);
-  
+
   this.obj = $.new('div').addClass('graph').appendTo(this.container);
   this.flot = $.plot(this.obj,
     // Data
@@ -517,7 +539,7 @@ function Plot(axis) {
               points.push(date);
             }
           }
-          
+
           if (points.length >= 2) {
             return points;
           }
@@ -592,13 +614,13 @@ function Plot(axis) {
       colors: gDefaultColors
     }
   );
-  
+
   //
   // Background selector for zooming
   //
   var fcanvas = this.flot.getCanvas();
   this.zoomSelector = $.new('div', null,
-                       { 
+                       {
                          top: this.flot.getPlotOffset().top + 'px',
                          height: this.flot.height() - 10 + 'px', // padding-top is 10px
                        })
@@ -608,7 +630,7 @@ function Plot(axis) {
 
   // For proper layering
   $(fcanvas).css('position', 'relative');
-  
+
   //
   // Graph Tooltip
   //
@@ -642,6 +664,23 @@ Plot.prototype.setZoomRange = function(range) {
       self.zoomOutButton.show();
     }
 
+    // If there are sub-series we should pull in that we haven't cached,
+    // set requests for them and reprocess the zoom when complete
+    // TODO We should show some kind of loading indicator to show we're
+    //      still getting more data -- and display something if we fail
+    var fullseries = self._getInvolvedSeries(range);
+    var pending = 0;
+    for (var x in fullseries) {
+      if (!gFullData[fullseries[x]]) {
+        pending++;
+        var self = this;
+        getFullSeries(fetch[x]['dataname'], function () {
+          if (--pending == 0 && self.zoomed)
+            self.setZoomRange(self.zoomRange);
+        });
+      }
+    }
+
     this.zoomRange = range;
     var newseries = this._buildSeries(range[0], range[1]);
     this.flot.setData(newseries);
@@ -656,26 +695,120 @@ Plot.prototype.setZoomRange = function(range) {
       this.showHighlight(this._highlightLoc, this._highlightWidth);
 }
 
-// RebuildsFIXME FIXME FIXME
-Plot.prototype._buildSeries = function(start, stop) {
-  var seriesData = [];
-  if (start === undefined)
-    start = gGraphData['builds'][0]['time'];
-  if (stop == undefined)
-    stop = gGraphData['builds'][gGraphData['builds'].length - 1]['time'];
-  
-  for (var axis in this.axis) {
-    var series = [];
-    var buildinfo = [];
-    for (var ind in gGraphData['builds']) {
-      var b = gGraphData['builds'][ind];
-      if (b['time'] < start) continue;
-      if (b['time'] > stop) break;
-      series.push([ b['time'], gGraphData['series'][axis][ind] ]);
-      buildinfo.push(b);
-    }
-    seriesData.push({ name: axis, label: this.axis[axis], data: series, buildinfo: buildinfo });
+// FIXME document high/lowres series stuf
+// FIXME this should ignore high-res data when zoomed far enough out
+Plot.prototype._getInvolvedSeries = function(range) {
+  var ret = [];
+  for (var x in gGraphData['allseries']) {
+    var s = gGraphData['allseries'][x];
+    if (range[1] > s['fromtime'] && range[0] < s['totime'])
+      ret.push(x);
   }
+
+  // !! This assumes series objects are in alphanumeric order
+  ret.sort();
+  return ret;
+}
+
+// FIXME FIXME FIXME
+Plot.prototype._buildSeries = function(start, stop) {
+  var involvedseries = this._getInvolvedSeries([start, stop]); //FIXME make this function work, sorted list of involved series names
+
+  // Don't use the involved series if they're not all downloaded
+  for (var x in involvedseries) {
+    if (!gFullData[involvedseries[x]]) {
+      involvedseries = false;
+      break;
+    }
+  }
+
+  var builds = [];
+  var ranges = {};
+  var data = {};
+
+  for (var axis in this.axis) {
+    ranges[axis] = [];
+    data[axis] = [];
+  }
+
+  // Grouping distance
+  var groupdist = Math.round((stop - start) / gMaxPoints);
+  function groupin(timestamp) {
+    return timestamp - (timestamp % groupdist);
+  }
+  // Given a list of numbers, return [min, median, max]
+  function flatten(series) {
+    var iseries = [];
+    for (var x in series) {
+      if (series[x] !== null) iseries.push(+series[x]);
+    }
+    if (!iseries.length) return [null, null, null];
+    iseries.sort();
+    var median;
+    if (iseries.length % 2)
+      median = iseries[(iseries.length - 1)/ 2];
+    else
+      median = Math.round((iseries[iseries.length/2] + iseries[iseries.length/2 - 1])/2);
+    return [iseries[0], median, iseries[iseries.length - 1]];
+  }
+
+  // Have full data, coalecse it to the desired density
+  // TODO cache this instead of rebuilding it each time
+  if (involvedseries && involvedseries.length) {
+    var buildinf;
+    var series;
+    var ctime = -1;
+    for (var seriesindex in involvedseries) {
+      var sourceData = gFullData[involvedseries[seriesindex]];
+      for (var ind in sourceData['builds']) {
+        var b = sourceData['builds'][ind];
+        if (start !== undefined && b['time'] < start) continue;
+        if (stop !== undefined && b['time'] > stop) break;
+
+        var time = groupin(b['time']);
+        if (time != ctime) {
+          // Move on to new datapoint
+          if (ctime != -1) {
+            builds.push(buildinf);
+            for (axis in this.axis) {
+              var flat = flatten(series[axis]);
+              data[axis].push([ +buildinf['time'], flat[1] ]);
+              ranges[axis].push([flat[0], flat[2]]);
+            }
+          }
+          series = {};
+          buildinf = { time: time };
+          ctime = time;
+        }
+
+        var rev = b['revision'];
+        if (!buildinf['firstrev']) {
+          buildinf['firstrev'] = b['revision'];
+        } else {
+          buildinf['lastrev'] = b['revision'];
+        }
+        for (var axis in this.axis)
+          series[axis].push(sourceData['series'][axis][ind]);
+      }
+    }
+  } else {
+    // Don't have full data, just use the overview data
+    for (var i in gGraphData['builds']) {
+      var b = gGraphData['builds'][i];
+      builds.push(b);
+      for (var axis in this.axis) {
+        var point = gGraphData['series'][axis][i];
+        data[axis].push([ +b['time'], +point[1] ]);
+        ranges[axis].push([ +point[0], +point[2] ]);
+      }
+    }
+  }
+
+  var seriesData = [];
+  for (var axis in this.axis)
+    seriesData.push({ name: axis, range: ranges[axis], label: this.axis[axis], data: data[axis], buildinfo: builds });
+
+  logMsg(seriesData);
   return seriesData;
 }
 
@@ -690,7 +823,7 @@ Plot.prototype.onClick = function(item) {
     }).text('Loading test data...')
     this.tooltip.append(loading);
     loading.fadeIn();
-      
+
     // Load per build data
     var canceled = false;
     var revision = item.series.buildinfo[item.dataIndex]['revision'];
@@ -698,12 +831,12 @@ Plot.prototype.onClick = function(item) {
     getPerBuildData(revision, function () {
       // On get data (can be immediate)
       if (canceled) { return; }
-      
+
       // Build zoomed tooltip
       var series_info = gGraphData['series_info'][item.series.name];
       var nodes = gPerBuildData[revision][series_info['test']]['nodes'];
       var datapoint = series_info['datapoint'];
-      
+
       // series_info['datapoint'] might be a list of aliases for the datapoint.
       // find the one actually used in this node tree.
       if (datapoint instanceof Array) {
@@ -720,10 +853,10 @@ Plot.prototype.onClick = function(item) {
           }
         }
       }
-      
+
       var memoryTree = $.new('div', { class: 'memoryTree' }, { display: 'none' });
       loading.css({ 'width' : '100%', 'position': 'absolute' }).fadeOut(250);
-      
+
       // memoryTree title
       var treeTitle = $.new('div', { class: 'treeTitle' }).appendTo(memoryTree);
       $.new('h3').text('Part of test '+series_info['test'])
@@ -733,7 +866,7 @@ Plot.prototype.onClick = function(item) {
                   .text(datapoint.replace(/\//g, ' -> '))
                   .appendTo(treeTitle);
       renderMemoryTree(memoryTree, nodes, datapoint);
-      
+
       self.tooltip.append(memoryTree);
       memoryTree.fadeIn();
     }, function (error) {
@@ -776,17 +909,17 @@ Plot.prototype.showHighlight = function(location, width) {
   var left = location - width / 2;
   var overflow = left + width - this.flot.width() - off.left;
   var underflow = off.left - left;
-  
+
   if (overflow > 0) {
     width = Math.max(width - overflow, 0);
   } else if (underflow > 0) {
     left += underflow;
     width = Math.max(width - underflow, 0);
   }
-  
+
   // Calculate the x-axis range of the data we're highlighting
   this.highlightRange = [ xaxis.c2p(left - off.left), xaxis.c2p(left + width - off.left) ];
-  
+
   this.zoomSelector.css({
     left: left + 'px',
     width: width + 'px'
@@ -808,7 +941,7 @@ Plot.prototype.onHover = function(item, pos) {
       this.tooltip.empty();
       var rev = item.series.buildinfo[item.dataIndex]['revision'].slice(0,12);
       var date = new Date(item.datapoint[0] * 1000).toUTCString();
-      
+
       // Label
       this.tooltip.append($.new('h3').text(item.series['label']));
       // Build link / time
@@ -818,7 +951,7 @@ Plot.prototype.onHover = function(item, pos) {
                               .attr('href', "http://hg.mozilla.org/mozilla-central/rev/" + rev)
                               .text(rev))
                       .append($.new('span').text(' @ ' + date)));
-      
+
       // Tooltips move relative to the plot, not the page
       var offset = this.obj.offset();
       this.tooltip.hover(item.pageX - offset.left, item.pageY - offset.top, this.hoveredItem ? true : false);
@@ -837,7 +970,7 @@ Plot.prototype.onHover = function(item, pos) {
 $(function () {
   // Load graph data
   // Allow selecting an alternate series
-  var series = gQueryVars['series'] ? gQueryVars['series'] : 'series';
+  var series = gQueryVars['series'] ? gQueryVars['series'] : 'areweslimyet';
   var url = './data/' + series + '.json';
   $.ajax({
     url: url,
@@ -855,7 +988,7 @@ $(function () {
     },
     dataType: 'json'
   });
-  
+
   // Close zoomed tooltips upon clicking outside of them
   $('body').bind('click', function(e) {
     if (!$(e.target).is('.tooltip') && !$(e.target).parents('.graph').length)
