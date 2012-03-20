@@ -859,7 +859,7 @@ Plot.prototype._buildSeries = function(start, stop) {
         // wont be the true median of all involved builds. This only happens
         // when significantly zoomed out, but ack. (this should just graph
         // averages to begin with probably)
-        median = Math.round(median / mediapoints);
+        median = Math.round(median / medianpoints);
         var min = gGraphData['series'][axis][i];
         min = min instanceof Array ? +min[0] : +min;
         var max = +gGraphData['series'][axis][ilast];
