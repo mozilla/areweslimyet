@@ -59,6 +59,7 @@ def condense_data(data):
       if cday != -1: ranges.append((start, i - 1))
       cday = day
       start = i
+  ranges.append((start, i - 1))
 
   for point in ranges:
     build = {}
