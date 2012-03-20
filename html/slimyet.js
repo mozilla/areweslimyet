@@ -767,6 +767,8 @@ Plot.prototype._buildSeries = function(start, stop) {
         if (time != ctime) {
           // Move on to new datapoint
           if (ctime != -1) {
+            if (!buildinf['lastrev'])
+              delete buildinf['timerange']
             builds.push(buildinf);
             for (axis in this.axis) {
               var flat = flatten(series[axis]);
@@ -782,8 +784,10 @@ Plot.prototype._buildSeries = function(start, stop) {
         var rev = b['revision'];
         if (!buildinf['firstrev']) {
           buildinf['firstrev'] = b['revision'];
+          buildinf['timerange'] = [ b['time'], null ];
         } else {
           buildinf['lastrev'] = b['revision'];
+          buildinf['timerange'][1] = b['time'];
         }
         for (var axis in this.axis) {
           if (!series[axis]) series[axis] = [];

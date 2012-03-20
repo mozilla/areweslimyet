@@ -62,6 +62,7 @@ def condense_data(data):
     lastrev = data['builds'][point[1]]['revision']
     if build['firstrev'] != lastrev:
       build['lastrev'] = lastrev
+      build['timerange'] = [ data['builds'][point[0]]['time'], data['builds'][point[1]]['time'] ]
     build['time'] = dayof(data['builds'][point[0]]['time'])
 
     cdata['builds'].append(build)
