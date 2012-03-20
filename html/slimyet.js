@@ -710,7 +710,7 @@ Plot.prototype._getInvolvedSeries = function(range) {
 
 // FIXME FIXME FIXME
 Plot.prototype._buildSeries = function(start, stop) {
-  var involvedseries = this._getInvolvedSeries([start, stop]); //FIXME make this function work, sorted list of involved series names
+  var involvedseries = this._getInvolvedSeries([start, stop]);
 
   // Don't use the involved series if they're not all downloaded
   for (var x in involvedseries) {
