@@ -695,8 +695,11 @@ Plot.prototype.setZoomRange = function(range) {
       this.showHighlight(this._highlightLoc, this._highlightWidth);
 }
 
-// FIXME document high/lowres series stuf
-// FIXME this should ignore high-res data when zoomed far enough out
+// If this range is 'zoomed' enough to warrant using full-resolution data
+// (based on gMaxPoints), return the list of gFullData series names that would
+// be needed. Return false if overview data is sufficient for this range.
+// It's up to the caller to call getFullSeries(name) to start downloading any
+// of these that arn't downloaded. FIXME
 Plot.prototype._getInvolvedSeries = function(range) {
   var ret = [];
   for (var x in gGraphData['allseries']) {
@@ -708,7 +711,10 @@ Plot.prototype._getInvolvedSeries = function(range) {
   return ret;
 }
 
-// FIXME FIXME FIXME
+// Takes two timestamps and builds a list of series based on this plot's axis
+// suitable for passing to flot - condensed to try to hit gMaxPoints.
+// Uses series returned by _getInvolvedSeries *if they are all downloaded*,
+// otherwise always uses overview data.
 Plot.prototype._buildSeries = function(start, stop) {
   var involvedseries = this._getInvolvedSeries([start, stop]);
 
@@ -750,9 +756,9 @@ Plot.prototype._buildSeries = function(start, stop) {
     return [iseries[0], median, iseries[iseries.length - 1]];
   }
 
-  // Have full data, coalecse it to the desired density
-  // TODO cache this instead of rebuilding it each time
   if (involvedseries && involvedseries.length) {
+    // Have full data, coalecse it to the desired density
+    // TODO cache this instead of rebuilding it each time
     var buildinf;
     var series;
     var ctime = -1;
@@ -796,14 +802,43 @@ Plot.prototype._buildSeries = function(start, stop) {
       }
     }
   } else {
-    // Don't have full data, just use the overview data
-    for (var i in gGraphData['builds']) {
+    // Using overview data, which is already condensed.
+    // Merge every N points to get close to our desired density.
+    var merge = Math.round(groupdist / gGraphData['condensed']);
+    var nbuilds = gGraphData['builds'].length;
+    for (var i = 0; i < gGraphData['builds'].length; i += merge) {
       var b = gGraphData['builds'][i];
+      var ilast = i + merge - 1 < nbuilds ? i + merge - 1 : nbuilds - 1;
+      var blast = gGraphData['builds'][ilast];
+
+      var time = 0;
+      for (var x = 0; x + i <= ilast; x++) {
+        time += +gGraphData['builds'][x + i]['time'];
+      }
+      time = Math.round(time / merge);
+      b['time'] = time;
+      b['lastrev'] = gGraphData['builds'][ilast]['lastrev'];
+      var from = b['timerange'] ? b['timerange'][0] : b['time'];
+      var to = blast['timerange'] ? blast['timerange'][1] : blast['time'];
+      b['timerange'] = [ from, to ];
+
       builds.push(b);
+
       for (var axis in this.axis) {
-        var point = gGraphData['series'][axis][i];
-        data[axis].push([ +b['time'], +point[1] ]);
-        ranges[axis].push([ +point[0], +point[2] ]);
+        var median = 0;
+        var min, max;
+        for (var x = 0; x + i <= ilast; x++) {
+          median += +gGraphData['series'][axis][i + x][1];
+        }
+        // FIXME: We're actually averaging two medians here, so this datapoint
+        // wont be the true median of all involved builds. This only happens
+        // when significantly zoomed out, but ack. (this should just graph
+        // averages to begin with probably)
+        median = Math.round(median / merge);
+        var min = +gGraphData['series'][axis][i][0];
+        var max = +gGraphData['series'][axis][ilast][2];
+        data[axis].push([ time, median ]);
+        ranges[axis].push([ min, max ]);
       }
     }
   }
