@@ -51,8 +51,6 @@ var gReleases = [
   {dateStr: "2012-10-09", name: "FF 19"}
 ];
 
-var gReleaseLookup = {};
-
 (function() {
   for (var i = 0; i < gReleases.length; i++) {
     // Seconds from epoch.
