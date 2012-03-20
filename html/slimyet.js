@@ -828,15 +828,21 @@ Plot.prototype._buildSeries = function(start, stop) {
         var median = 0;
         var min, max;
         for (var x = 0; x + i <= ilast; x++) {
-          median += +gGraphData['series'][axis][i + x][1];
+          // The value for a series will be three values (min/median/max) unless
+          // it only represents a single build, in which case it is collapsed
+          // to save bandwidth
+          var m = gGraphData['series'][axis][i + x];
+          median += m instanceof Array ? +m[1] : +m;
         }
         // FIXME: We're actually averaging two medians here, so this datapoint
         // wont be the true median of all involved builds. This only happens
         // when significantly zoomed out, but ack. (this should just graph
         // averages to begin with probably)
         median = Math.round(median / merge);
-        var min = +gGraphData['series'][axis][i][0];
-        var max = +gGraphData['series'][axis][ilast][2];
+        var min = gGraphData['series'][axis][i];
+        min = min instanceof Array ? +min[0] : +min;
+        var max = +gGraphData['series'][axis][ilast];
+        max = max instanceof Array ? +max[2] : +max;
         data[axis].push([ time, median ]);
         ranges[axis].push([ min, max ]);
       }

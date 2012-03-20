@@ -38,6 +38,9 @@ print("Merging %u files: %s" % (len(files), files))
 
 totaldata = { 'builds' : [], 'series' : {}, 'series_info' : {}, 'allseries' : [] }
 
+# Hard-coded to condensed by day below
+totaldata['condensed'] = 60 * 60 * 24;
+
 # Returns the timestamp of this build's day @ midnight UTC
 def dayof(timestamp):
   return int(calendar.timegm(datetime.date.fromtimestamp(timestamp).timetuple()))
@@ -73,14 +76,17 @@ def condense_data(data):
       iseries = filter(lambda x: x is not None, series)
       cdata['series'].setdefault(sname, [])
       if len(iseries) == 0:
-        cdata['series'][sname].append([ None, None, None ])
+        cdata['series'][sname].append(None)
       else:
         iseries.sort()
         if len(series) % 2 == 1:
           median = iseries[(len(iseries) - 1) / 2]
         else:
           median = int(round(float(iseries[len(iseries) / 2] + iseries[len(iseries) / 2 - 1])/2, 0))
-        cdata['series'][sname].append([iseries[0], median, iseries[-1]])
+        if iseries[0] == median:
+          cdata['series'][sname].append(median)
+        else:
+          cdata['series'][sname].append([iseries[0], median, iseries[-1]])
   return cdata
 
 for fname in files:
