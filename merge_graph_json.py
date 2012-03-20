@@ -52,20 +52,22 @@ def condense_data(data):
   for i in range(len(data['builds'])):
     day = dayof(data['builds'][i]['time'])
     if day != cday:
-      if cday != -1: ranges.append((start, i))
+      if cday != -1: ranges.append((start, i - 1))
       cday = day
       start = i
 
   for point in ranges:
     build = {}
     build['firstrev'] = data['builds'][point[0]]['revision']
-    build['lastrev'] = data['builds'][point[1]]['revision']
+    lastrev = data['builds'][point[1]]['revision']
+    if build['firstrev'] != lastrev:
+      build['lastrev'] = lastrev
     build['time'] = dayof(data['builds'][point[0]]['time'])
 
     cdata['builds'].append(build)
 
     for sname in data['series'].keys():
-      series = data['series'][sname][point[0]:point[1]]
+      series = data['series'][sname][point[0]:point[1] + 1]
       iseries = filter(lambda x: x is not None, series)
       cdata['series'].setdefault(sname, [])
       if len(iseries) == 0:
