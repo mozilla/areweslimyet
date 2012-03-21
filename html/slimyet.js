@@ -399,10 +399,10 @@ Tooltip.prototype.zoom = function(callback) {
 
   this.obj.show();
   this.obj.stop().addClass('zoomed').animate({
-    width: '110%',
-    height: '100%',
-    left: '-5%',
-    top: '-5%',
+    width: '94%',
+    height: '95%',
+    left: '3%',
+    top: '0%',
     opacity: 1
   }, 500, null, callback);
 
@@ -686,9 +686,6 @@ Plot.prototype.setZoomRange = function(range) {
     this.flot.setData(newseries);
     this.flot.setupGrid();
     this.flot.draw();
-    // setupGrid() reparents the grid, so we need to reparent the tooltip
-    // such that it is last in the z-ordering
-    this.tooltip.obj.appendTo(this.obj);
 
     // The highlight has the wrong range now that we mucked with the graph
     if (this.highlighted)
