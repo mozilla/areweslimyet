@@ -448,7 +448,7 @@ Tooltip.prototype.unzoom = function() {
 //
 
 function getFullSeries(dataname, success, fail) {
-  if (!(dataname in gFullData)) {
+  if (dataname in gFullData) {
     if (success instanceof Function) success.apply(null);
   } else {
     $.ajax({
@@ -823,6 +823,9 @@ Plot.prototype._buildSeries = function(start, stop) {
       var b = gGraphData['builds'][i];
       var ilast = i + merge - 1 < nbuilds ? i + merge - 1 : nbuilds - 1;
       var blast = gGraphData['builds'][ilast];
+
+      if (b['time'] < start) continue;
+      if (blast['time'] > stop) break;
 
       var time = 0;
       for (var x = 0; x + i <= ilast; x++) {
