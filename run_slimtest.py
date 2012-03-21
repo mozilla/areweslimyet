@@ -10,9 +10,9 @@
 import os
 import sys
 
-sys.path.append(os.path.abspath(os.path.join(".", "benchtester")))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(sys.argv[0]), "benchtester")))
 
-execfile("slimtest_config.py")
+execfile(os.path.join(os.path.dirname(sys.argv[0]), "slimtest_config.py"))
 
 # Load
 import BenchTester
