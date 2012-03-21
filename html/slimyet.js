@@ -16,11 +16,23 @@ jQuery.new = function(e, attrs, css) {
   return ret;
 };
 
+var gQueryVars = (function () {
+  var ret = {};
+  if (document.location.search) {
+    var vars = document.location.search.slice(1).split('&');
+    for (var x in vars) {
+      x = vars[x].split('=');
+      ret[decodeURIComponent(x[0])] = x.length > 1 ? decodeURIComponent(x[1]) : true;
+    }
+  }
+  return ret;
+})();
+
 // Width in pixels of highlight (zoom) selector
-var gHighlightWidth = 400;
+var gHighlightWidth = gQueryVars['zoomwidth'] ? gQueryVars['zoomwidth'] : 400;
 
 // Coalesce datapoints to keep them under this many per zoom level
-var gMaxPoints = 150;
+var gMaxPoints = gQueryVars['maxpoints'] ? gQueryVars['maxpoints'] : 150;
 
 // 10-class paired qualitative color scheme from http://colorbrewer2.org/.
 var gDefaultColors = [
@@ -121,17 +133,6 @@ var gSeries = {
 var gGraphData;
 var gFullData = {};
 var gPerBuildData = {};
-var gQueryVars = (function () {
-  var ret = {};
-  if (document.location.search) {
-    var vars = document.location.search.slice(1).split('&');
-    for (var x in vars) {
-      x = vars[x].split('=');
-      ret[decodeURIComponent(x[0])] = x.length > 1 ? decodeURIComponent(x[1]) : true;
-    }
-  }
-  return ret;
-})();
 
 //
 // Utility
