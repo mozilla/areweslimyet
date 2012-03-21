@@ -20,7 +20,7 @@ jQuery.new = function(e, attrs, css) {
 var gHighlightWidth = 400;
 
 // Coalesce datapoints to keep them under this many per zoom level
-var gMaxPoints = 250;
+var gMaxPoints = 150;
 
 // 10-class paired qualitative color scheme from http://colorbrewer2.org/.
 var gDefaultColors = [
@@ -787,6 +787,7 @@ Plot.prototype._buildSeries = function(start, stop) {
   if (involvedseries && involvedseries.length) {
     // Have full data, coalecse it to the desired density
     // TODO cache this instead of rebuilding it each time
+    logMsg("Building series using full data");
     var buildinf;
     var series;
     var ctime = -1;
@@ -825,6 +826,7 @@ Plot.prototype._buildSeries = function(start, stop) {
     // Using overview data, which is already condensed.
     // Merge every N points to get close to our desired density.
     var merge = Math.max(Math.round(groupdist / gGraphData['condensed']), 1);
+    logMsg("Building series using overview data, merging every " + merge);
     var nbuilds = gGraphData['builds'].length;
     for (var i = 0; i < nbuilds; i += merge) {
       var b = gGraphData['builds'][i];
