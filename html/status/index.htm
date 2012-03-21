@@ -17,8 +17,8 @@
   <h1>Are we <span class="emph">slim</span> yet?</h1>
 
   <h2>Request builds</h2>
-  <p class="note">Use this responsibly! Ask in #memshrink if uncertain.</p>
-  <form id="requestBuilds">
+  <p id="requestBuildsNote" class="note">To request per-changeset resolution builds, or tests for custom patches, ask in #memshrink.</p>
+  <form id="requestBuilds" style="display: none;">
     <div>
       <select id="reqBuildType">
         <option value="" selected="selected">Select</option>
@@ -42,7 +42,7 @@
       <input id="reqSubmit" type="submit" value="Queue &laquo; no turning back &raquo;"></input>
       <br /><span class="note" id="reqError"></span>
     </div>
-    
+
   </form>
   <div id="status">
     <b class="loading">Loading...</b>

@@ -9,6 +9,10 @@
 
 "use strict";
 
+// Slows down polling of status.json (it only updates every 5m on mirrors) and
+// hides widgets for queuing builds (they only work on the test machine)
+var gPublic = [ "areweslimyet.com", "www.areweslimyet.com" ].indexOf(document.location.hostname) != -1;
+
 // Types in status.json
 var gStatusTypes = {
   "running" : { label: "Running tests", mode: "eta" },
@@ -126,7 +130,7 @@ function statusTable(name, rows, mode) {
       } else {
         cell(row, '<i class="small">none</i>');
       }
-        
+
       cell(row, time);
       if (mode == "eta")
         cell(row, prettyEta(data['started']));
@@ -191,7 +195,7 @@ function updateStatus(data) {
     $('#status').empty();
     gStatusTables = {};
   }
-    
+
   var batches = [];
   batches.push.apply(batches, data['batches']);
   if (data['pendingbatches']) for (var x in data['pendingbatches']) {
@@ -201,7 +205,7 @@ function updateStatus(data) {
   }
   batches.reverse();
   statusTable('Recent batch requests', batches, 'batches');
-  
+
   for (var x in gStatusTypes) {
     var dat = data[x];
     if (dat && gStatusTypes[x].single) dat = [ dat ];
@@ -224,110 +228,115 @@ function statusUpdater() {
 }
 
 $(function () {
-  //
-  // Request form
-  //
-  $('#reqBuildType option:first').prop('selected', true);
-  $('#reqBuildType, #reqBuildMulti').change(function() {
-    var val = $('#reqBuildType').val();
-    var label = $('#reqStartLabel');
-    var elabel = $('#reqEndLabel');
-    var multi = $('#reqBuildMulti:checked').length;
-    var note = $('#reqNote');
-    if (val == "nightly") {
-      note.text("Build the nightly for a specified date (YYYY-MM-DD)");
-      if (multi) {
-        label.text("First nightly");
-        elabel.text("Last nightly");
-      } else {
-        label.text("Nightly date");
-      }
-    } else if (val == "tinderbox") {
-      if (multi) {
-        note.text("Build Tinderbox builds between two date ranges. Dates are of format \"Jan 5 2012\" or \"Jan 5 2012 4:00 pm\"");
-        label.html("Builds starting at");
-        elabel.text("And ending at");
-      } else {
-        note.html("Build an exact build available at <a href=\"ftp://ftp.mozilla.org/pub/firefox/tinderbox-builds/mozilla-central-linux64/\">ftp://ftp.mozilla.org/pub/firefox/tinderbox-builds/mozilla-central-linux64/</a>");
-        label.text("Timestamp of build");
-      }
-    } else if (val == "compile") {
-      note.text("!! Broken right now");
-      if (multi) {
-        label.text("First revision to build (mc-only)");
-        elabel.text("Through revision");
-      } else {
-        label.text("Revision to build (m-c only)")
-      }
-    } else {
-      $('#reqStartBox, #reqEndBox, #reqNote, #reqSubmitbox').hide();
-      return;
-    }
-    
-    $('#reqStartBox, #reqNote, #reqSubmitbox').show();
-    if (multi) $('#reqEndBox').show();
-    else $('#reqEndBox').hide();
-  });
-
-  // Submit the request
-  $('#requestBuilds').submit(function () {
-    if ($('#reqSubmit').prop('disabled')) return false;
-    var mode = $('#reqBuildType').val();
-    var start = $('#reqStartBuild').val();
-    var multi = $('#reqBuildMulti:checked').length;
-    var end = $('#reqEndBuild').val();
-    var priority = $('#reqPriority:checked').length;
-
-    function dParse(d) {
-      var ret = +(Date.parse(d) / 1000);
-      if (isNaN(ret))
-        alert("Failed to parse date \"" + d + "\" with various advanced algorithms. (read: Date.parse(), and nothing else)");
-      return ret;
-    }
-    
-    if (!start.length || (multi && !end.length) || !mode) {
-      alert("Fill out all the boxes. There's only two, come on!");
-      return false;
-    }
-    if (mode == "tinderbox" && multi) {
-      start = dParse(start);
-      end = dParse(end);
-      if (isNaN(start) || isNaN(end)) return false;
-    }
-    
-    var args = { 'mode': mode, 'startbuild': start };
-    if (multi) args['endbuild'] = end;
-    if (priority) args['priority'] = 'true';
-
-    logMsg("Submitting request " + JSON.stringify(args));
-
-    var e = $('#reqError').removeClass('error').removeClass('success');
-    e.text('submitting...');
-    $('#reqSubmit').prop('disabled', true);
-    
-    $.ajax({
-      url: './request.cgi',
-      data: args,
-      success: function(data) {
-        $('#reqSubmit').prop('disabled', false);
-        if (data['result'] == 'success') {
-          e.addClass('success');
-          e.text("Request succeeded. It should appear below within a few moments.");
-          $('#reqStartBuild, #reqEndBuild').val('');
+  if (!gPublic) {
+    $('#requestBuildsNote').text('Use this responsibly! Ask in #memshrink if uncertain.');
+    $('#requestBuilds').show();
+    //
+    // Request form
+    //
+    $('#reqBuildType option:first').prop('selected', true);
+    $('#reqBuildType, #reqBuildMulti').change(function() {
+      var val = $('#reqBuildType').val();
+      var label = $('#reqStartLabel');
+      var elabel = $('#reqEndLabel');
+      var multi = $('#reqBuildMulti:checked').length;
+      var note = $('#reqNote');
+      if (val == "nightly") {
+        note.text("Build the nightly for a specified date (YYYY-MM-DD)");
+        if (multi) {
+          label.text("First nightly");
+          elabel.text("Last nightly");
         } else {
-          e.addClass('error');
-          e.text("Error: " + data['error']);
+          label.text("Nightly date");
         }
-      },
-      error: function() {
-        $('#reqSubmit').prop('disabled', false);
-        e.addClass('error');
-        e.text('Unknown error occured. Try again.');
+      } else if (val == "tinderbox") {
+        if (multi) {
+          note.text("Build Tinderbox builds between two date ranges. Dates are of format \"Jan 5 2012\" or \"Jan 5 2012 4:00 pm\"");
+          label.html("Builds starting at");
+          elabel.text("And ending at");
+        } else {
+          note.html("Build an exact build available at <a href=\"ftp://ftp.mozilla.org/pub/firefox/tinderbox-builds/mozilla-central-linux64/\">ftp://ftp.mozilla.org/pub/firefox/tinderbox-builds/mozilla-central-linux64/</a>");
+          label.text("Timestamp of build");
+        }
+      } else if (val == "compile") {
+        note.text("!! Broken right now");
+        if (multi) {
+          label.text("First revision to build (mc-only)");
+          elabel.text("Through revision");
+        } else {
+          label.text("Revision to build (m-c only)")
+        }
+      } else {
+        $('#reqStartBox, #reqEndBox, #reqNote, #reqSubmitbox').hide();
+        return;
       }
+
+      $('#reqStartBox, #reqNote, #reqSubmitbox').show();
+      if (multi) $('#reqEndBox').show();
+      else $('#reqEndBox').hide();
     });
-    return false;
-  });
+
+    // Submit the request
+    $('#requestBuilds').submit(function () {
+      if ($('#reqSubmit').prop('disabled')) return false;
+      var mode = $('#reqBuildType').val();
+      var start = $('#reqStartBuild').val();
+      var multi = $('#reqBuildMulti:checked').length;
+      var end = $('#reqEndBuild').val();
+      var priority = $('#reqPriority:checked').length;
+
+      function dParse(d) {
+        var ret = +(Date.parse(d) / 1000);
+        if (isNaN(ret))
+          alert("Failed to parse date \"" + d + "\" with various advanced algorithms. (read: Date.parse(), and nothing else)");
+        return ret;
+      }
+
+      if (!start.length || (multi && !end.length) || !mode) {
+        alert("Fill out all the boxes. There's only two, come on!");
+        return false;
+      }
+      if (mode == "tinderbox" && multi) {
+        start = dParse(start);
+        end = dParse(end);
+        if (isNaN(start) || isNaN(end)) return false;
+      }
+
+      var args = { 'mode': mode, 'startbuild': start };
+      if (multi) args['endbuild'] = end;
+      if (priority) args['priority'] = 'true';
+
+      logMsg("Submitting request " + JSON.stringify(args));
+
+      var e = $('#reqError').removeClass('error').removeClass('success');
+      e.text('submitting...');
+      $('#reqSubmit').prop('disabled', true);
+
+      $.ajax({
+        url: './request.cgi',
+        data: args,
+        success: function(data) {
+          $('#reqSubmit').prop('disabled', false);
+          if (data['result'] == 'success') {
+            e.addClass('success');
+            e.text("Request succeeded. It should appear below within a few moments.");
+            $('#reqStartBuild, #reqEndBuild').val('');
+          } else {
+            e.addClass('error');
+            e.text("Error: " + data['error']);
+          }
+        },
+        error: function() {
+          $('#reqSubmit').prop('disabled', false);
+          e.addClass('error');
+          e.text('Unknown error occured. Try again.');
+        }
+      });
+      return false;
+    });
+  }
   // Start updates
-  window.setInterval(statusUpdater, 1000);
+  // The mirror only gets updates to status.json every 5m
+  window.setInterval(statusUpdater, gPublic ? 60000 : 1000);
   statusUpdater();
 });
