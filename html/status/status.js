@@ -304,7 +304,7 @@ $(function () {
 
       var args = { 'mode': mode, 'startbuild': start };
       if (multi) args['endbuild'] = end;
-      if (priority) args['priority'] = 'true';
+      if (priority) args['prioritize'] = 'true';
 
       logMsg("Submitting request " + JSON.stringify(args));
 
