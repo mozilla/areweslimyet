@@ -448,7 +448,7 @@ Tooltip.prototype.unzoom = function() {
 //
 
 function getFullSeries(dataname, success, fail) {
-  if (gFullData[dataname] !== undefined) {
+  if (!(dataname in gFullData)) {
     if (success instanceof Function) success.apply(null);
   } else {
     $.ajax({
@@ -671,7 +671,7 @@ Plot.prototype.setZoomRange = function(range) {
     var fullseries = self._getInvolvedSeries(range);
     var pending = 0;
     for (var x in fullseries) {
-      if (!gFullData[fullseries[x]]) {
+      if (!(fullseries[x] in gFullData)) {
         pending++;
         var self = this;
         getFullSeries(fullseries[x], function () {
