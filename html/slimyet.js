@@ -902,7 +902,7 @@ Plot.prototype.onClick = function(item) {
 
     // Load per build data
     var canceled = false;
-    var revision = item.series.buildinfo[item.dataIndex]['revision'];
+    var revision = item.series.buildinfo[item.dataIndex]['firstrev'];
     var self = this;
     getPerBuildData(revision, function () {
       // On get data (can be immediate)
