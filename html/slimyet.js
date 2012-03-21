@@ -839,13 +839,14 @@ Plot.prototype._buildSeries = function(start, stop) {
         time += +gGraphData['builds'][x + i]['time'];
       }
       time = Math.round(time / (ilast - i + 1));
-      b['time'] = time;
-      b['lastrev'] = gGraphData['builds'][ilast]['lastrev'];
+      var newb = { firstrev: b['firstrev'] };
+      newb['time'] = time;
+      newb['lastrev'] = gGraphData['builds'][ilast]['lastrev'];
       var from = b['timerange'] ? b['timerange'][0] : b['time'];
       var to = blast['timerange'] ? blast['timerange'][1] : blast['time'];
-      b['timerange'] = [ from, to ];
+      newb['timerange'] = [ from, to ];
 
-      builds.push(b);
+      builds.push(newb);
 
       for (var axis in this.axis) {
         var median = 0;
