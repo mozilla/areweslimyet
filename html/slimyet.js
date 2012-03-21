@@ -699,6 +699,13 @@ Plot.prototype.setZoomRange = function(range) {
 // of these that arn't downloaded. FIXME
 Plot.prototype._getInvolvedSeries = function(range) {
   var ret = [];
+  var groupdist = Math.round((range[1] - range[0]) / gMaxPoints);
+
+  // Unless the requested grouping distance is < 80% of the overview data's
+  // distance, don't pull in more
+  if (!gQueryVars['nocondense'] && groupdist / gGraphData['condensed'] > 0.8)
+    return null;
+
   for (var x in gGraphData['allseries']) {
     var s = gGraphData['allseries'][x];
     if (range[1] > s['fromtime'] && range[0] < s['totime'])
@@ -1047,14 +1054,31 @@ $(function () {
   // Allow selecting an alternate series
   var series = gQueryVars['series'] ? gQueryVars['series'] : 'areweslimyet';
   var url = './data/' + series + '.json';
+
   $.ajax({
     url: url,
     success: function (data) {
       gGraphData = data;
-      $('#graphs h3').remove();
-      for (var graphname in gSeries) {
-        $.new('h2').text(graphname).appendTo($('#graphs'));
-        new Plot(gSeries[graphname]);
+      function makePlots() {
+        $('#graphs h3').remove();
+        for (var graphname in gSeries) {
+          $.new('h2').text(graphname).appendTo($('#graphs'));
+          new Plot(gSeries[graphname]);
+        }
+      }
+      if (gQueryVars['nocondense']) {
+        // Load all graph data, all the time, not using the condensed 'overview'
+        // data
+        $('#graphs h3').text("Loading all the things [nocondense]...");
+        var pending = 0;
+        for (var x in gGraphData['allseries']) {
+          pending++;
+          getFullSeries(gGraphData['allseries'][x]['dataname'], function () {
+            if (--pending == 0) makePlots();
+          });
+        }
+      } else {
+        makePlots();
       }
     },
     error: function(xhr, status, error) {
