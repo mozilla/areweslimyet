@@ -25,8 +25,7 @@ def main():
 
   if not start or not mode:
     error("startbuild and mode are required")
-  if mode == "compile":
-    error("Temporarily disabled")
+
   if mode not in [ 'nightly', 'tinderbox', 'compile' ]:
     error("Unknown mode")
 

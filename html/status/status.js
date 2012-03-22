@@ -259,12 +259,13 @@ $(function () {
           label.text("Timestamp of build");
         }
       } else if (val == "compile") {
-        note.text("!! Broken right now");
         if (multi) {
-          label.text("First revision to build (mc-only)");
-          elabel.text("Through revision");
+          note.text("Compile and build all revisions on mozilla-central between these two [inclusive].");
+          label.text("First revision");
+          elabel.text("Last revision");
         } else {
-          label.text("Revision to build (m-c only)")
+          note.text("Compile and test this specific mozilla-central revision.");
+          label.text("Revision");
         }
       } else {
         $('#reqStartBox, #reqEndBox, #reqNote, #reqSubmitbox').hide();
