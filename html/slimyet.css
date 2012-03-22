@@ -1,7 +1,7 @@
 
 /*
  * Copyright © 2012 Mozilla Corporation
- *
+ * 
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this file,
  * You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -140,6 +140,12 @@ a:visited:hover {
 /*
  * Internal status page
  */
+
+.statusPage a:link { color: #B55; }
+.statusPage a:hover { color: #C77; }
+.statusPage a:active { color: #555; }
+.statusPage a:visited { color: #6A6; }
+.statusPage a:visited:hover { color: #7C7; }
 
 .statusPage {
   text-align: center;
