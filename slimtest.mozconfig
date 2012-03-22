@@ -37,8 +37,8 @@ mk_add_options PROFILE_GEN_SCRIPT='$(PYTHON) @MOZ_OBJDIR@/_profile/pgo/profilese
 # Enable parallel compiling
 mk_add_options MOZ_MAKE_FLAGS="-j10"
 
-export CCACHE_DIR=@TOPSRCDIR@/../slimtest-ccache
-export CCACHE_COMPRESS=1
+mk_add_options CCACHE_DIR=@TOPSRCDIR@/../slimtest-ccache
+mk_add_options CCACHE_COMPRESS=1
 
 #Use ccache
-ac_add_options --with-ccache=/usr/bin/ccache
+ac_add_options --with-ccache=/usr/local/bin/ccache
