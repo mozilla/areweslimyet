@@ -260,7 +260,7 @@ $(function () {
         }
       } else if (val == "compile") {
         if (multi) {
-          note.text("Compile and build all revisions on mozilla-central between these two [inclusive].");
+          note.text("Compile and test all revisions on mozilla-central between these two [inclusive].");
           label.text("First revision");
           elabel.text("Last revision");
         } else {
