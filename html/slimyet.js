@@ -203,7 +203,7 @@ function treeExpandNode(node, noanimate) {
   var subtree = node.find('.subtree');
   if (!subtree.length) {
     var subtree = $.new('div').addClass('subtree').hide();
-    renderMemoryTree(subtree, node.data('nodeData'),
+    memoryTreeNode(subtree, node.data('nodeData'),
                               node.data('select'),
                               node.data('depth'));
     subtree.appendTo(node);
@@ -227,8 +227,23 @@ function treeToggleNode(node) {
     treeExpandNode(node);
 }
 
+function makeMemoryTree(title, nodes, datapoint) {
+  var memoryTree = $.new('div', { class: 'memoryTree' }, { display: 'none' });
+  // memoryTree title
+  var treeTitle = $.new('div', { class: 'treeTitle' }).appendTo(memoryTree);
+  $.new('h3').text(title)
+              .appendTo(treeTitle);
+  // datapoint subtitle
+  $.new('div').addClass('highlight')
+              .text(datapoint.replace(/\//g, ' -> '))
+              .appendTo(treeTitle);
+  memoryTreeNode(memoryTree, nodes, datapoint);
+
+  return memoryTree;
+}
+
 // TODO document args
-function renderMemoryTree(target, data, select, depth) {
+function memoryTreeNode(target, data, select, depth) {
   if (depth === undefined)
     depth = 0;
 
@@ -930,18 +945,9 @@ Plot.prototype.onClick = function(item) {
         }
       }
 
-      var memoryTree = $.new('div', { class: 'memoryTree' }, { display: 'none' });
       loading.css({ 'width' : '100%', 'position': 'absolute' }).fadeOut(250);
 
-      // memoryTree title
-      var treeTitle = $.new('div', { class: 'treeTitle' }).appendTo(memoryTree);
-      $.new('h3').text('Part of test '+series_info['test'])
-                 .appendTo(treeTitle);
-      // datapoint subtitle
-      $.new('div').addClass('highlight')
-                  .text(datapoint.replace(/\//g, ' -> '))
-                  .appendTo(treeTitle);
-      renderMemoryTree(memoryTree, nodes, datapoint);
+      var memoryTree = makeMemoryTree('Part of test '+series_info['test'], nodes, datapoint);
 
       self.tooltip.append(memoryTree);
       memoryTree.fadeIn();
