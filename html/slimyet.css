@@ -71,7 +71,8 @@ a:visited:hover {
 
 #graphs {
   position: relative;
-  width: 1270px; /* .graph width + rhsContainer width */
+  width: 1290px; /* .graph width + rhsContainer width */
+  width: -moz-calc(1000px + 20px + 18em);
   margin: auto;
 }
 
@@ -83,7 +84,8 @@ a:visited:hover {
   padding-top: 0.5em;
   float: right;
   padding-left: 20px;
-  width: 250px;
+  width: 270px;
+  width: -moz-calc(18em);
 }
 
 #footer {
