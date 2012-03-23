@@ -514,13 +514,13 @@ function getPerBuildData(buildname, success, fail) {
 // Creates a plot, appends it to #graphs
 // - axis -> { 'AxisName' : 'Nicename', ... }
 //
-function Plot(axis) {
+function Plot(name, appendto) {
   if (!this instanceof Plot) {
     logError("Plot() used incorrectly");
     return;
   }
 
-  this.axis = axis;
+  this.axis = gSeries[name];
   this.zoomed = false;
   var firstb = gGraphData['builds'][0];
   var lastb = gGraphData['builds'][gGraphData['builds'].length - 1];
@@ -534,9 +534,12 @@ function Plot(axis) {
   if ('timerange' in lastb && lastb['timerange'][1] > lastb['time'])
     this.dataRange[1] = lastb['timerange'][1];
 
+  logMsg("Generating graph \""+name+"\", data range - " + JSON.stringify(this.dataRange));
   this.zoomRange = this.dataRange;
 
-  this.container = $.new('div').addClass('graphContainer').appendTo($('#graphs'));
+  this.container = $.new('div').addClass('graphContainer');
+  if (appendto) this.container.appendTo(appendto);
+  $.new('h2').text(name).appendTo(this.container);
   this.rhsContainer = $.new('div').addClass('rhsContainer').appendTo(this.container);
   this.zoomOutButton = $.new('a', { href: '#', class: 'zoomOutButton' })
                         .appendTo(this.rhsContainer)
@@ -1088,8 +1091,7 @@ $(function () {
       function makePlots() {
         $('#graphs h3').remove();
         for (var graphname in gSeries) {
-          $.new('h2').text(graphname).appendTo($('#graphs'));
-          new Plot(gSeries[graphname]);
+          var p = new Plot(graphname, $('#graphs'));
         }
       }
       if (gQueryVars['nocondense']) {
