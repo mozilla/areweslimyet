@@ -171,7 +171,6 @@ function prettyFloat(aFloat) {
   return clen ? ret : ret.slice(1);
 }
 
-// TODO add a pad-to-size thing
 function formatBytes(raw) {
   if (raw / 1024 < 2) {
     return prettyFloat(raw) + "B";
@@ -203,7 +202,6 @@ function roundDayDown(date) {
 // For the about:memory-esque display
 //
 
-// TODO document selectedNode return val
 function treeExpandNode(node, noanimate) {
   if (!node.is('.hasChildren')) return;
 
@@ -249,7 +247,9 @@ function makeMemoryTree(title, nodes, datapoint) {
   return memoryTree;
 }
 
-// TODO document args
+// render a memory tree into <target>, with node data <data>. The node specified
+// by <select> should be highlighted. <depth> represents how many levels deep
+// this branch is in the overall tree.
 function memoryTreeNode(target, data, select, depth) {
   if (depth === undefined)
     depth = 0;
@@ -811,7 +811,6 @@ Plot.prototype._buildSeries = function(start, stop) {
 
   if (involvedseries && involvedseries.length) {
     // Have full data, coalesce it to the desired density
-    // TODO cache this instead of rebuilding it each time
     logMsg("Building series using full data");
     var buildinf;
     var series;
