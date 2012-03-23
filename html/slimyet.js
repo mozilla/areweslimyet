@@ -860,19 +860,25 @@ Plot.prototype._buildSeries = function(start, stop) {
       if (b['time'] < start) continue;
       if (blast['time'] > stop) break;
 
-      var time = 0;
-      for (var x = 0; x + i <= ilast; x++) {
-        time += +gGraphData['builds'][x + i]['time'];
-      }
-      time = Math.round(time / (ilast - i + 1));
-      var newb = { firstrev: b['firstrev'] };
-      newb['time'] = time;
-      newb['lastrev'] = blast['lastrev'] ? blast['lastrev'] : blast['firstrev'];
-      var from = b['timerange'] ? b['timerange'][0] : b['time'];
-      var to = blast['timerange'] ? blast['timerange'][1] : blast['time'];
-      newb['timerange'] = [ from, to ];
+      var time;
+      if (merge > 1) {
+        time = 0;
+        for (var x = 0; x + i <= ilast; x++) {
+          time += +gGraphData['builds'][x + i]['time'];
+        }
+        time = Math.round(time / (ilast - i + 1));
+        var newb = { firstrev: b['firstrev'] };
+        newb['time'] = time;
 
-      builds.push(newb);
+        newb['lastrev'] = blast['lastrev'] ? blast['lastrev'] : blast['firstrev'];
+        var from = b['timerange'] ? b['timerange'][0] : b['time'];
+        var to = blast['timerange'] ? blast['timerange'][1] : blast['time'];
+        newb['timerange'] = [ from, to ];
+        builds.push(newb);
+      } else {
+        builds.push(b);
+        time = b['time'];
+      }
 
       for (var axis in this.axis) {
         var median = 0;
@@ -955,7 +961,12 @@ Plot.prototype.onClick = function(item) {
 
       loading.css({ 'width' : '100%', 'position': 'absolute' }).fadeOut(250);
 
-      var memoryTree = makeMemoryTree('Part of test '+series_info['test'], nodes, datapoint);
+      var title;
+      if ('lastrev' in item.series.buildinfo[item.dataIndex])
+        title = revision.slice(0,12) + " @ " + series_info['test'];
+      else
+        title = series_info['test'];
+      var memoryTree = makeMemoryTree(title, nodes, datapoint);
 
       self.tooltip.append(memoryTree);
       memoryTree.fadeIn();
@@ -1045,7 +1056,6 @@ Plot.prototype.onHover = function(item, pos) {
       ttinner.append($.new('b').text('build '));
       ttinner.append(revlink(rev));
       if (buildinfo['lastrev']) {
-        //FIXME
         ttinner.append(' .. ');
         ttinner.append(revlink(buildinfo['lastrev'].slice(0,12)));
       }
