@@ -153,6 +153,13 @@ function logError(obj) {
   }
 }
 
+// Takes a second-resolution unix timestamp
+function prettyDate(aTimestamp) {
+  // If the date is exactly midnight, remove the time portion.
+  // (overview data is coalesced by day by default)
+  return new Date(aTimestamp * 1000).toUTCString().replace('00:00:00 GMT', '');
+}
+
 function prettyFloat(aFloat) {
   var ret = Math.round(aFloat * 100).toString();
   if (ret == "0") return ret;
@@ -803,7 +810,7 @@ Plot.prototype._buildSeries = function(start, stop) {
   }
 
   if (involvedseries && involvedseries.length) {
-    // Have full data, coalecse it to the desired density
+    // Have full data, coalesce it to the desired density
     // TODO cache this instead of rebuilding it each time
     logMsg("Building series using full data");
     var buildinf;
@@ -1030,7 +1037,6 @@ Plot.prototype.onHover = function(item, pos) {
       this.tooltip.empty();
       var buildinfo = item.series.buildinfo[item.dataIndex];
       var rev = buildinfo['firstrev'].slice(0,12);
-      var date = new Date(item.datapoint[0] * 1000).toUTCString();
 
       // Label
       this.tooltip.append($.new('h3').text(item.series['label']));
@@ -1044,7 +1050,7 @@ Plot.prototype.onHover = function(item, pos) {
         ttinner.append(' .. ');
         ttinner.append(revlink(buildinfo['lastrev'].slice(0,12)));
       }
-      ttinner.append($.new('p').text(' @ ' + date));
+      ttinner.append($.new('p').text(prettyDate(item.datapoint[0])));
       this.tooltip.append(ttinner);
 
       // Tooltips move relative to the plot, not the page
