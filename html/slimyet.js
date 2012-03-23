@@ -31,8 +31,9 @@ var gQueryVars = (function () {
 // Width in pixels of highlight (zoom) selector
 var gHighlightWidth = gQueryVars['zoomwidth'] ? +gQueryVars['zoomwidth'] : 400;
 
-// Coalesce datapoints to keep them under this many per zoom level
-var gMaxPoints = gQueryVars['maxpoints'] ? +gQueryVars['maxpoints'] : 150;
+// Coalesce datapoints to keep them under this many per zoom level.
+// Default to 150, or 0 (disabled) if nocondense is supplied
+var gMaxPoints = gQueryVars['maxpoints'] ? +gQueryVars['maxpoints'] : (gQueryVars['nocondense'] ? 0 : 150);
 
 // 10-class paired qualitative color scheme from http://colorbrewer2.org/.
 var gDefaultColors = [
