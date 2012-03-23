@@ -755,11 +755,11 @@ Plot.prototype._getInvolvedSeries = function(range) {
 Plot.prototype._buildSeries = function(start, stop) {
   if (stop === undefined) {
     var lb = gGraphData['builds'][gGraphData['builds'].length - 1];
-    stop = lb['timerange'] ? lb['timerange'][1] : lb['time'];
+    stop = 'timerange' in lb && lb['timerange'][1] > lb['time'] ? lb['timerange'][1] : lb['time'];
   }
   if (start === undefined) {
     var fb = gGraphData['builds'][0];
-    start = fb['timerange'] ? fb['timerange'][0] : fb['time'];
+    start = 'timerange' in fb && fb['timerange'][0] < fb['time'] ? fb['timerange'][0] : fb['time'];
   }
 
   var self = this; // for closures
