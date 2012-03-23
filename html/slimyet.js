@@ -735,7 +735,7 @@ Plot.prototype.setZoomRange = function(range) {
 // of these that arn't downloaded. FIXME
 Plot.prototype._getInvolvedSeries = function(range) {
   var ret = [];
-  var groupdist = gMaxPoints < 1 ? 1 : Math.round((range[1] - range[0]) / gMaxPoints);
+  var groupdist = gMaxPoints < 1 ? 1 : (Math.round((range[1] - range[0]) / gMaxPoints));
 
   // Unless the requested grouping distance is < 80% of the overview data's
   // distance, don't pull in more
@@ -777,7 +777,7 @@ Plot.prototype._buildSeries = function(start, stop) {
   }
 
   // Grouping distance
-  var groupdist = gMaxPoints < 1 ? 1 : Math.round((stop - start) / gMaxPoints);
+  var groupdist = gMaxPoints < 1 ? 1 : (Math.round((stop - start) / gMaxPoints));
 
   function pushdp(series, buildinf, ctime) {
     // Push a datapoint onto builds/ranges/data
