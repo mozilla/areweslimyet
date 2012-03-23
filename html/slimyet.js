@@ -515,8 +515,10 @@ function Plot(axis) {
 
   this.axis = axis;
   this.zoomed = false;
-  this.dataRange = [ gGraphData['builds'][0]['time'],
-                     gGraphData['builds'][gGraphData['builds'].length - 1]['time'] ];
+  var firstb = gGraphData['builds'][0];
+  var lastb = gGraphData['builds'][gGraphData['builds'].length - 1];
+  this.dataRange = [ firstb['timerange'] ? firstb['timerange'][0] : firstb['time'],
+                     lastb['timerange'] ? lastb['timerange'][1] : lastb['time'] ];
   this.zoomRange = this.dataRange;
 
   this.container = $.new('div').addClass('graphContainer').appendTo($('#graphs'));
