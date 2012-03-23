@@ -551,7 +551,7 @@ function Plot(axis) {
   this.obj = $.new('div').addClass('graph').appendTo(this.container);
   this.flot = $.plot(this.obj,
     // Data
-    this._buildSeries(),
+    this._buildSeries(this.zoomRange[0], this.zoomRange[1]),
     // Options
     {
       series: {
@@ -753,15 +753,6 @@ Plot.prototype._getInvolvedSeries = function(range) {
 // Uses series returned by _getInvolvedSeries *if they are all downloaded*,
 // otherwise always uses overview data.
 Plot.prototype._buildSeries = function(start, stop) {
-  if (stop === undefined) {
-    var lb = gGraphData['builds'][gGraphData['builds'].length - 1];
-    stop = 'timerange' in lb && lb['timerange'][1] > lb['time'] ? lb['timerange'][1] : lb['time'];
-  }
-  if (start === undefined) {
-    var fb = gGraphData['builds'][0];
-    start = 'timerange' in fb && fb['timerange'][0] < fb['time'] ? fb['timerange'][0] : fb['time'];
-  }
-
   var self = this; // for closures
   var involvedseries = this._getInvolvedSeries([start, stop]);
 
