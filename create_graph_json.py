@@ -194,10 +194,29 @@ def _findNode(nodes, datapoint, nodeize):
 i = 0
 for build in builds:
   i += 1
+
+  # Lookup tests for this build
+  testdata = {}
+  for testname in gTests.keys():
+    testdata[testname] = { 'time' : None, 'id' : None, 'nodes' : {} }
+
+    # Get latest test for this build
+    cur.execute('''SELECT id, time FROM benchtester_tests
+                    WHERE name = ? AND build_id = ?
+                    ORDER BY time DESC LIMIT 1''', [testname, build['id']])
+    testrow = cur.fetchone()
+    if not testrow:
+      continue
+
+    testdata[testname]['time'] = testrow['time']
+    testdata[testname]['id'] = testrow['id']
+
+  test_ids = [testdata[testname]['id'] for testname in gTests.keys()]
+
   #
   # Determine if we should process this build or use the existing data
   #
-  if old_data and build['name'] in old_builds_map:
+  if old_data and build['name'] in old_builds_map and old_builds_map[build['name']['test_ids'] == test_ids:
     print("[%u/%u] Using existing data for build %s" % (i, len(builds), build['name']))
     oldindex = old_builds_map[build['name']]
     data['builds'].append(old_data['builds'][oldindex])
@@ -205,30 +224,13 @@ for build in builds:
       data['series'][sname].append(old_data['series'][sname][oldindex])
   else:
     print("[%u/%u] Processing build %s" % (i, len(builds), build['name']))
-    test_ids = {}
     # Fill builds
-    data['builds'].append({ 'revision' : build['name'], 'time' : build['time'] })
-    
-    testdata = {}
-    
+    data['builds'].append({ 'revision' : build['name'], 'time' : build['time'], 'test_ids' : test_ids })
+
     #
     # For each test gTests references, pull all of its data into testdata
     #
     for testname in gTests.keys():
-
-      testdata[testname] = { 'time' : None, 'id' : None, 'nodes' : {} }
-
-      # Get latest test for this build
-      cur.execute('''SELECT id, time FROM benchtester_tests
-                     WHERE name = ? AND build_id = ?
-                     ORDER BY time DESC LIMIT 1''', [testname, build['id']])
-      testrow = cur.fetchone()
-      if not testrow:
-        continue
-
-      testdata[testname]['time'] = testrow['time']
-      testdata[testname]['id'] = testrow['id']
-
       if testname in gTests:
         nodeize = gTests[testname].get('nodeize')
       else:
@@ -238,7 +240,7 @@ for build in builds:
       allrows = cur.execute('''SELECT datapoint, value
                                FROM benchtester_data d
                                WHERE test_id = ?
-                            ''', [testrow['id']])
+                            ''', [testdata[testname]['id']])
 
       # Sort data, splitting it up into nodes if requested. Calculate the value
       # of each node - either a sum of its childnodes, or its explicit value if
