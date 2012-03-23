@@ -524,8 +524,16 @@ function Plot(axis) {
   this.zoomed = false;
   var firstb = gGraphData['builds'][0];
   var lastb = gGraphData['builds'][gGraphData['builds'].length - 1];
-  this.dataRange = [ firstb['timerange'] ? firstb['timerange'][0] : firstb['time'],
-                     lastb['timerange'] ? lastb['timerange'][1] : lastb['time'] ];
+
+  this.dataRange = [ firstb['time'], lastb['time'] ];
+  // If the builds specify a timerange that extends beyond the average time,
+  // use that. (Note that the average time does not need to be inside the
+  // timerange -- overview data groups it by day @ midnight)
+  if ('timerange' in firstb && firstb['timerange'][0] < firstb['time'])
+    this.dataRange[0] = firstb['timerange'][0];
+  if ('timerange' in lastb && lastb['timerange'][1] > lastb['time'])
+    this.dataRange[1] = lastb['timerange'][1];
+
   this.zoomRange = this.dataRange;
 
   this.container = $.new('div').addClass('graphContainer').appendTo($('#graphs'));
