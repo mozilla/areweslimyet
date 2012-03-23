@@ -216,7 +216,7 @@ for build in builds:
   #
   # Determine if we should process this build or use the existing data
   #
-  if old_data and build['name'] in old_builds_map and old_builds_map[build['name']['test_ids'] == test_ids:
+  if old_data and build['name'] in old_builds_map and old_builds_map[build['name']]['test_ids'] == test_ids:
     print("[%u/%u] Using existing data for build %s" % (i, len(builds), build['name']))
     oldindex = old_builds_map[build['name']]
     data['builds'].append(old_data['builds'][oldindex])
