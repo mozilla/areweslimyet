@@ -424,7 +424,7 @@ Tooltip.prototype.zoom = function(callback) {
 
   // If the parent is offscreen, try to bump it on screen if we can
   var offset = this.obj.parent().offset();
-  var scrolltop = $('html').scrollTop();
+  var scrolltop = $('html,body').scrollTop();
   var scroll = scrolltop;
 
   if (scroll + window.innerHeight < offset.top + h)
@@ -432,10 +432,8 @@ Tooltip.prototype.zoom = function(callback) {
   if (scroll > offset.top)
     scroll = offset.top - 20;
 
-  if (scroll != scrolltop) {
-    logMsg('Scrolling to '+scroll);
-    $('html').animate({ 'scrollTop' : scroll }, 500);
-  }
+  if (scroll != scrolltop)
+    $('html,body').animate({ 'scrollTop' : scroll }, 500);
 
   this.obj.show();
   // Animate these by pixel values to workaround wonkiness in jquery+chrome
@@ -1090,8 +1088,8 @@ Plot.prototype.onHover = function(item, pos) {
       ttinner.append($.new('p').text(prettyDate(item.datapoint[0])));
       this.tooltip.append(ttinner);
 
-      // Tooltips move relative to the plot, not the page
-      var offset = this.obj.offset();
+      // Tooltips move relative to the graphContainer
+      var offset = this.container.offset();
       this.tooltip.hover(item.pageX - offset.left, item.pageY - offset.top, this.hoveredItem ? true : false);
     } else {
       if (this.hoveredItem)
