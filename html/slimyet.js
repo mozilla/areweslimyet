@@ -421,6 +421,21 @@ Tooltip.prototype.zoom = function(callback) {
   var w = this.obj.parent().width();
   var h = this.obj.parent().height();
 
+  // If the parent is offscreen, try to bump it on screen if we can
+  var offset = this.obj.parent().offset();
+  var scrolltop = $('html').scrollTop();
+  var scroll = scrolltop;
+
+  if (scroll + window.innerHeight < offset.top + h)
+    scroll = offset.top - (window.innerHeight - h) + 20;
+  if (scroll > offset.top)
+    scroll = offset.top - 20;
+
+  if (scroll != scrolltop) {
+    logMsg('Scrolling to '+scroll);
+    $('html').animate({ 'scrollTop' : scroll }, 500);
+  }
+
   this.obj.show();
   this.obj.stop().addClass('zoomed').animate({
     width: '94%',
