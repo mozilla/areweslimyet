@@ -438,11 +438,12 @@ Tooltip.prototype.zoom = function(callback) {
   }
 
   this.obj.show();
+  // Animate these by pixel values to workaround wonkiness in jquery+chrome
   this.obj.stop().addClass('zoomed').animate({
-    width: '94%',
-    height: '95%',
-    left: '3%',
-    top: '0%',
+    width: Math.round(0.94 * w) + 'px',
+    height: Math.round(0.95 * h) + 'px',
+    left: Math.round(0.03 * w) + 'px',
+    top: '0px',
     opacity: 1
   }, 500, null, callback);
 
@@ -465,12 +466,14 @@ Tooltip.prototype.onUnzoom = function(callback) {
 Tooltip.prototype.unzoom = function() {
   if (this.isZoomed() && !this.obj.is(':animated'))
   {
+    var w = this.obj.parent().width();
+    var h = this.obj.parent().height();
     var self = this;
     this.obj.animate({
-        width: '50%',
-        height: '50%',
-        top: '25%',
-        left: '25%',
+        width: Math.round(0.5 * w) + 'px',
+        height: Math.round(0.5 * h) + 'px',
+        top: Math.round(0.25 * h) + 'px',
+        left: Math.round(0.25 * w) + 'px',
         opacity: '0'
       }, 250, function() {
         self.obj.removeAttr('style').hide().removeClass('zoomed');
