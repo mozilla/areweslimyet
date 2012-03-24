@@ -134,6 +134,7 @@ var gSeries = {
 var gGraphData;
 var gFullData = {};
 var gPerBuildData = {};
+var gPlots = {};
 
 //
 // Utility
@@ -698,7 +699,7 @@ function Plot(name, appendto) {
 // back out. range is of format [x1, x2]. this.dataRange contains the range of
 // all data, this.zoomRange contains currently zoomed range if this.zoomed is
 // true.
-Plot.prototype.setZoomRange = function(range) {
+Plot.prototype.setZoomRange = function(range, nosync) {
     var zoomOut = false;
     if (range === undefined) {
       zoomOut = true;
@@ -742,6 +743,12 @@ Plot.prototype.setZoomRange = function(range) {
     // The highlight has the wrong range now that we mucked with the graph
     if (this.highlighted)
       this.showHighlight(this._highlightLoc, this._highlightWidth);
+
+    // Sync all other plots
+    if (!nosync)
+      for (var x in gPlots)
+        if (gPlots[x] != this)
+          gPlots[x].setZoomRange(zoomOut ? undefined : range, true);
 }
 
 // If this range is 'zoomed' enough to warrant using full-resolution data
@@ -1107,7 +1114,7 @@ $(function () {
       function makePlots() {
         $('#graphs h3').remove();
         for (var graphname in gSeries) {
-          var p = new Plot(graphname, $('#graphs'));
+          gPlots[graphname] = new Plot(graphname, $('#graphs'));
         }
       }
       if (gQueryVars['nocondense']) {
