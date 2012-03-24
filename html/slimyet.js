@@ -488,6 +488,8 @@ Tooltip.prototype.unzoom = function() {
 // Ajax for getting more graph data
 //
 
+// FIXME Check if we already have a pending call for this series, so we don't
+//       get the same data multiple times when the user zooms quickly
 function getFullSeries(dataname, success, fail) {
   if (dataname in gFullData) {
     if (success instanceof Function) success.apply(null);
