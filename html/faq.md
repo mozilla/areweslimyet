@@ -43,7 +43,7 @@ We're [actively exploring][match-startup-mem] ways to minimize heap fragmentatio
 
 Our shows that the peak memory usage after the first run of TP5 is the same as our peak memory usage after the last run of TP5.  This means that, although Firefox remembers how much memory it used at its peak, its memory usage shouldn't increase over time.
 
-## This is all well and good, but my Firefox still leaks like a sive.
+## This is all well and good, but my Firefox still leaks like a sieve.
 
 We're sorry to hear that, and we'd like to help.  Here are some diagnostic steps you can try.
 
@@ -57,7 +57,7 @@ To see if add-ons are causing your problems, try [restarting Firefox in safe mod
 
 To figure out which add-on is leaking, start Firefox up outside safe mode, disable half your add-ons, and see if Firefox still leaks.  Repeat this process to narrow down to just one (or a few) leaky add-ons.  (If it takes a long time for the leak to become aparent, you can look for [zombie compartments][], a common type of leak which is easy to identify even before Firefox starts using gigabytes of memory.)
 
-Once you've figured out which add-on(s) is (are) leaking, you're almost done!  Just [file a bug][], and put "[MemShrink]" in the whiteboard (don't worry about the other metadata like the component; we'll fix it).  We'll contact the add-on developer and help him or her fix the problem.
+Once you've figured out which add-on(s) is (are) leaking, you're almost done!  Just [file a bug][], and put "\[MemShrink\]" in the whiteboard (don't worry about the other metadata like the component; we'll fix it).  We'll contact the add-on developer and help him or her fix the problem.
 
 If you have trouble with any of this, find us on IRC (irc.mozilla.org, #memshrink).  We're happy to help.
 
