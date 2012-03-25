@@ -12,7 +12,7 @@ Every day, Mozilla's build infrastructure generates a new ''nightly build'' of F
 
 The dates on the x-axis indicate when we switched development ''to'' a given version.  For example, we started developing Firefox 5 on March 3, 2011, but we didn't release it for three months after that.  In the meantime, we started on the code which would become Firefox 6 on April 12.
 
-The memory usage of version that we shipped as "Firefox X" corresponds roughly to the dots under the "FF X+1" line, but we normally make some changes to Firefox X even after we started working on Firefox X+1, and those changes aren't plotted here.
+The memory usage of version that we shipped as "Firefox N" corresponds roughly to the dots directly under the "FF N+1" line, but we normally make some changes to Firefox N even after we started working on Firefox N+1, and those changes aren't plotted here.
 
 ## How is this data generated?
 
