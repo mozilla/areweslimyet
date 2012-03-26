@@ -2,7 +2,7 @@
 
 ## What is this site?
 
-''Are We Slim Yet?'' is brought to you by Mozilla's [MemShrink][] team.  We're tasked with monitoring and reducing Firefox's memory usage.
+''Are We Slim Yet?'' is brought to you by John Schoenick of Mozilla's [MemShrink][] team.  The MemShrink team was formed in June 2011, and is tasked with monitoring and reducing Firefox's memory usage.
 
 Source for ''Are We Slim Yet?'' and its benchmarks is available on [Github][awsy-github].
 
@@ -12,7 +12,7 @@ Every day, Mozilla's build infrastructure generates a new ''nightly build'' of F
 
 The dates on the x-axis indicate when we switched development ''to'' a given version.  For example, we started developing Firefox 5 on March 3, 2011, but we didn't release it for three months after that.  In the meantime, we started on the code which would become Firefox 6 on April 12.
 
-The memory usage of version that we shipped as "Firefox N" corresponds roughly to the dots directly under the "FF N+1" line, but we normally make some changes to Firefox N even after we started working on Firefox N+1, and those changes aren't plotted here.
+The memory usage of version that we shipped as "Firefox N" corresponds roughly to the points directly under the "FF N+1" line, but we normally make some changes to Firefox N even after we started working on Firefox N+1, and those changes aren't plotted here.
 
 ## How is this data generated?
 
@@ -31,6 +31,12 @@ Every time we measure memory usage, we also collect a full snapshot of about:mem
 
 '''Explicit memory''' is memory that Firefox has explicitly allocated, either via `malloc` or `mmap`.  The explicit measure is particularly useful when checking for memory leaks.  If the measured explicit value at two points in time is the same, then we've `free`'d as much as we've `malloc`'ed between those two points in time.  In contrast, the RSS values at those two points might not be the same, for example because our heap might become fragmented.
 
+The ''explicit'' measurement comes from Firefox itself, and it's had bugs in the past, and the exact set of allocations it covers has changed over time.  It's therefore tricky to compare ''explicit'' measurements between two builds which happened a long time apart.  The ''resident'' numbers come from the operating system and should be comparable between all builds.
+
+## Why are there gaps in the graphs?
+
+XXX I don't know.
+
 ## "RSS: After TP5, tabs closed [+30s]" is almost twice as high as "RSS: Fresh start" -- doesn't that mean Firefox leaks a ton of memory?
 
 Well, not exactly.
@@ -41,11 +47,11 @@ So if Firefox has freed all the memory it allocated during the test, why is it u
 
 We're [actively exploring][match-startup-mem] ways to minimize heap fragmentation, by [using a new version of our heap allocator][jemalloc2] and trying to minimize the number of calls we make to `malloc`.
 
-Our shows that the peak memory usage after the first run of TP5 is the same as our peak memory usage after the last run of TP5.  This means that, although Firefox remembers how much memory it used at its peak, its memory usage shouldn't increase over time.
+Our data shows that the peak memory usage after the first run of TP5 is the same as our peak memory usage after the last run of TP5.  This means that, although Firefox remembers how much memory it used at its peak, its memory usage shouldn't increase over time.
 
 ## This is all well and good, but my Firefox still leaks like a sieve.
 
-We're sorry to hear that, and we'd like to help.  Here are some diagnostic steps you can try.
+We're sorry to hear that, and we'd like to help.  Here are some diagnostics you can try.
 
 First, double-check that you're on the latest version of Firefox.  We won't be able to help much if you're running an old version.  You can check for updates in the "Help -> About Firefox" menu.
 
@@ -63,7 +69,7 @@ If you have trouble with any of this, find us on IRC (irc.mozilla.org, #memshrin
 
 ### If Firefox still leaks, even in safe mode, file a bug!
 
-If the latest version of Firefox leaks for you, even in safe mode, we definitely want to hear about it.  Please, please [file a bug][], find us on IRC (irc.mozilla.org, #memshrink), send smoke signals...do something!  We need your help, particularly in this case.
+If the latest version of Firefox leaks for you, even in safe mode, we definitely want to hear about it.  Please, please [file a bug][] (remember to put \[MemShrink\] in the whiteboard), find us on IRC (irc.mozilla.org, #memshrink), send smoke signals...do something!  We need your help, particularly in this case.
 
 [awsy-github]: https://github.com/Nephyrin/MozAreWeSlimYet
 [MemShrink]: https://wiki.mozilla.org/Performance/MemShrink
