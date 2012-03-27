@@ -18,10 +18,13 @@ def finish(obj):
   sys.exit(0)
 
 def main():
-  mode = form['mode'].value if 'mode' in form else None
-  start = form['startbuild'].value if 'startbuild' in form else None
-  end = form['endbuild'].value if 'endbuild' in form else None
-  prioritize = form['prioritize'].value if 'prioritize' in form else None
+  def val(n):
+    return form[n].value if n in form else None
+  mode = val('mode')
+  start = val('startbuild')
+  end = val('endbuild')
+  prioritize = val('prioritize')
+  note = val('note')
 
   if not start or not mode:
     error("startbuild and mode are required")
@@ -34,6 +37,8 @@ def main():
     error("Invalid input")
 
   ret = { "mode": mode, "firstbuild": start }
+  if note:
+    ret['note'] = note
   if end:
     ret['lastbuild'] = end
   if prioritize:
@@ -44,7 +49,7 @@ def main():
   json.dump(ret, f)
   f.close()
   finish({ 'result': 'success', 'reqname': reqname })
-  
+
 try:
   main()
 except Exception, e:

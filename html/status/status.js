@@ -268,11 +268,11 @@ $(function () {
           label.text("Revision");
         }
       } else {
-        $('#reqStartBox, #reqEndBox, #reqNote, #reqSubmitbox').hide();
+        $('#reqStartBox, #reqEndBox, #reqNote, #reqSubmitbox, #reqMsgBox').hide();
         return;
       }
 
-      $('#reqStartBox, #reqNote, #reqSubmitbox').show();
+      $('#reqStartBox, #reqNote, #reqSubmitbox, #reqMsgBox').show();
       if (multi) $('#reqEndBox').show();
       else $('#reqEndBox').hide();
     });
@@ -285,6 +285,7 @@ $(function () {
       var multi = $('#reqBuildMulti:checked').length;
       var end = $('#reqEndBuild').val();
       var priority = $('#reqPriority:checked').length;
+      var note = $('#reqMsg').val();
 
       function dParse(d) {
         var ret = +(Date.parse(d) / 1000);
@@ -306,6 +307,7 @@ $(function () {
       var args = { 'mode': mode, 'startbuild': start };
       if (multi) args['endbuild'] = end;
       if (priority) args['prioritize'] = 'true';
+      if (note) args['note'] = note;
 
       logMsg("Submitting request " + JSON.stringify(args));
 
@@ -321,7 +323,7 @@ $(function () {
           if (data['result'] == 'success') {
             e.addClass('success');
             e.text("Request succeeded. It should appear below within a few moments.");
-            $('#reqStartBuild, #reqEndBuild').val('');
+            $('#reqStartBuild, #reqEndBuild, #reqMsg').val('');
           } else {
             e.addClass('error');
             e.text("Error: " + data['error']);
