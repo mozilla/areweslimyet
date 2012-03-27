@@ -9,13 +9,7 @@
 
 "use strict";
 
-jQuery.new = function(e, attrs, css) {
-  var ret = jQuery(document.createElement(e));
-  if (attrs) ret.attr(attrs);
-  if (css) ret.css(css);
-  return ret;
-};
-
+// Query (search) vars. (Because screw the hashbang, I suppose)
 var gQueryVars = (function () {
   var ret = {};
   if (document.location.search) {
@@ -49,6 +43,8 @@ var gDefaultColors = [
   "#CAB2D6",
 ];
 
+// Dates mozilla-central *branched* to form various release trees. Used to
+// determine date placement on the X-axis of graphs
 var gReleases = [
   {dateStr: "2011-03-03", name: "FF 5"},
   {dateStr: "2011-04-12", name: "FF 6"},
@@ -67,6 +63,7 @@ var gReleases = [
   {dateStr: "2012-10-09", name: "FF 19"}
 ];
 
+// Create gReleases[x].date objects
 (function() {
   for (var i = 0; i < gReleases.length; i++) {
     // Seconds from epoch.
@@ -74,6 +71,7 @@ var gReleases = [
   }
 })();
 
+// Lookup gReleases by date
 var gReleaseLookup = function() {
   var lookup = {};
   for (var i = 0; i < gReleases.length; i++) {
@@ -82,7 +80,9 @@ var gReleaseLookup = function() {
   return lookup;
 }();
 
-// Which series from series.json to graph where with what label
+// Which series from series.json to graph where with what label. See
+// /data/areweslimyet.json and comments below. These are exported from the full
+// test database by create_graph_json.py
 var gSeries = {
   "Resident Memory" : {
     'StartMemoryResidentV2':         "RSS: Fresh start",
@@ -127,19 +127,55 @@ var gSeries = {
   }
 };
 
-// Filled with /data/series.json
-// FIXME this comment is wrong
-// Contains info about graphs to create and sparse data for initial graphing.
-// When we zoom in, ajax requests further data.
+// gGraphData pulls /data/<series>.json which has a *condensed* series of builds
+// and associated data-lines. After a certain zoom level we need to pull in the
+// full-resolution data into gFullData. gGraphData['allseries'] contains info on
+// the sub-series that can be fetched for gFullData.
+//
+// The pre-condensed datapoints and ones we fetch ourselves all have
+// min/median/max data, and the revision-range and time-range. See the
+// /data/areweslimyet.json file.
+//
+// Plot._getInvolvedSeries() - Determines if our zoom level justifies using
+//   full data series, lists them (none means 'just use gGraphData')
+// Plot.SetZoomLevel() - Changes the zoom level, if _getInvolvedSeries() advises
+//   use of series we don't have, fire off requests for them. Once those have
+//   completed, re-render the graph (graph will zoom in, then re-render with
+//   more points when they arrive)
+//
+// Plot._buildSeries() - Builds a series using the logic:
+// - *if* we *dont* have gFullData for all ranges involved
+//   - Merge every N condensed-points in gGraphData OR
+//   - Show all condensed-points in gGraphData [slightly more zoomed]
+// - *if* gFullData has the data for all series involved:
+//   - Merge those points outselves OR
+//   - Show every datapoint (all the way zoomed in)
 var gGraphData;
 var gFullData = {};
+
+// 'per build data' is /data/<buildname>.json. <buildname> is usually a
+// changeset id, but doesn't need to be (although the tooltip assumes they are)
+// It primarily contains a dump of the about:memory reporters, and is only used
+// for the data-dump you get when clicking on a tooltip. This is fetched/cached
+// by getPerBuildData()
 var gPerBuildData = {};
-var gPlots = {};
+
+// List of *top-level* plots that should be zoom-sync'd
+var gZoomSyncPlots = {};
 
 //
 // Utility
 //
 
+// Shorthand for $(document.createElement(<e>))[.attr(<attrs>)[.css(<css>)]]
+jQuery.new = function(e, attrs, css) {
+  var ret = jQuery(document.createElement(e));
+  if (attrs) ret.attr(attrs);
+  if (css) ret.css(css);
+  return ret;
+};
+
+// Log message/error to console if available
 function logMsg(obj) {
   if (window.console && window.console.log) {
     window.console.log(obj);
@@ -155,13 +191,17 @@ function logError(obj) {
   }
 }
 
-// Takes a second-resolution unix timestamp
+// Takes a second-resolution unix timestamp, prints a UTCDate. If the date
+// is exactly midnight, remove the "00:00:00 GMT" (we have a lot of timestamps
+// condensed to day-resolution)
 function prettyDate(aTimestamp) {
   // If the date is exactly midnight, remove the time portion.
   // (overview data is coalesced by day by default)
   return new Date(aTimestamp * 1000).toUTCString().replace('00:00:00 GMT', '');
 }
 
+// float 12039123.439 -> String "12,039,123.44"
+// (commas and round %.02)
 function prettyFloat(aFloat) {
   var ret = Math.round(aFloat * 100).toString();
   if (ret == "0") return ret;
@@ -173,6 +213,9 @@ function prettyFloat(aFloat) {
   return clen ? ret : ret.slice(1);
 }
 
+// Takes a int number of bytes, converts to appropriate units (B/KiB/MiB/GiB),
+// returns a prettyFloat()'d string
+// formatBytes(923044592344234) -> "859,652.27GiB"
 function formatBytes(raw) {
   if (raw / 1024 < 2) {
     return prettyFloat(raw) + "B";
@@ -185,7 +228,7 @@ function formatBytes(raw) {
   }
 }
 
-// Round a date (seconds since epoch) to the nearest day.
+// Round unix timestamp to the nearest midnight UTC. (Not *that day*'s midnight)
 function roundDay(date) {
   return Math.round(date / (24 * 60 * 60)) * 24 * 60 * 60;
 }
@@ -204,6 +247,7 @@ function roundDayDown(date) {
 // For the about:memory-esque display
 //
 
+// Expand a tree node
 function treeExpandNode(node, noanimate) {
   if (!node.is('.hasChildren')) return;
 
@@ -222,11 +266,13 @@ function treeExpandNode(node, noanimate) {
   node.children('.treeNodeTitle').find('.treeExpandClicker').text('[-]');
 }
 
+// Collapse a tree node
 function treeCollapseNode(node) {
   node.children('.subtree').slideUp(250);
   node.children('.treeNodeTitle').find('.treeExpandClicker').text('[+]');
 }
 
+// Collapse/Expand a tree node
 function treeToggleNode(node) {
   if (node.find('.subtree:visible').length)
     treeCollapseNode(node);
@@ -234,6 +280,9 @@ function treeToggleNode(node) {
     treeExpandNode(node);
 }
 
+// Create a about:memory-esque tree of values from a list of nodes.
+// The 'datapoint' value is the name of the point to highlight within the tree.
+// This is a wrapper for memoryTreeNode()
 function makeMemoryTree(title, nodes, datapoint) {
   var memoryTree = $.new('div', { class: 'memoryTree' }, { display: 'none' });
   // memoryTree title
@@ -359,6 +408,8 @@ function memoryTreeNode(target, data, select, depth) {
 // Tooltip
 //
 
+// A tooltip that can be positioned relative to its parent via .hover(),
+// or 'zoomed' to inflate and cover its parent via .zoom()
 function Tooltip(parent) {
   if ((!this instanceof Tooltip)) {
     logError("Tooltip() used incorrectly");
@@ -488,6 +539,8 @@ Tooltip.prototype.unzoom = function() {
 // Ajax for getting more graph data
 //
 
+// Fetch the series given by name (see gGraphData['allseries']), call success
+// or fail callback. Can call these immediately if the data is already available
 // FIXME Check if we already have a pending call for this series, so we don't
 //       get the same data multiple times when the user zooms quickly
 function getFullSeries(dataname, success, fail) {
@@ -508,6 +561,9 @@ function getFullSeries(dataname, success, fail) {
   }
 }
 
+// Fetch the full memory dump for a build. Calls success() or fail() callbacks
+// when the data is ready (which can be before the call even returns)
+// (gets /data/<buildname>.json)
 function getPerBuildData(buildname, success, fail) {
   if (gPerBuildData[buildname] !== undefined) {
     if (success instanceof Function) success.apply(null);
@@ -531,7 +587,7 @@ function getPerBuildData(buildname, success, fail) {
 //
 
 //
-// Creates a plot, appends it to #graphs
+// Creates a plot, appends it to <appendto>
 // - axis -> { 'AxisName' : 'Nicename', ... }
 //
 function Plot(name, appendto) {
@@ -702,6 +758,10 @@ function Plot(name, appendto) {
 // back out. range is of format [x1, x2]. this.dataRange contains the range of
 // all data, this.zoomRange contains currently zoomed range if this.zoomed is
 // true.
+// If the specified range warrents fetching full data (getFullSeries), but we
+// don't have it, issue the ajax and set a callback to re-render the graph when
+// it returns (so we'll zoom in, but then re-render moments later with more
+// points)
 Plot.prototype.setZoomRange = function(range, nosync) {
     var zoomOut = false;
     if (range === undefined) {
@@ -749,16 +809,16 @@ Plot.prototype.setZoomRange = function(range, nosync) {
 
     // Sync all other plots
     if (!nosync)
-      for (var x in gPlots)
-        if (gPlots[x] != this)
-          gPlots[x].setZoomRange(zoomOut ? undefined : range, true);
+      for (var x in gZoomSyncPlots)
+        if (gZoomSyncPlots[x] != this)
+          gZoomSyncPlots[x].setZoomRange(zoomOut ? undefined : range, true);
 }
 
 // If this range is 'zoomed' enough to warrant using full-resolution data
 // (based on gMaxPoints), return the list of gFullData series names that would
 // be needed. Return false if overview data is sufficient for this range.
 // It's up to the caller to call getFullSeries(name) to start downloading any
-// of these that arn't downloaded. FIXME
+// of these that arn't downloaded.
 Plot.prototype._getInvolvedSeries = function(range) {
   var ret = [];
   var groupdist = gMaxPoints < 1 ? 1 : (Math.round((range[1] - range[0]) / gMaxPoints));
@@ -781,6 +841,7 @@ Plot.prototype._getInvolvedSeries = function(range) {
 // suitable for passing to flot - condensed to try to hit gMaxPoints.
 // Uses series returned by _getInvolvedSeries *if they are all downloaded*,
 // otherwise always uses overview data.
+// See comment about gFullData at top of file
 Plot.prototype._buildSeries = function(start, stop) {
   var self = this; // for closures
   var involvedseries = this._getInvolvedSeries([start, stop]);
@@ -838,7 +899,8 @@ Plot.prototype._buildSeries = function(start, stop) {
   }
 
   if (involvedseries && involvedseries.length) {
-    // Have full data, coalesce it to the desired density
+    // Mode 1:
+    // Have full data, coalesce it to the desired density ourselves
     logMsg("Building series using full data");
     var buildinf;
     var series;
@@ -875,6 +937,7 @@ Plot.prototype._buildSeries = function(start, stop) {
     pushdp(series, buildinf, ctime);
 
   } else {
+    // Mode 2:
     // Using overview data, which is already condensed.
     // Merge every N points to get close to our desired density.
     var merge = Math.max(Math.round(groupdist / gGraphData['condensed']), 1);
@@ -945,9 +1008,10 @@ Plot.prototype._buildSeries = function(start, stop) {
   return seriesData;
 }
 
+// Either zoom in on a datapoint or trigger a graph zoom or do nothing.
 Plot.prototype.onClick = function(item) {
   if (item) {
-    // Zoom in on item
+    // Clicked on an item - zoom the tooltip and load full data dump
     var zoomedCallback;
     this.tooltip.zoom();
     var loading = $.new('h2', null, {
@@ -1062,6 +1126,8 @@ Plot.prototype.hideHighlight = function() {
   }
 }
 
+// If we're hovering over a point, show a tooltip. Otherwise, show the
+// zoom selector if we're not beyond our zoom-in limit
 Plot.prototype.onHover = function(item, pos) {
   function revlink(rev) {
     return $.new('a')
@@ -1104,6 +1170,9 @@ Plot.prototype.onHover = function(item, pos) {
   }
 }
 
+//
+// Init. Load initial gGraphData, draw main page graphs
+//
 $(function () {
   // Load graph data
   // Allow selecting an alternate series
@@ -1117,7 +1186,7 @@ $(function () {
       function makePlots() {
         $('#graphs h3').remove();
         for (var graphname in gSeries) {
-          gPlots[graphname] = new Plot(graphname, $('#graphs'));
+          gZoomSyncPlots[graphname] = new Plot(graphname, $('#graphs'));
         }
       }
       if (gQueryVars['nocondense']) {
@@ -1142,7 +1211,7 @@ $(function () {
     dataType: 'json'
   });
 
-  // Close zoomed tooltips upon clicking outside of them
+  // Handler to close zoomed tooltips upon clicking outside of them
   $('body').bind('click', function(e) {
     if (!$(e.target).is('.tooltip') && !$(e.target).parents('.graphContainer').length)
       $('.tooltip.zoomed').each(function(ind,ele) {
