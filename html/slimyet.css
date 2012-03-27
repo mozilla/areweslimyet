@@ -14,11 +14,19 @@ html, body {
 }
 
 #page-header {
-  width: 1000px;
   margin-bottom: 30px;
   margin-top: 30px;
+  margin-left: auto;
+  margin-right: auto;
   font-size: 4em;
   text-align: center;
+}
+
+#headerRule {
+  width: 100%;
+  outline: none;
+  border: none;
+  border-bottom: 4px solid #EEE;
 }
 
 #header-slim {
@@ -28,7 +36,6 @@ html, body {
 }
 
 h2 {
-  width: 1000px;
   margin-top: 2em;
   margin-bottom: .5em;
 }
@@ -70,6 +77,10 @@ a:visited:hover {
 
 .graphContainer {
   position: relative;
+}
+
+.graphContainer h2 {
+  width: 1000px;
 }
 
 #graphs {
