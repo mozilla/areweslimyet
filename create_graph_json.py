@@ -307,7 +307,7 @@ for build in builds:
         if nodeize:
           if node == None:
             value = None
-          elif type(node) == int:
+          elif type(node) in [ int, long ]:
             value = node
           else:
             value = node.get('_val')
