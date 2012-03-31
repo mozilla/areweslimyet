@@ -30,17 +30,31 @@ var gHighlightWidth = gQueryVars['zoomwidth'] ? +gQueryVars['zoomwidth'] : 400;
 var gMaxPoints = gQueryVars['maxpoints'] ? +gQueryVars['maxpoints'] : (gQueryVars['nocondense'] ? 0 : 150);
 
 // 10-class paired qualitative color scheme from http://colorbrewer2.org/.
+// Ordered so that the important memory lines are given more prominent colors.
 var gDefaultColors = [
-  "#1F78B4",
-  "#33A02C",
-  "#E31A1C",
-  "#FF7F00",
-  "#6A3D9A",
-  "#A6CEE3",
-  "#B2DF8A",
-  "#FB9A99",
-  "#FDBF6F",
-  "#CAB2D6",
+  "#A6CEE3", /* light blue */
+  "#B2DF8A", /* light green */
+  "#FB9A99", /* light red */
+  "#FDBF6F", /* light orange */
+  "#33A02C", /* dark green */
+  "#1F78B4", /* dark blue */
+  "#E31A1C", /* dark red */
+  "#6A3D9A", /* dark purple */
+  "#FF7F00", /* dark orange */
+  "#CAB2D6", /* light purple */
+];
+
+var gDarkColorsFirst = [
+  "#1F78B4", /* dark blue */
+  "#33A02C", /* dark green */
+  "#E31A1C", /* dark red */
+  "#6A3D9A", /* dark purple */
+  "#FF7F00", /* dark orange */
+  "#A6CEE3", /* light blue */
+  "#B2DF8A", /* light green */
+  "#FB9A99", /* light red */
+  "#CAB2D6", /* light purple */
+  "#FDBF6F", /* light orange */
 ];
 
 // Dates mozilla-central *branched* to form various release trees. Used to
@@ -723,7 +737,7 @@ function Plot(name, appendto) {
       legend: {
         container: this.legendContainer
       },
-      colors: gDefaultColors
+      colors: name.indexOf('Memory') != -1 ? gDefaultColors : gDarkColorsFirst
     }
   );
 
