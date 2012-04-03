@@ -3,8 +3,8 @@
 ## What is this site?
 
 ''Are We Slim Yet?'' is a Firefox memory benchmark as well as a site for
-visualizing the data it produces over time. The aim is to track Firefox's memory
-footprint, both to measure its progress over time, and to catch any regressions
+visualizing the data it produces. The aim is to track Firefox's memory
+footprint. Both to measure its progress over time, and to catch any regressions
 that are introduced.
 
 ''Are we Slim Yet?'' was created by John Schoenick of Mozilla's [MemShrink][]
