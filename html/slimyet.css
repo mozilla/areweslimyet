@@ -50,25 +50,17 @@ a {
   outline: none;
 }
 
-a:link {
-  color: #E77;
-}
+a:link { color: #E77; }
+a:hover { color: #FCC; }
+a:active { color: #FFF; }
+a:visited { color: #AFA; }
+a:visited:hover { color: #EFE; }
 
-a:hover {
-  color: #FCC;
-}
-
-a:active {
-  color: #FFF;
-}
-
-a:visited {
-  color: #AFA;
-}
-
-a:visited:hover {
-  color: #EFE;
-}
+.lightContent a:link { color: #A22; }
+.lightContent a:hover { color: #944; }
+.lightContent a:active { color: #222; }
+.lightContent a:visited { color: #393; }
+.lightContent a:visited:hover { color: #494; }
 
 .graph {
   width: 1000px;
@@ -154,14 +146,17 @@ a:visited:hover {
 .success { color: #9D9; }
 
 /*
- * Internal status page
+ * FAQ
  */
+body.faqPage {
+  padding: 0 100px 0 100px;
+}
 
-.statusPage a:link { color: #B55; }
-.statusPage a:hover { color: #C77; }
-.statusPage a:active { color: #555; }
-.statusPage a:visited { color: #6A6; }
-.statusPage a:visited:hover { color: #7C7; }
+.faqPage h1 { text-align: center; }
+
+/*
+ * Status page (/status/)
+ */
 
 .statusPage {
   text-align: center;
