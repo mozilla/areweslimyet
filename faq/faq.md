@@ -167,6 +167,5 @@ case.
 [match-startup-mem]: https://bugzilla.mozilla.org/show_bug.cgi?id=668809
 [jemalloc2]: https://bugzilla.mozilla.org/show_bug.cgi?id=580408
 [safe mode]: http://support.mozilla.org/en-US/kb/Safe%20Mode
-[zombie compartments]:
-https://developer.mozilla.org/en/Zombie_compartments#Reactive_checking
+[zombie compartments]: https://developer.mozilla.org/en/Zombie_compartments#Reactive_checking
 [file a bug]: https://bugzilla.mozilla.org/enter_bug.cgi?product=Core
