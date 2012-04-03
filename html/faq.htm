@@ -14,8 +14,28 @@
 <body class="faqPage lightContent">
   <div id='page-header'>Are we <span id='header-slim'>slim</span> yet?</div>
 <!-- This file is generated from faq/build.sh, do not edit directly -->
-<h1>Frequently Asked Questions</h1>
-<h2>What is this site?</h2>
+<h1 id="frequently-asked-questions">Frequently Asked Questions</h1>
+<div class="toc">
+<ul>
+<li><a href="#frequently-asked-questions">Frequently Asked Questions</a><ul>
+<li><a href="#what-is-this-site">What is this site?</a></li>
+<li><a href="#exactly-which-versions-of-firefox-are-plotted-here">Exactly which versions of Firefox are plotted here?</a></li>
+<li><a href="#how-is-this-data-generated">How is this data generated?</a></li>
+<li><a href="#whats-the-difference-between-resident-memory-and-explicit">What's the difference between "resident memory" and "explicit"?</a></li>
+<li><a href="#why-are-there-gaps-in-the-graphs">Why are there gaps in the graphs?</a></li>
+<li><a href="#rss-after-tp5-tabs-closed-30s-is-almost-twice-as-high-as-rss-fresh">"RSS: After TP5, tabs closed [+30s]" is almost twice as high as "RSS: Fresh</a></li>
+<li><a href="#this-is-all-well-and-good-but-my-firefox-still-leaks-like-a-sieve">This is all well and good, but my Firefox still leaks like a sieve.</a><ul>
+<li><a href="#check-for-add-on-leaks">Check for add-on leaks</a><ul>
+<li><a href="#if-firefox-still-leaks-even-in-safe-mode-file-a-bug">If Firefox still leaks, even in safe mode, file a bug!</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+<h2 id="what-is-this-site">What is this site?</h2>
 <p>''Are We Slim Yet?'' is a Firefox memory benchmark as well as a site for
 visualizing the data it produces. The aim is to track Firefox's memory
 footprint. Both to measure its progress over time, and to catch any regressions
@@ -25,7 +45,7 @@ team.  The MemShrink team was formed in June 2011, and is tasked with monitoring
 and reducing Firefox's memory usage.</p>
 <p>The source for ''Are We Slim Yet?'' and its benchmarks is available on
 <a href="https://github.com/Nephyrin/MozAreWeSlimYet">Github</a>.</p>
-<h2>Exactly which versions of Firefox are plotted here?</h2>
+<h2 id="exactly-which-versions-of-firefox-are-plotted-here">Exactly which versions of Firefox are plotted here?</h2>
 <p>For every <a href="http://hg.mozilla.org/mozilla-central/pushloghtml">push</a> to Mozilla's central repository, the build
 infrastructure generates and tests a <a href="https://tbpl.mozilla.org/?tree=Mozilla-central">set of builds</a>. For historical data,
 prior to March 2012, we have tested the respective Firefox <a href="http://nightly.mozilla.org/">nightly</a> builds. For
@@ -41,7 +61,7 @@ the code which would become Firefox 6 on April 12.</p>
 to the points directly under the "FF N+1" line, but we normally make some
 changes to Firefox N even after we started working on Firefox N+1, and those
 changes aren't plotted here.</p>
-<h2>How is this data generated?</h2>
+<h2 id="how-is-this-data-generated">How is this data generated?</h2>
 <p>We run the target build of Firefox through a benchmark script (written using
 <a href="https://github.com/mozautomation/mozmill">mozmill</a>) and measure its memory usage at a variety of points along the way.
 The testing procedure is as follows.</p>
@@ -61,7 +81,7 @@ The testing procedure is as follows.</p>
 about:memory.  You can browse these snapshots by clicking on any point in the
 graph. The data that was used for generating that particular point will be
 highlighted in red.</p>
-<h2>What's the difference between "resident memory" and "explicit"?</h2>
+<h2 id="whats-the-difference-between-resident-memory-and-explicit">What's the difference between "resident memory" and "explicit"?</h2>
 <p>'''Resident memory''' (also known as "resident set size" or RSS) is the single
 best measure of a process's memory usage.  RSS measures the amount of physical
 memory (RAM) Firefox's process is using.  This counts code, but does not count
@@ -77,7 +97,7 @@ past, and the exact set of allocations it covers has changed over time.  It is
 therefore tricky to compare ''explicit'' measurements between two distant
 builds.  The ''resident'' numbers come from the operating system and should be
 comparable between all builds.</p>
-<h2>Why are there gaps in the graphs?</h2>
+<h2 id="why-are-there-gaps-in-the-graphs">Why are there gaps in the graphs?</h2>
 <p>Gaps indicate areas where the relevant builds failed to be fully tested, or
 where the data being graphed was not available. The most notable is a gap from
 July to August 2011 where the TP5 pageset would actually trigger a crash in our
@@ -85,7 +105,7 @@ test framework (yikes!). For the Explicit memory graphs, much of the memory
 reporting framework was not well polished until about July 2011. This explains
 the lack of earlier data as well as the rather sporadic datapoints for the first
 few months.</p>
-<h2>"RSS: After TP5, tabs closed [+30s]" is almost twice as high as "RSS: Fresh</h2>
+<h2 id="rss-after-tp5-tabs-closed-30s-is-almost-twice-as-high-as-rss-fresh">"RSS: After TP5, tabs closed [+30s]" is almost twice as high as "RSS: Fresh</h2>
 <p>start" -- doesn't that mean Firefox leaks a ton of memory?</p>
 <p>Well, not exactly.</p>
 <p>If you look at the equivalent ''explicit'' numbers, you'll see that the '''After
@@ -105,13 +125,13 @@ trying to minimize the number of calls we make to <code>malloc</code>.</p>
 as our peak memory usage after the last run of TP5.  This means that, although
 Firefox remembers how much memory it used at its peak, its memory usage
 should not significantly increase over time.</p>
-<h2>This is all well and good, but my Firefox still leaks like a sieve.</h2>
+<h2 id="this-is-all-well-and-good-but-my-firefox-still-leaks-like-a-sieve">This is all well and good, but my Firefox still leaks like a sieve.</h2>
 <p>We're sorry to hear that, and we'd like to help.  Here are some diagnostics you
 can try.</p>
 <p>First, double-check that you're on the latest version of Firefox.  We won't be
 able to help much if you're running an old version.  You can check for updates
 in the "Help -&gt; About Firefox" menu.</p>
-<h4>Check for add-on leaks</h4>
+<h4 id="check-for-add-on-leaks">Check for add-on leaks</h4>
 <p>In our experience, most severe leaks in Firefox these days are caused by leaky
 add-ons.  We know how important add-ons are to our users, and Mozilla's add-ons
 team has been doing heroic work to find and address leaks in add-ons before our
@@ -133,7 +153,7 @@ worry about the other metadata like the component; we'll fix it). We'll take
 care of contacting the add-on developer and helping him or her fix the problem.</p>
 <p>If you have trouble with any of this, find us on <a href="https://wiki.mozilla.org/IRC">IRC</a> (irc.mozilla.org,
 #memshrink).  We're happy to help.</p>
-<h4>If Firefox still leaks, even in safe mode, file a bug!</h4>
+<h4 id="if-firefox-still-leaks-even-in-safe-mode-file-a-bug">If Firefox still leaks, even in safe mode, file a bug!</h4>
 <p>If the latest version of Firefox leaks for you, even in safe mode, we definitely
 want to hear about it.  Please, <em>please</em> <a href="https://bugzilla.mozilla.org/enter_bug.cgi?product=Core">file a bug</a> (remember to put
 [MemShrink] in the whiteboard), find us on IRC (irc.mozilla.org, #memshrink),

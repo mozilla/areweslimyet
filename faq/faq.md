@@ -1,5 +1,7 @@
 # Frequently Asked Questions
 
+[TOC]
+
 ## What is this site?
 
 ''Are We Slim Yet?'' is a Firefox memory benchmark as well as a site for
