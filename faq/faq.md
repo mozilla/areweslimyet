@@ -128,13 +128,13 @@ about the other metadata like the component; we'll fix it).  We'll contact the
 add-on developer and help him or her fix the problem.
 
 If you have trouble with any of this, find us on IRC (irc.mozilla.org,
-#memshrink).  We're happy to help.
+\#memshrink).  We're happy to help.
 
 ### If Firefox still leaks, even in safe mode, file a bug!
 
 If the latest version of Firefox leaks for you, even in safe mode, we definitely
 want to hear about it.  Please, please [file a bug][] (remember to put
-\[MemShrink\] in the whiteboard), find us on IRC (irc.mozilla.org, #memshrink),
+\[MemShrink\] in the whiteboard), find us on IRC (irc.mozilla.org, \#memshrink),
 send smoke signals...do something!  We need your help, particularly in this
 case.
 
