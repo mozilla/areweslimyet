@@ -40,25 +40,17 @@ a {
   outline: none;
 }
 
-a:link {
-  color: #E77;
-}
+a:link { color: #E77; }
+a:hover { color: #FCC; }
+a:active { color: #FFF; }
+a:visited { color: #AFA; }
+a:visited:hover { color: #EFE; }
 
-a:hover {
-  color: #FCC;
-}
-
-a:active {
-  color: #FFF;
-}
-
-a:visited {
-  color: #AFA;
-}
-
-a:visited:hover {
-  color: #EFE;
-}
+.lightContent a:link { color: #B55; }
+.lightContent a:hover { color: #C77; }
+.lightContent a:active { color: #555; }
+.lightContent a:visited { color: #6A6; }
+.lightContent a:visited:hover { color: #7C7; }
 
 .graph {
   width: 1000px;
@@ -142,12 +134,6 @@ a:visited:hover {
 /*
  * Internal status page
  */
-
-.statusPage a:link { color: #B55; }
-.statusPage a:hover { color: #C77; }
-.statusPage a:active { color: #555; }
-.statusPage a:visited { color: #6A6; }
-.statusPage a:visited:hover { color: #7C7; }
 
 .statusPage {
   text-align: center;

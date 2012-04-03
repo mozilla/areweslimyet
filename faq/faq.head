@@ -11,5 +11,5 @@
   <title>ARE WE SLIM YET?</title>
   <link href="./slimyet.css" rel="stylesheet" />
 </head>
-<body>
+<body class="lightContent">
   <div id='page-header'>Are we <span id='header-slim'>slim</span> yet?</div>
