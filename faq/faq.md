@@ -14,7 +14,7 @@ team.  The MemShrink team was formed in June 2011, and is tasked with monitoring
 and reducing Firefox's memory usage.
 
 The source for ''Are We Slim Yet?'' and its benchmarks is available on
-[Github][awsy-github].
+[GitHub][awsy-github].
 
 ## Exactly which versions of Firefox are plotted here?
 
