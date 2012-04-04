@@ -87,7 +87,7 @@ reporting framework was not well polished until about July 2011. This explains
 the lack of earlier data as well as the rather sporadic datapoints for the first
 few months.
 
-## "RSS: After TP5, tabs closed [+30s]" is almost twice as high as "RSS: Fresh start" -- doesn't that mean Firefox leaks a ton of memory?
+## "RSS: After TP5, tabs closed [+30s]" is almost twice as high as "RSS: Fresh start" &mdash; doesn't that mean Firefox leaks a ton of memory?
 
 Well, not exactly.
 
