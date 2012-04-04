@@ -4,16 +4,16 @@
 
 ## What is this site?
 
-''Are We Slim Yet?'' is a Firefox memory benchmark as well as a site for
+*Are We Slim Yet?* is a Firefox memory benchmark as well as a site for
 visualizing the data it produces. The aim is to track Firefox's memory
 footprint. Both to measure its progress over time, and to catch any regressions
 that are introduced.
 
-''Are we Slim Yet?'' was created by John Schoenick of Mozilla's [MemShrink][]
+*Are we Slim Yet?* was created by John Schoenick of Mozilla's [MemShrink][]
 team.  The MemShrink team was formed in June 2011, and is tasked with monitoring
 and reducing Firefox's memory usage.
 
-The source for ''Are We Slim Yet?'' and its benchmarks is available on
+The source for *Are We Slim Yet?* and its benchmarks is available on
 [GitHub][awsy-github].
 
 ## Exactly which versions of Firefox are plotted here?
@@ -26,7 +26,7 @@ per-push) builds in order to track down a regression. All tests are run against
 Linux 64-bit (non-pgo) compiles, so platform-dependent regressions may not be
 captured here.
 
-The dates on the x-axis indicate when we switched development ''to'' a given
+The dates on the x-axis indicate when we switched development *to* a given
 version.  For example, we started developing Firefox 5 on March 3, 2011, but we
 didn't release it for three months after that.  In the meantime, we started on
 the code which would become Firefox 6 on April 12.
@@ -42,16 +42,16 @@ We run the target build of Firefox through a benchmark script (written using
 [mozmill][]) and measure its memory usage at a variety of points along the way.
 The testing procedure is as follows.
 
-  * Start the browser, record '''Fresh start''' memory.
+  * Start the browser, record **Fresh start** memory.
   * Run Mozilla's [TP5][] pageload benchmark 5 times.  TP5 loads 100 popular
     webpages, served from a local webserver.  We load the pages round-robin into
     30 different tabs, with a 10s delay between pageloads.
-  * Record '''After TP5''' memory usage.  '''After TP5 [+30s]''' and '''After
-    TP5 [+30s, forced GC]''' are measured after sitting idle for 30 seconds and
+  * Record **After TP5** memory usage.  **After TP5 [+30s]** and **After
+    TP5 [+30s, forced GC]** are measured after sitting idle for 30 seconds and
     then after forcing a garbage collection, respectively. In theory, these
     latter two lines should follow each other closely.
-  * Close all open tabs and record '''After TP5, tabs closed''' and then
-    '''After TP5, tabs closed [+30s]''' memory usage.
+  * Close all open tabs and record **After TP5, tabs closed** and then
+    **After TP5, tabs closed [+30s]** memory usage.
 
 Every time we measure memory usage, we also collect a full snapshot of
 about:memory.  You can browse these snapshots by clicking on any point in the
@@ -60,22 +60,22 @@ highlighted in red.
 
 ## What's the difference between "resident memory" and "explicit"?
 
-'''Resident memory''' (also known as "resident set size" or RSS) is the single
+**Resident memory** (also known as "resident set size" or RSS) is the single
 best measure of a process's memory usage.  RSS measures the amount of physical
 memory (RAM) Firefox's process is using.  This counts code, but does not count
 memory paged out to disk.
 
-'''Explicit memory''' is memory that Firefox has explicitly allocated, either
+**Explicit memory** is memory that Firefox has explicitly allocated, either
 via `malloc` or `mmap`.  The explicit measure is particularly useful when
 checking for memory leaks.  If the measured explicit value at two points in time
 is the same, then we've `free`'d as much as we've `malloc`'ed between those two
 points in time.  In contrast, the RSS values at those two points might not be
 the same, for example because our heap might become fragmented.
 
-The ''explicit'' measurement comes from Firefox itself. It has had bugs in the
+The *explicit* measurement comes from Firefox itself. It has had bugs in the
 past, and the exact set of allocations it covers has changed over time.  It is
-therefore tricky to compare ''explicit'' measurements between two distant
-builds.  The ''resident'' numbers come from the operating system and should be
+therefore tricky to compare *explicit* measurements between two distant
+builds.  The *resident* numbers come from the operating system and should be
 comparable between all builds.
 
 ## Why are there gaps in the graphs?
@@ -87,19 +87,18 @@ reporting framework was not well polished until about July 2011. This explains
 the lack of earlier data as well as the rather sporadic datapoints for the first
 few months.
 
-## "RSS: After TP5, tabs closed [+30s]" is almost twice as high as "RSS: Fresh
-start" -- doesn't that mean Firefox leaks a ton of memory?
+## "RSS: After TP5, tabs closed [+30s]" is almost twice as high as "RSS: Fresh start" -- doesn't that mean Firefox leaks a ton of memory?
 
 Well, not exactly.
 
-If you look at the equivalent ''explicit'' numbers, you'll see that the '''After
-TP5, tabs closed [+30s]''' measure is very close to the '''Fresh start'''
+If you look at the equivalent *explicit* numbers, you'll see that the **After
+TP5, tabs closed [+30s]** measure is very close to the **Fresh start**
 measure. This means Firefox is releasing most all of the memory it allocates --
 so it is not leaking memory, at least not in the traditional sense.
 
 So if Firefox has freed all the memory it allocated during the test, why is it
 using more memory after the test?  Our data shows that most of the difference is
-due to ''heap fragmentation''.  Before the test, all the objects on our heap are
+due to *heap fragmentation*.  Before the test, all the objects on our heap are
 tightly packed.  But after the test, our heap uses twice as much space for the
 same amount of storage, because the objects on the heap now have gaps between
 them.
