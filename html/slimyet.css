@@ -22,11 +22,28 @@ html, body {
   text-align: center;
 }
 
-#headerRule {
-  width: 100%;
+#navbar {
   outline: none;
   border: none;
   border-bottom: 4px solid #EEE;
+  text-align: right;
+  margin: 0 100px 0 100px;
+}
+
+#navbar a, #navbar .inactive {
+  padding: 0 0.5em 0.2em 0.5em;
+  display: inline-block;
+  margin: 0 0.5em -4px 0.5em;
+  font-weight: bold;
+  border-bottom: 4px solid #CCC;
+}
+
+#navbar .inactive {
+  border-bottom: 4px solid #999;
+}
+
+#navbar a:hover {
+  border-bottom: 4px solid #555;
 }
 
 #header-slim {
@@ -151,6 +168,8 @@ a:visited:hover { color: #EFE; }
 body.faqPage {
   padding: 0 100px 0 100px;
 }
+
+.faqPage #navbar { margin: 0; }
 
 .faqPage .toc>ul {
   margin: 0 0 0 1em;

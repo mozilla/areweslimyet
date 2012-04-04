@@ -13,3 +13,7 @@
 </head>
 <body class="faqPage lightContent">
   <div id='page-header'>Are we <span id='header-slim'>slim</span> yet?</div>
+  <div id="navbar" class="lightContent">
+    <a href="/">Main</a>
+    <span class="inactive">FAQ</span>
+  </div>
