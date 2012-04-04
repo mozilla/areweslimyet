@@ -160,7 +160,7 @@ case.
 
 [IRC]: https://wiki.mozilla.org/IRC
 [nightly]: http://nightly.mozilla.org/
-[tbpl]: https://tbpl.mozilla.org/?tree=Mozilla-central
+[tbpl]: https://tbpl.mozilla.org/
 [pushlog]: http://hg.mozilla.org/mozilla-central/pushloghtml
 [awsy-github]: https://github.com/Nephyrin/MozAreWeSlimYet
 [MemShrink]: https://wiki.mozilla.org/Performance/MemShrink
