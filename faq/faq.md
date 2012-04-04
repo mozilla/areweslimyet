@@ -6,8 +6,8 @@
 
 *Are We Slim Yet?* is a Firefox memory benchmark as well as a site for
 visualizing the data it produces. The aim is to track Firefox's memory
-footprint. Both to measure its progress over time, and to catch any regressions
-that are introduced.
+footprint &mdash; both to measure its progress over time, and to catch any
+regressions that are introduced.
 
 *Are we Slim Yet?* was created by John Schoenick of Mozilla's [MemShrink][]
 team.  The MemShrink team was formed in June 2011, and is tasked with monitoring
@@ -84,8 +84,8 @@ where the data being graphed was not available. The most notable is a gap from
 July to August 2011 where the TP5 pageset would actually trigger a crash in our
 test framework (yikes!). For the Explicit memory graphs, much of the memory
 reporting framework was not well polished until about July 2011. This explains
-the lack of earlier data as well as the rather sporadic datapoints for the first
-few months.
+the lack of earlier data as well as the rather sporadic data points for the
+first few months.
 
 ## "RSS: After TP5, tabs closed [+30s]" is almost twice as high as "RSS: Fresh start" &mdash; doesn't that mean Firefox leaks a ton of memory?
 
@@ -137,7 +137,7 @@ want to know which one is to blame.
 To figure out which add-on is leaking, start Firefox up outside safe mode,
 disable half of your add-ons, and see if the leaks persist.  Repeat this process
 to narrow down to just one (or a few) leaky add-ons.  (If it takes a long time
-for the leak to become aparent, you can look for [zombie compartments][], a
+for the leak to become apparent, you can look for [zombie compartments][], a
 common type of leak which is easy to identify even before Firefox starts using
 gigabytes of memory.)
 
