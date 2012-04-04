@@ -116,6 +116,16 @@ var gSeries = {
     'EndMemoryV2':           "Explicit: After TP5, tabs closed",
     'EndMemorySettledV2':    "Explicit: After TP5, tabs closed [+30s]"
   },
+  "Miscellaneous Measurements" : {
+    'MaxHeapUnclassifiedV2':  "Heap Unclassified: After TP5 [+30s]",
+    'MaxJSV2':                "JS: After TP5 [+30s]",
+    'MaxImagesV2':            "Images: After TP5 [+30s]"
+  }
+};
+
+/*
+ * Hidden, these should be given their own page or something, as they are useful
+ * for regression tracking. The FAQ needs to explain them, however
   "All-At-Once Test :: Resident Memory" : {
     'StartMemoryResident':         "RSS: Fresh start",
     'StartMemoryResidentSettled':  "RSS: Fresh start [+30s]",
@@ -134,12 +144,7 @@ var gSeries = {
     'EndMemory':           "Explicit: After TP5, tabs closed",
     'EndMemorySettled':    "Explicit: After TP5, tabs closed [+30s]"
   },
-  "Miscellaneous Measurements" : {
-    'MaxHeapUnclassifiedV2':  "Heap Unclassified: After TP5 [+30s]",
-    'MaxJSV2':                "JS: After TP5 [+30s]",
-    'MaxImagesV2':            "Images: After TP5 [+30s]"
-  }
-};
+ */
 
 // gGraphData pulls /data/<series>.json which has a *condensed* series of builds
 // and associated data-lines. After a certain zoom level we need to pull in the
