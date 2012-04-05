@@ -157,7 +157,7 @@ var gSeries = {
 //
 // Plot._getInvolvedSeries() - Determines if our zoom level justifies using
 //   full data series, lists them (none means 'just use gGraphData')
-// Plot.SetZoomLevel() - Changes the zoom level, if _getInvolvedSeries() advises
+// Plot.SetZoomRange() - Changes the zoom level, if _getInvolvedSeries() advises
 //   use of series we don't have, fire off requests for them. Once those have
 //   completed, re-render the graph (graph will zoom in, then re-render with
 //   more points when they arrive)
