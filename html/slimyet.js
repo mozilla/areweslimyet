@@ -1029,7 +1029,7 @@ Plot.prototype._buildSeries = function(start, stop) {
         if (next + count > totalbuilds / 2) break;
         count += next;
       }
-      var medianbuild = x + i;
+      var medianbuild = Math.min(x + i, ilast);
 
       for (var axis in this.axis) {
         var median = pval(gGraphData['series'][axis][medianbuild], 1);
