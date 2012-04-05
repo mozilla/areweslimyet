@@ -904,6 +904,13 @@ Plot.prototype._buildSeries = function(start, stop) {
   // Grouping distance
   var groupdist = gMaxPoints < 1 ? 1 : (Math.round((stop - start) / gMaxPoints));
 
+  // Points might be [min, median, max], or just a number if it only
+  // represents one datapoint.
+  function pval(point, ind) {
+    var ret = (point instanceof Array) ? point[ind] : point;
+    return (ret === null) ? ret : +ret;
+  }
+
   function pushdp(series, buildinf, ctime) {
     // Push a datapoint onto builds/ranges/data
     if (ctime != -1) {
@@ -936,7 +943,7 @@ Plot.prototype._buildSeries = function(start, stop) {
     if (iseries.length % 2)
       median = iseries[(iseries.length - 1)/ 2];
     else
-      median = Math.round((iseries[iseries.length/2] + iseries[iseries.length/2 - 1])/2);
+      median = iseries[iseries.length / 2];
     return [iseries[0], median, iseries[iseries.length - 1]];
   }
   if (involvedseries && involvedseries.length) {
@@ -993,10 +1000,12 @@ Plot.prototype._buildSeries = function(start, stop) {
       if (blast['time'] > stop) break;
 
       var time;
+      var totalbuilds;
       if (merge > 1) {
         time = 0;
         for (var x = 0; x + i <= ilast; x++) {
           time += +gGraphData['builds'][x + i]['time'];
+          totalbuilds += +gGraphData['builds'][x + i]['count'];
         }
         time = Math.round(time / (ilast - i + 1));
         var newb = { firstrev: b['firstrev'] };
@@ -1012,30 +1021,20 @@ Plot.prototype._buildSeries = function(start, stop) {
         time = b['time'];
       }
 
+      // Roughly select the median point based on number of builds in each
+      // point we're merging. This is less-bad than averaging medians
+      var count = 0;
+      for (var x = 0; x + i <= ilast; x++) {
+        var next = +gGraphData['builds'][x + i]['count'];
+        if (next + count > totalbuilds / 2) break;
+        count += next;
+      }
+      var medianbuild = x + i;
+
       for (var axis in this.axis) {
-        var median = 0;
-        var min, max;
-        var medianpoints = 0;
-        for (var x = 0; x + i <= ilast; x++) {
-          // The value for a series will be three values (min/median/max) unless
-          // it only represents a single build, in which case it is collapsed
-          // to save bandwidth
-          var m = gGraphData['series'][axis][i + x];
-          m = m instanceof Array ? m[1] : m;
-          if (m != null) {
-            median += m;
-            medianpoints++;
-          }
-        }
-        // FIXME: We're actually averaging two medians here, so this datapoint
-        // wont be the true median of all involved builds. This only happens
-        // when significantly zoomed out, but ack. (this should just graph
-        // averages to begin with probably)
-        median = Math.round(median / medianpoints);
-        var min = gGraphData['series'][axis][i];
-        min = min instanceof Array ? +min[0] : +min;
-        var max = +gGraphData['series'][axis][ilast];
-        max = max instanceof Array ? +max[2] : +max;
+        var median = pval(gGraphData['series'][axis][medianbuild], 1);
+        var min = pval(gGraphData['series'][axis][i], 0);
+        var max = pval(gGraphData['series'][axis][ilast], 2);
         data[axis].push([ time, median ]);
         ranges[axis].push([ min, max ]);
       }
