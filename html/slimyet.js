@@ -830,7 +830,7 @@ Plot.prototype.setZoomRange = function(range, nosync) {
         var self = this;
         getFullSeries(fullseries[x], function () {
           if (--pending == 0 && self.zoomed)
-            self.setZoomRange(self.zoomRange);
+            self.setZoomRange(self.zoomRange, true);
         });
       }
     }
