@@ -620,14 +620,10 @@ function Plot(name, appendto) {
   var firstb = gGraphData['builds'][0];
   var lastb = gGraphData['builds'][gGraphData['builds'].length - 1];
 
-  this.dataRange = [ firstb['time'], lastb['time'] ];
   // If the builds specify a timerange that extends beyond the average time,
   // use that. (Note that the average time does not need to be inside the
   // timerange -- overview data groups it by day @ midnight)
-  if ('timerange' in firstb && firstb['timerange'][0] < firstb['time'])
-    this.dataRange[0] = firstb['timerange'][0];
-  if ('timerange' in lastb && lastb['timerange'][1] > lastb['time'])
-    this.dataRange[1] = lastb['timerange'][1];
+  this.dataRange = this._getBuildTimeRange(firstb, lastb);
 
   logMsg("Generating graph \""+name+"\", data range - " + JSON.stringify(this.dataRange));
   this.zoomRange = this.dataRange;
@@ -771,6 +767,23 @@ function Plot(name, appendto) {
   this.obj.bind("plotclick", function(event, pos, item) { self.onClick(item); });
   this.obj.bind("plothover", function(event, pos, item) { self.onHover(item, pos); });
   this.obj.bind("mouseout", function(event) { self.hideHighlight(); });
+}
+
+// Get the full time range covered by two (possibly condensed) build_info structs
+Plot.prototype._getBuildTimeRange = function(firstbuild, lastbuild)
+{
+  var range = [];
+  if ('timerange' in firstbuild && firstbuild['timerange'][0] < firstbuild['time'])
+    range.push(firstbuild['timerange'][0]);
+  else
+    range.push(firstbuild['time']);
+
+  if ('timerange' in lastbuild && lastbuild['timerange'][1] > lastbuild['time'])
+    range.push(lastbuild['timerange'][1]);
+  else
+    range.push(lastbuild['time']);
+
+  return range;
 }
 
 // Zoom this graph to given range. If called with no arguments, zoom all the way
@@ -1090,7 +1103,23 @@ Plot.prototype.onClick = function(item) {
     this.tooltip.onUnzoom(function () { canceled = true; });
   } else if (this.highlighted) {
     // Clicked on highlighted zoom space, do a graph zoom
-    this.setZoomRange(this.highlightRange);
+
+    // Extend the range if necessary to cover builds part of the condensed points.
+    // Fixes, for instance, a condensed point with a timestamp of 'april 4th'
+    // that contains builds through april 4th at 4pm. If your selection includes
+    // that point, you expect to get all builds that that point represents
+    var buildinfo = this.flot.getData()[0].buildinfo;
+    var firstbuild;
+    for (var i = 0; i < buildinfo.length; i++) {
+      if (buildinfo[i]['time'] < this.highlightRange[0]) continue;
+      if (buildinfo[i]['time'] > this.highlightRange[1]) break;
+      if (!firstbuild) firstbuild = i;
+    }
+    var buildrange = this._getBuildTimeRange(buildinfo[firstbuild], buildinfo[i - 1]);
+    var zoomrange = [];
+    zoomrange[0] = Math.min(this.highlightRange[0], buildrange[0]);
+    zoomrange[1] = Math.max(this.highlightRange[1], buildrange[1]);
+    this.setZoomRange(zoomrange);
   }
 }
 
