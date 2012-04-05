@@ -27,7 +27,7 @@
 <li><a href="#how-is-this-data-generated">How is this data generated?</a></li>
 <li><a href="#whats-the-difference-between-resident-memory-and-explicit">What's the difference between "resident memory" and "explicit"?</a></li>
 <li><a href="#why-are-there-gaps-in-the-graphs">Why are there gaps in the graphs?</a></li>
-<li><a href="#rss-after-tp5-tabs-closed-30s-is-almost-twice-as-high-as-rss-fresh-start-wzxhzdk1-doesnt-that-mean-firefox-leaks-a-ton-of-memory">"RSS: After TP5, tabs closed [+30s]" is almost twice as high as "RSS: Fresh start" &mdash; doesn't that mean Firefox leaks a ton of memory?</a></li>
+<li><a href="#rss-after-tp5-tabs-closed-30s-is-almost-twice-as-high-as-rss-fresh-start-mdash-doesnt-that-mean-firefox-leaks-a-ton-of-memory">"RSS: After TP5, tabs closed [+30s]" is almost twice as high as "RSS: Fresh start" &mdash; doesn't that mean Firefox leaks a ton of memory?</a></li>
 <li><a href="#this-is-all-well-and-good-but-my-firefox-still-leaks-like-a-sieve">This is all well and good, but my Firefox still leaks like a sieve.</a><ul>
 <li><a href="#check-for-add-on-leaks">Check for add-on leaks</a><ul>
 <li><a href="#if-firefox-still-leaks-even-in-safe-mode-file-a-bug">If Firefox still leaks, even in safe mode, file a bug!</a></li>
@@ -52,7 +52,7 @@ and reducing Firefox's memory usage.</p>
 <h2 id="exactly-which-versions-of-firefox-are-plotted-here">Exactly which versions of Firefox are plotted here?</h2>
 <p>For every <a href="http://hg.mozilla.org/mozilla-central/pushloghtml">push</a> to Mozilla's central repository, the build
 infrastructure generates and tests a <a href="https://tbpl.mozilla.org/">set of builds</a>. For historical data,
-prior to March 2012, we have tested the respective Firefox <a href="http://nightly.mozilla.org/">nightly</a> builds. For
+prior to March 2012, we have tested the respective Firefox [nightly] builds. For
 specific ranges, we may also have chosen to run per-changeset (rather than
 per-push) builds in order to track down a regression. All tests are run against
 Linux 64-bit (non-pgo) compiles, so platform-dependent regressions may not be
@@ -109,7 +109,7 @@ test framework (yikes!). For the Explicit memory graphs, much of the memory
 reporting framework was not well polished until about July 2011. This explains
 the lack of earlier data as well as the rather sporadic data points for the
 first few months.</p>
-<h2 id="rss-after-tp5-tabs-closed-30s-is-almost-twice-as-high-as-rss-fresh-start-wzxhzdk1-doesnt-that-mean-firefox-leaks-a-ton-of-memory">"RSS: After TP5, tabs closed [+30s]" is almost twice as high as "RSS: Fresh start" &mdash; doesn't that mean Firefox leaks a ton of memory?</h2>
+<h2 id="rss-after-tp5-tabs-closed-30s-is-almost-twice-as-high-as-rss-fresh-start-mdash-doesnt-that-mean-firefox-leaks-a-ton-of-memory">"RSS: After TP5, tabs closed [+30s]" is almost twice as high as "RSS: Fresh start" &mdash; doesn't that mean Firefox leaks a ton of memory?</h2>
 <p>Well, not exactly.</p>
 <p>If you look at the equivalent <em>explicit</em> numbers, you'll see that the <strong>After
 TP5, tabs closed [+30s]</strong> measure is very close to the <strong>Fresh start</strong>
@@ -151,16 +151,17 @@ for the leak to become apparent, you can look for <a href="https://developer.moz
 common type of leak which is easy to identify even before Firefox starts using
 gigabytes of memory.)</p>
 <p>Once you have figured out which add-on(s) is (are) leaking, you're almost done!
-Just <a href="https://bugzilla.mozilla.org/enter_bug.cgi?product=Core">file a bug</a>, and put "[MemShrink]" in the "whiteboard" field (don't
-worry about the other metadata like the component; we'll fix it). We'll take
-care of contacting the add-on developer and helping him or her fix the problem.</p>
-<p>If you have trouble with any of this, find us on <a href="https://wiki.mozilla.org/IRC">IRC</a> (irc.mozilla.org,
+Just <a href="https://bugzilla.mozilla.org/enter_bug.cgi?product=Core&amp;component=General&amp;status_whiteboard=[MemShrink]">file a bug</a>. (Please check that "[MemShrink]" is in the "status
+whiteboard" field, but don't worry about the other metadata like the component;
+we'll fix it). We'll take care of contacting the add-on developer and helping
+him or her fix the problem.</p>
+<p>If you have trouble with any of this, find us on [IRC] (irc.mozilla.org,
 #memshrink).  We're happy to help.</p>
 <h4 id="if-firefox-still-leaks-even-in-safe-mode-file-a-bug">If Firefox still leaks, even in safe mode, file a bug!</h4>
-<p>If the latest version of Firefox leaks for you, even in safe mode, we definitely
-want to hear about it.  Please, <em>please</em> <a href="https://bugzilla.mozilla.org/enter_bug.cgi?product=Core">file a bug</a> (remember to put
-[MemShrink] in the whiteboard), find us on IRC (irc.mozilla.org, #memshrink),
-send smoke signals... do something!  We need your help, particularly in this
-case.</p>  <div id="footer"></div>
+<p>If the latest version of Firefox leaks for you, even in safe mode, we
+definitely want to hear about it.  Please, <em>please</em> <a href="https://bugzilla.mozilla.org/enter_bug.cgi?product=Core&amp;component=General&amp;status_whiteboard=[MemShrink]">file a bug</a> (and please
+check that [MemShrink] is in the status whiteboard), find us on IRC
+(irc.mozilla.org, #memshrink), send smoke signals... do something!  We need
+your help, particularly in this case.</p>  <div id="footer"></div>
 </body>
 </html>

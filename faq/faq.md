@@ -142,20 +142,21 @@ common type of leak which is easy to identify even before Firefox starts using
 gigabytes of memory.)
 
 Once you have figured out which add-on(s) is (are) leaking, you're almost done!
-Just [file a bug][], and put "\[MemShrink\]" in the "whiteboard" field (don't
-worry about the other metadata like the component; we'll fix it). We'll take
-care of contacting the add-on developer and helping him or her fix the problem.
+Just [file a bug][]. (Please check that "\[MemShrink\]" is in the "status
+whiteboard" field, but don't worry about the other metadata like the component;
+we'll fix it). We'll take care of contacting the add-on developer and helping
+him or her fix the problem.
 
 If you have trouble with any of this, find us on [IRC] (irc.mozilla.org,
 \#memshrink).  We're happy to help.
 
 #### If Firefox still leaks, even in safe mode, file a bug!
 
-If the latest version of Firefox leaks for you, even in safe mode, we definitely
-want to hear about it.  Please, *please* [file a bug][] (remember to put
-\[MemShrink\] in the whiteboard), find us on IRC (irc.mozilla.org, \#memshrink),
-send smoke signals... do something!  We need your help, particularly in this
-case.
+If the latest version of Firefox leaks for you, even in safe mode, we
+definitely want to hear about it.  Please, *please* [file a bug][] (and please
+check that \[MemShrink\] is in the status whiteboard), find us on IRC
+(irc.mozilla.org, \#memshrink), send smoke signals... do something!  We need
+your help, particularly in this case.
 
 [IRC]: https://wiki.mozilla.org/IRC
 [nightly]: http://nightly.mozilla.org/
@@ -169,4 +170,4 @@ case.
 [jemalloc2]: https://bugzilla.mozilla.org/show_bug.cgi?id=580408
 [safe mode]: http://support.mozilla.org/en-US/kb/Safe%20Mode
 [zombie compartments]: https://developer.mozilla.org/en/Zombie_compartments#Reactive_checking
-[file a bug]: https://bugzilla.mozilla.org/enter_bug.cgi?product=Core
+[file a bug]: https://bugzilla.mozilla.org/enter_bug.cgi?product=Core&component=General&status_whiteboard=[MemShrink]
