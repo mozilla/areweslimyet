@@ -43,7 +43,7 @@ totaldata['condensed'] = 60 * 60 * 24;
 
 # Returns the timestamp of this build's day @ midnight UTC
 def dayof(timestamp):
-  return int(calendar.timegm(datetime.date.fromtimestamp(timestamp).timetuple()))
+  return int(calendar.timegm(datetime.datetime.utcfromtimestamp(timestamp).date().timetuple()))
 
 def condense_data(data):
   cdata = {
