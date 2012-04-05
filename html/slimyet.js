@@ -933,7 +933,6 @@ Plot.prototype._buildSeries = function(start, stop) {
       median = Math.round((iseries[iseries.length/2] + iseries[iseries.length/2 - 1])/2);
     return [iseries[0], median, iseries[iseries.length - 1]];
   }
-
   if (involvedseries && involvedseries.length) {
     // Mode 1:
     // Have full data, coalesce it to the desired density ourselves
@@ -1119,7 +1118,7 @@ Plot.prototype.onClick = function(item) {
       if (buildinfo[i]['time'] > this.highlightRange[1]) break;
       if (!firstbuild) firstbuild = i;
     }
-    var buildrange = this._getBuildTimeRange(buildinfo[firstbuild], buildinfo[i - 1]);
+    var buildrange = this._getBuildTimeRange(buildinfo[firstbuild], buildinfo[Math.min(i, buildinfo.length - 1)]);
     var zoomrange = [];
     zoomrange[0] = Math.min(this.highlightRange[0], buildrange[0]);
     zoomrange[1] = Math.max(this.highlightRange[1], buildrange[1]);
