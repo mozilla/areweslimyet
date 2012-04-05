@@ -64,11 +64,12 @@ def condense_data(data):
   for point in ranges:
     build = {}
     build['firstrev'] = data['builds'][point[0]]['revision']
-    lastrev = data['builds'][point[1]]['revision']
-    if build['firstrev'] != lastrev:
-      build['lastrev'] = lastrev
+    build['time'] = data['builds'][point[0]]['time']
+    if point[0] != point[1]:
+      build['count'] = point[1] - point[0] + 1
+      build['lastrev'] = data['builds'][point[1]]['revision']
       build['timerange'] = [ data['builds'][point[0]]['time'], data['builds'][point[1]]['time'] ]
-    build['time'] = dayof(data['builds'][point[0]]['time'])
+      build['time'] = dayof(build['time'])
 
     cdata['builds'].append(build)
 
@@ -83,7 +84,7 @@ def condense_data(data):
         if len(iseries) % 2 == 1:
           median = iseries[(len(iseries) - 1) / 2]
         else:
-          median = int(round(float(iseries[len(iseries) / 2] + iseries[len(iseries) / 2 - 1])/2, 0))
+          median = iseries[len(iseries) / 2]
         if iseries[0] == median:
           cdata['series'][sname].append(median)
         else:
