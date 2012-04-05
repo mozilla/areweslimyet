@@ -4,27 +4,33 @@
 
 ## What is this site?
 
-*Are We Slim Yet?* is a Firefox memory benchmark as well as a site for
-visualizing the data it produces. The aim is to track Firefox's memory
-footprint &mdash; both to measure its progress over time, and to catch any
-regressions that are introduced.
+*Are We Slim Yet?* is a Firefox memory benchmark and a site for visualizing the
+historic results of that benchmark.
 
-*Are we Slim Yet?* was created by John Schoenick of Mozilla's [MemShrink][]
+Are we Slim Yet? was created by John Schoenick of Mozilla's [MemShrink][]
 team.  The MemShrink team was formed in June 2011, and is tasked with monitoring
 and reducing Firefox's memory usage.
 
-The source for *Are We Slim Yet?* and its benchmarks is available on
-[GitHub][awsy-github].
+This site allows us to observe long-term trends in memory usage and hopefully
+catch regressions before we ship them to users.
+
+Come say hi on [GitHub][awsy-github].
 
 ## Exactly which versions of Firefox are plotted here?
 
-For every [push][pushlog] to Mozilla's central repository, the build
-infrastructure generates and tests a [set of builds][tbpl]. For historical data,
-prior to March 2012, we have tested the respective Firefox [nightly] builds. For
-specific ranges, we may also have chosen to run per-changeset (rather than
-per-push) builds in order to track down a regression. All tests are run against
-Linux 64-bit (non-pgo) compiles, so platform-dependent regressions may not be
-captured here.
+For each [change][pushlog] to Mozilla's central repository, our build
+infrastructure generates a [build][tinderbox builds] which we test and include
+in the graphs here.
+
+We don't keep these per-change builds are around forever, so for data points
+before March 2012, we tested Firefox [nightly builds][].
+
+A push may include multiple changes, and we have the ability to build and test
+individual changes, where necessary.  We use this to help us figure out exactly
+where an increase in memory usage came from.
+
+We run against Linux 64-bit (non-pgo) builds, so platform-specific changes may
+not be captured here.
 
 The dates on the x-axis indicate when we switched development *to* a given
 version.  For example, we started developing Firefox 5 on March 3, 2011, but we
@@ -38,20 +44,19 @@ changes aren't plotted here.
 
 ## How is this data generated?
 
-We run the target build of Firefox through a benchmark script (written using
-[mozmill][]) and measure its memory usage at a variety of points along the way.
-The testing procedure is as follows.
+We run the target build of Firefox (Linux 64-bit, non-pgo) through a benchmark
+script (written using [mozmill][]) and measure its memory usage at a variety of
+points along the way.  The testing procedure is as follows.
 
-  * Start the browser, record **Fresh start** memory.
+  * Start the browser, record **fresh start** memory.
   * Run Mozilla's [TP5][] pageload benchmark 5 times.  TP5 loads 100 popular
     webpages, served from a local webserver.  We load the pages round-robin into
-    30 different tabs, with a 10s delay between pageloads.
-  * Record **After TP5** memory usage.  **After TP5 [+30s]** and **After
-    TP5 [+30s, forced GC]** are measured after sitting idle for 30 seconds and
-    then after forcing a garbage collection, respectively. In theory, these
-    latter two lines should follow each other closely.
-  * Close all open tabs and record **After TP5, tabs closed** and then
-    **After TP5, tabs closed [+30s]** memory usage.
+    30 different tabs, with a 10 second delay between pageloads.
+  * Record **after TP5** memory usage.
+  * Sit idle for 30 seconds and record **after TP5 [+30s]**.
+  * Force a garbage collection and measure **after TP5 [+30s, forced GC]**.
+  * Close all open tabs and record **after TP5, tabs closed** and then
+    **after TP5, tabs closed [+30s]**.
 
 Every time we measure memory usage, we also collect a full snapshot of
 about:memory.  You can browse these snapshots by clicking on any point in the
@@ -82,21 +87,22 @@ comparable between all builds.
 Gaps indicate areas where the relevant builds failed to be fully tested, or
 where the data being graphed was not available. The most notable is a gap from
 July to August 2011 where the TP5 pageset would actually trigger a crash in our
-test framework (yikes!). For the Explicit memory graphs, much of the memory
-reporting framework was not well polished until about July 2011. This explains
-the lack of earlier data as well as the rather sporadic data points for the
-first few months.
+test framework (yikes!).
+
+Much of the code for generating the *explicit* numbers was not stable until
+around July 2011.  This explains the lack of earlier data as well as the rather
+sporadic data points for the first few months.
 
 ## "RSS: After TP5, tabs closed [+30s]" is almost twice as high as "RSS: Fresh start" &mdash; doesn't that mean Firefox leaks a ton of memory?
 
 Well, not exactly.
 
-If you look at the equivalent *explicit* numbers, you'll see that the **After
-TP5, tabs closed [+30s]** measure is very close to the **Fresh start**
-measure. This means Firefox is releasing most all of the memory it allocates --
-so it is not leaking memory, at least not in the traditional sense.
+If you look at the equivalent *explicit* numbers, you'll see that the *after
+TP5, tabs closed [+30s]* measure is very close to the *fresh start* measure.
+This means Firefox is releasing most all of the memory it allocates, so it is
+not leaking memory, at least not in the traditional sense.
 
-So if Firefox has freed all the memory it allocated during the test, why is it
+But if Firefox has freed all the memory it allocated during the test, why is it
 using more memory after the test?  Our data shows that most of the difference is
 due to *heap fragmentation*.  Before the test, all the objects on our heap are
 tightly packed.  But after the test, our heap uses twice as much space for the
@@ -116,6 +122,8 @@ should not significantly increase over time.
 
 We're sorry to hear that, and we'd like to help.  Here are some diagnostics you
 can try.
+
+#### Check your version
 
 First, double-check that you're on the latest version of Firefox.  We won't be
 able to help much if you're running an old version.  You can check for updates
@@ -142,24 +150,30 @@ common type of leak which is easy to identify even before Firefox starts using
 gigabytes of memory.)
 
 Once you have figured out which add-on(s) is (are) leaking, you're almost done!
-Just [file a bug][]. (Please check that "\[MemShrink\]" is in the "status
+Just [file a bug][]. Please check that "\[MemShrink\]" is in the "status
 whiteboard" field, but don't worry about the other metadata like the component;
-we'll fix it). We'll take care of contacting the add-on developer and helping
-him or her fix the problem.
+we'll fix it.  (You may have to click "show advanced fields" in order to see
+the status whiteboard field.)
 
-If you have trouble with any of this, find us on [IRC] (irc.mozilla.org,
+If you file a bug, we'll take care of contacting the add-on developer and
+helping him or her fix the problem.
+
+If you have trouble with any of this, find us on [IRC][] (irc.mozilla.org,
 \#memshrink).  We're happy to help.
 
 #### If Firefox still leaks, even in safe mode, file a bug!
 
 If the latest version of Firefox leaks for you, even in safe mode, we
 definitely want to hear about it.  Please, *please* [file a bug][] (and please
-check that \[MemShrink\] is in the status whiteboard), find us on IRC
-(irc.mozilla.org, \#memshrink), send smoke signals... do something!  We need
-your help, particularly in this case.
+check that \[MemShrink\] is in the status whiteboard).
 
+If you don't want to file a bug, find us on IRC (irc.mozilla.org, \#memshrink),
+send smoke signals...do something!  We need your help, particularly in this
+case.
+
+[tinderbox builds]: ftp://ftp.mozilla.org/pub/mozilla.org/firefox/tinderbox-builds/mozilla-central-linux64/
+[nightly builds]: http://nightly.mozilla.org/
 [IRC]: https://wiki.mozilla.org/IRC
-[nightly]: http://nightly.mozilla.org/
 [tbpl]: https://tbpl.mozilla.org/
 [pushlog]: http://hg.mozilla.org/mozilla-central/pushloghtml
 [awsy-github]: https://github.com/Nephyrin/MozAreWeSlimYet
