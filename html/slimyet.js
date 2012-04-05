@@ -560,23 +560,31 @@ Tooltip.prototype.unzoom = function() {
 
 // Fetch the series given by name (see gGraphData['allseries']), call success
 // or fail callback. Can call these immediately if the data is already available
-// FIXME Check if we already have a pending call for this series, so we don't
-//       get the same data multiple times when the user zooms quickly
+var gPendingFullData = {}
 function getFullSeries(dataname, success, fail) {
   if (dataname in gFullData) {
     if (success instanceof Function) success.apply(null);
   } else {
-    $.ajax({
-      url: './data/' + dataname + '.json',
-      success: function (data) {
-        gFullData[dataname] = data;
-        if (success instanceof Function) success.call(null);
-      },
-      error: function(xhr, status, error) {
-        if (fail instanceof Function) fail.call(null, error);
-      },
-      dataType: 'json'
-    });
+    if (!(dataname in gPendingFullData)) {
+      gPendingFullData[dataname] = { 'success': [], 'fail': [] };
+      $.ajax({
+        url: './data/' + dataname + '.json',
+        success: function (data) {
+          gFullData[dataname] = data;
+          for (var i in gPendingFullData[dataname]['success'])
+            gPendingFullData[dataname]['success'][i].call(null);
+          delete gPendingFullData[dataname];
+        },
+        error: function(xhr, status, error) {
+          for (var i in gPendingFullData[dataname]['fail'])
+            gPendingFullData[dataname]['fail'][i].call(null);
+          delete gPendingFullData[dataname];
+        },
+        dataType: 'json'
+      });
+    }
+    if (success) gPendingFullData[dataname]['success'].push(success);
+    if (fail) gPendingFullData[dataname]['fail'].push(fail);
   }
 }
 
@@ -814,8 +822,6 @@ Plot.prototype.setZoomRange = function(range, nosync) {
 
     // If there are sub-series we should pull in that we haven't cached,
     // set requests for them and reprocess the zoom when complete
-    // TODO We should show some kind of loading indicator to show we're
-    //      still getting more data -- and display something if we fail
     var fullseries = self._getInvolvedSeries(range);
     var pending = 0;
     for (var x in fullseries) {
