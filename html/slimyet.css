@@ -67,17 +67,11 @@ a {
   outline: none;
 }
 
-a:link { color: #E77; }
-a:hover { color: #FCC; }
-a:active { color: #FFF; }
-a:visited { color: #AFA; }
-a:visited:hover { color: #EFE; }
-
-.lightContent a:link { color: #A22; }
-.lightContent a:hover { color: #944; }
-.lightContent a:active { color: #222; }
-.lightContent a:visited { color: #393; }
-.lightContent a:visited:hover { color: #494; }
+a:link { color: #A22; }
+a:hover { color: #944; }
+a:active { color: #222; }
+a:visited { color: #393; }
+a:visited:hover { color: #494; }
 
 .graph {
   width: 1000px;
@@ -302,6 +296,12 @@ body.faqPage {
   pointer-events: none;
   overflow: hidden;
 }
+
+.tooltip a:link { color: #E77; }
+.tooltip a:hover { color: #FCC; }
+.tooltip a:active { color: #FFF; }
+.tooltip a:visited { color: #AFA; }
+.tooltip a:visited:hover { color: #EFE; }
 
 .tooltip.zoomed {
   pointer-events: inherit;

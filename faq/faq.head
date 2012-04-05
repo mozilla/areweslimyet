@@ -12,9 +12,9 @@
   <meta charset="UTF-8" />
   <link href="./slimyet.css" rel="stylesheet" />
 </head>
-<body class="faqPage lightContent">
+<body class="faqPage">
   <div id='page-header'>Are we <span id='header-slim'>slim</span> yet?</div>
-  <div id="navbar" class="lightContent">
+  <div id="navbar">
     <a href="/">Main</a>
     <span class="inactive">FAQ</span>
   </div>
