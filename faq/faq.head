@@ -9,6 +9,7 @@
     - You can obtain one at http://mozilla.org/MPL/2.0/.
     -->
   <title>ARE WE SLIM YET?</title>
+  <meta charset="UTF-8" />
   <link href="./slimyet.css" rel="stylesheet" />
 </head>
 <body class="faqPage lightContent">
