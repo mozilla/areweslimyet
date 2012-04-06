@@ -1032,20 +1032,41 @@ Plot.prototype._buildSeries = function(start, stop) {
         time = b['time'];
       }
 
-      // Roughly select the median point based on number of builds in each
-      // point we're merging. This is less-bad than averaging medians
-      var count = 0;
-      for (var x = 0; x + i <= ilast; x++) {
-        var next = +gGraphData['builds'][x + i]['count'];
-        if (next + count > totalbuilds / 2) break;
-        count += next;
-      }
-      var medianbuild = Math.min(x + i, ilast);
-
       for (var axis in this.axis) {
-        var median = pval(gGraphData['series'][axis][medianbuild], 1);
-        var min = pval(gGraphData['series'][axis][i], 0);
-        var max = pval(gGraphData['series'][axis][ilast], 2);
+        // Create list of non-null points, along with the number of builds they
+        // represent. Count total builds that have non-null points. Also
+        // find min/max while we're iterating
+        var iseries = [];
+        var innerbuilds = 0;
+        var min = null, max = null;
+        for (var x = 0; x + i <= ilast; x++) {
+          var val = pval(gGraphData['series'][axis][x + i], 1);
+          if (val) {
+            var pmin = pval(gGraphData['series'][axis][x + i], 0);
+            var pmax = pval(gGraphData['series'][axis][x + i], 2);
+            var count = 'count' in gGraphData['builds'][x + i] ? +gGraphData['builds'][x + i]['count'] : 1;
+            if (min === null || pmin < min) min = pmin;
+            if (min === null || pmax > max) max = pmax;
+            iseries.push([ val, count ]);
+            innerbuilds += +gGraphData['builds'][x + i]['count'];
+          }
+        }
+        // Sort by val
+        iseries.sort(function (a,b) {
+          return a[0] == b[0] ? 0 : (a[0] < b[0] ? -1 : 1);
+        });
+
+        // Find midpoint weighted by number-of-builds
+        var count = 0;
+        for (var x = 0; x < iseries.length; x++) {
+          var next = iseries[x][1];
+          if (count + next > innerbuilds / 2) break;
+          count += next;
+        }
+        if (x == iseries.length) x--;
+        // Might not have any valid points
+        var median = x >= 0 ? iseries[x][0] : null;
+
         data[axis].push([ time, median ]);
         ranges[axis].push([ min, max ]);
       }
