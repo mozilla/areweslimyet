@@ -1003,21 +1003,29 @@ Plot.prototype._buildSeries = function(start, stop) {
       if (blast['time'] > stop) break;
 
       var time;
-      var totalbuilds;
-      if (merge > 1) {
+      if (ilast > i) {
+        var totalbuilds = 0;
         time = 0;
+        // Average time, taking number of builds for each point into account
+        // for weighting. Count total builds.
         for (var x = 0; x + i <= ilast; x++) {
-          time += +gGraphData['builds'][x + i]['time'];
-          totalbuilds += +gGraphData['builds'][x + i]['count'];
+          var count = 'count' in gGraphData['builds'][x + i] ? +gGraphData['builds'][x + i]['count'] : 1;
+          time += +gGraphData['builds'][x + i]['time'] * count;
+          totalbuilds += count;
         }
-        time = Math.round(time / (ilast - i + 1));
-        var newb = { firstrev: b['firstrev'] };
-        newb['time'] = time;
+        time = Math.round(time / totalbuilds);
 
-        newb['lastrev'] = blast['lastrev'] ? blast['lastrev'] : blast['firstrev'];
-        var from = b['timerange'] ? b['timerange'][0] : b['time'];
-        var to = blast['timerange'] ? blast['timerange'][1] : blast['time'];
-        newb['timerange'] = [ from, to ];
+        // Merged build object
+        var newb = {
+          firstrev: b['firstrev'],
+          time: time,
+          lastrev: blast['lastrev'] ? blast['lastrev'] : blast['firstrev'],
+          timerange: [
+            'timerange' in b ? b['timerange'][0] : b['time'],
+            'timerange' in blast ? blast['timerange'][1] : blast['time']
+          ]
+        };
+
         builds.push(newb);
       } else {
         builds.push(b);
