@@ -1048,7 +1048,7 @@ Plot.prototype._buildSeries = function(start, stop) {
             if (min === null || pmin < min) min = pmin;
             if (min === null || pmax > max) max = pmax;
             iseries.push([ val, count ]);
-            innerbuilds += +gGraphData['builds'][x + i]['count'];
+            innerbuilds += count;
           }
         }
         // Sort by val
