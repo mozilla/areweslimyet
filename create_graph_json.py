@@ -141,7 +141,7 @@ if not os.path.isdir(gOutDir):
     error("'%s' is not a directory, cannot create folders in it" % parentdir)
   os.mkdir(gOutDir)
 
-sql = sqlite3.connect(gDatabase)
+sql = sqlite3.connect(gDatabase, 60)
 sql.row_factory = sqlite3.Row
 cur = sql.cursor()
 

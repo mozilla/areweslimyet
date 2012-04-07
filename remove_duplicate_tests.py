@@ -26,7 +26,7 @@ if not os.path.exists(sys.argv[1]):
   sys.stderr.write("Database '%s' does not exist" % (sys.argv[1],))
   sys.exit(1)
 
-sql = sqlite3.connect(sys.argv[1])
+sql = sqlite3.connect(sys.argv[1], 60)
 sql.row_factory = sqlite3.Row
 cur = sql.cursor()
 
