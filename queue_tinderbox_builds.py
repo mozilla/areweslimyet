@@ -45,7 +45,7 @@ if not len(builds):
 stat("Comparing %u builds on tinderbox with %u known builds" % (len(builds), len(old_builds)))
 
 def queue_build(timestamp):
-  out = { 'mode' : 'tinderbox', 'prioritize' : True, 'firstbuild' : str(timestamp) }
+  out = { 'mode' : 'tinderbox', 'prioritize' : True, 'firstbuild' : str(timestamp), 'note' : 'Auto-queued by cron' }
   batchfile = os.path.join(batchdir, "tinderbox-%u.autoqueue" % (timestamp,))
   if os.path.exists(batchfile):
     err("Failed: file \"%s\" already exists" % (batchfile,))
