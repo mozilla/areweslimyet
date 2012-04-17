@@ -57,5 +57,6 @@ sqlite3 "$db" VACUUM
 echo "Compressing"
 xz -v9ec "$db" > "$db.xz.temp"
 mv -v "$db.xz.temp" "$db.xz"
+rm -v "$db"
 
 echo "Done"
