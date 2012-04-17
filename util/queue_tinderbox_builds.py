@@ -29,7 +29,7 @@ if len(sys.argv) != 3 or not os.path.exists(sys.argv[2]):
 batchdir = sys.argv[1]
 knownbuilds = sys.argv[2]
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(sys.argv[0]), "benchtester")))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(sys.argv[0]), "..", "benchtester")))
 import BuildGetter
 BuildGetter.output = sys.stderr
 
