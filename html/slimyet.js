@@ -868,7 +868,7 @@ Plot.prototype._getInvolvedSeries = function(range) {
 
   for (var x in gGraphData['allseries']) {
     var s = gGraphData['allseries'][x];
-    if (range[1] > s['fromtime'] && range[0] < s['totime'])
+    if (range[1] >= s['fromtime'] && range[0] <= s['totime'])
       ret.push(s['dataname']);
   }
 ;
