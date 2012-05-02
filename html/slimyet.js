@@ -105,7 +105,8 @@ var gSeries = {
     'MaxMemoryResidentSettledV2':    "RSS: After TP5 [+30s]",
     'MaxMemoryResidentForceGCV2':    "RSS: After TP5 [+30s, forced GC]",
     'EndMemoryResidentV2':           "RSS: After TP5, tabs closed",
-    'EndMemoryResidentSettledV2':    "RSS: After TP5, tabs closed [+30s]"
+    'EndMemoryResidentSettledV2':    "RSS: After TP5, tabs closed [+30s]",
+    'EndMemoryResidentForceGCV2':    "RSS: After TP5, tabs closed [+30s, forced GC]"
   },
   "Explicit Memory" : {
     'StartMemoryV2':         "Explicit: Fresh start",
@@ -114,7 +115,8 @@ var gSeries = {
     'MaxMemorySettledV2':    "Explicit: After TP5 [+30s]",
     'MaxMemoryForceGCV2':    "Explicit: After TP5 [+30s, forced GC]",
     'EndMemoryV2':           "Explicit: After TP5, tabs closed",
-    'EndMemorySettledV2':    "Explicit: After TP5, tabs closed [+30s]"
+    'EndMemorySettledV2':    "Explicit: After TP5, tabs closed [+30s]",
+    'EndMemoryForceGCV2':    "Explicit: After TP5, tabs closed [+30s, forced GC]"
   },
   "Miscellaneous Measurements" : {
     'MaxHeapUnclassifiedV2':  "Heap Unclassified: After TP5 [+30s]",
@@ -133,7 +135,8 @@ var gSeries = {
     'MaxMemoryResidentSettled':    "RSS: After TP5 [+30s]",
     'MaxMemoryResidentForceGC':    "RSS: After TP5 [+30s, forced GC]",
     'EndMemoryResident':           "RSS: After TP5, tabs closed",
-    'EndMemoryResidentSettled':    "RSS: After TP5, tabs closed [+30s]"
+    'EndMemoryResidentSettled':    "RSS: After TP5, tabs closed [+30s]",
+    'EndMemoryResidentForceGC':    "RSS: After TP5, tabs closed [+30s, forced GC]"
   },
   "All-At-Once Test :: Explicit Memory" : {
     'StartMemory':         "Explicit: Fresh start",
@@ -142,7 +145,8 @@ var gSeries = {
     'MaxMemorySettled':    "Explicit: After TP5 [+30s]",
     'MaxMemoryForceGC':    "Explicit: After TP5 [+30s, forced GC]",
     'EndMemory':           "Explicit: After TP5, tabs closed",
-    'EndMemorySettled':    "Explicit: After TP5, tabs closed [+30s]"
+    'EndMemorySettled':    "Explicit: After TP5, tabs closed [+30s]",
+    'EndMemoryForceGC':    "Explicit: After TP5, tabs closed [+30s, forced GC]"
   },
  */
 

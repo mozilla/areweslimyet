@@ -236,6 +236,8 @@ function testMemoryUsage() {
     enduranceManager.addCheckpoint("TabsClosed");
     controller.sleep(30000);
     enduranceManager.addCheckpoint("TabsClosedSettled");
+    waitGC();
+    enduranceManager.addCheckpoint("TabsClosedForceGC");
   });
 }
 

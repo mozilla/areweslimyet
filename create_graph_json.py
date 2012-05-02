@@ -46,7 +46,9 @@ gTests = {
       "EndMemory" : { "datapoint": "Iteration 5/TabsClosed/explicit" },
       "EndMemoryResident" : { "datapoint": "Iteration 5/TabsClosed/resident" },
       "EndMemorySettled" : { "datapoint": "Iteration 5/TabsClosedSettled/explicit" },
+      "EndMemoryForceGC" : { "datapoint": "Iteration 5/TabsClosedForceGC/explicit" },
       "EndMemoryResidentSettled" : { "datapoint": "Iteration 5/TabsClosedSettled/resident" },
+      "EndMemoryResidentForceGC" : { "datapoint": "Iteration 5/TabsClosedForceGC/resident" },
       "MaxHeapUnclassified" : { "datapoint": "Iteration 5/TabsOpenSettled/explicit/heap-unclassified" },
       "MaxJS" : {
         "datapoint": [
@@ -85,7 +87,9 @@ gTests = {
       "EndMemoryV2" : { "datapoint": "Iteration 5/TabsClosed/explicit" },
       "EndMemoryResidentV2" : { "datapoint": "Iteration 5/TabsClosed/resident" },
       "EndMemorySettledV2" : { "datapoint": "Iteration 5/TabsClosedSettled/explicit" },
+      "EndMemoryForceGCV2" : { "datapoint": "Iteration 5/TabsClosedForceGC/explicit" },
       "EndMemoryResidentSettledV2" : { "datapoint": "Iteration 5/TabsClosedSettled/resident" },
+      "EndMemoryResidentForceGCV2" : { "datapoint": "Iteration 5/TabsClosedForceGC/resident" },
       "MaxHeapUnclassifiedV2" : { "datapoint": "Iteration 5/TabsOpenSettled/explicit/heap-unclassified" },
       "MaxJSV2" : {
         "datapoint": [
