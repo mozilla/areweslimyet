@@ -194,7 +194,10 @@ tabBrowser.prototype = {
     }
 
     this._controller.open("about:blank");
-    this._controller.waitForPageLoad();
+    // CPG breaks this, probably because about:blank loads synchronously
+    // I think that also means this call is superfluous anyway, but it's not clear
+    // if it should work
+    // this._controller.waitForPageLoad();
   },
 
   /**
