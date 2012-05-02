@@ -67,9 +67,15 @@ def should_test(build, args):
   for x in AreWeSlimYetTests:
     if not x in have_tests:
       return True
+
   build.note = "Build has complete test data"
-  stat("Skipping build with test data: %s" % (build.revision,))
-  return False
+  if build.force:
+    build.note += ", but --force given. Testing anyway."
+    stat("Force testing build with test data: %s" % (build.revision,))
+    return True
+  else:
+    stat("Skipping build with test data: %s" % (build.revision,))
+    return False
 
 def run_tests(build, args):
   import BenchTester
