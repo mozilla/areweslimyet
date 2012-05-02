@@ -284,7 +284,6 @@ $(function () {
       var start = $('#reqStartBuild').val();
       var multi = $('#reqBuildMulti:checked').length;
       var end = $('#reqEndBuild').val();
-      var priority = $('#reqPriority:checked').length;
       var note = $('#reqMsg').val();
 
       function dParse(d) {
@@ -306,7 +305,8 @@ $(function () {
 
       var args = { 'mode': mode, 'startbuild': start };
       if (multi) args['endbuild'] = end;
-      if (priority) args['prioritize'] = 'true';
+      if ($('#reqPriority:checked').length) args['prioritize'] = 'true';
+      if ($('#reqForce:checked').length) args['force'] = 'true';
       if (note) args['note'] = note;
 
       logMsg("Submitting request " + JSON.stringify(args));

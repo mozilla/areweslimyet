@@ -23,7 +23,6 @@ def main():
   mode = val('mode')
   start = val('startbuild')
   end = val('endbuild')
-  prioritize = val('prioritize')
   note = val('note')
 
   if not start or not mode:
@@ -41,8 +40,10 @@ def main():
     ret['note'] = note
   if end:
     ret['lastbuild'] = end
-  if prioritize:
+  if val('prioritize'):
     ret['prioritize'] = True
+  if val('force'):
+    ret['force'] = True
 
   reqname = "%s.webrequest" % int(time.time())
   f = open(os.path.join("batch", reqname), 'w')
