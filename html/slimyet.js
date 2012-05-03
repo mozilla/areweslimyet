@@ -984,7 +984,7 @@ Plot.prototype._buildSeries = function(start, stop) {
           if (!series[axis]) series[axis] = [];
           // Push all non-null datapoints onto list, pushdp() flattens
           // this list, finding its midpoint/min/max.
-          var val = sourceData['series'][axis][ind];
+          var val = axis in sourceData['series'] ? sourceData['series'][axis][ind] : null;
           if (val) series[axis].push(val);
         }
       }
