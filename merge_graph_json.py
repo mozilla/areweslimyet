@@ -76,7 +76,9 @@ def condense_data(data):
     for sname in data['series'].keys():
       series = data['series'][sname][point[0]:point[1] + 1]
       iseries = filter(lambda x: x is not None, series)
-      cdata['series'].setdefault(sname, [])
+      # If this series just appeared in this data file, make sure we fill it in
+      # with Nones so its indexes line up
+      cdata['series'].setdefault(sname, [None for y in cdata['builds']])
       if len(iseries) == 0:
         cdata['series'][sname].append(None)
       else:
