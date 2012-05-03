@@ -225,7 +225,13 @@ for build in builds:
     oldindex = old_builds_map[build['name']]
     data['builds'].append(old_data['builds'][oldindex])
     for sname in gSeriesNames:
-      data['series'][sname].append(old_data['series'][sname][oldindex])
+      if sname in old_data['series']:
+        data['series'][sname].append(old_data['series'][sname][oldindex])
+      else:
+        # Fill null in for newly-added series. We'll regenerate these by hand
+        # if desired, but forcing-regenerate means we have to de-archive all
+        # old DBs when the datapoint may only be in recent tests anyway
+        data['series'][sname].append(None)
   else:
     print("[%u/%u] Processing build %s" % (i, len(builds), build['name']))
     # Fill builds
