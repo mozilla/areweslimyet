@@ -76,9 +76,7 @@ def condense_data(data):
     for sname in data['series'].keys():
       series = data['series'][sname][point[0]:point[1] + 1]
       iseries = filter(lambda x: x is not None, series)
-      # If this series just appeared in this data file, make sure we fill it in
-      # with Nones so its indexes line up
-      cdata['series'].setdefault(sname, [None for y in cdata['builds']])
+      cdata['series'].setdefault(sname, [])
       if len(iseries) == 0:
         cdata['series'][sname].append(None)
       else:
@@ -105,13 +103,24 @@ for fname in files:
       'totime' : fdata['builds'][-1]['time'],
       'dataname' : fname.replace('.json.gz', '')
     })
-  totaldata['builds'].extend(cdata['builds'])
   for x in cdata['series'].keys():
     totaldata['series'].setdefault(x, [])
+    # If this series just appeared, or was absent from some datafiles before this,
+    # make sure we pad out with nulls to keep the indexes lined up
+    totaldata['series'][x].extend([None for y in range(len(totaldata['builds']) - len(totaldata['series'][x]))])
     totaldata['series'][x].extend(cdata['series'][x])
+  totaldata['builds'].extend(cdata['builds'])
   totaldata['series_info'].update(fdata['series_info'])
 
 totaldata['generated'] = time.time()
+
+# Sanity check this, logic bugs here cause massively bogus data
+for x in totaldata['series'].keys():
+  a = len(totaldata['builds'])
+  b = len(totaldata['series'][x])
+  if a != b:
+    sys.stderr.write("Error series %s does not match build count: %u builds vs %u datapoints" % (x, a, b))
+    sys.exit(1)
 
 print("Writing %s.json.gz" % (seriesname,))
 datafile = gzip.open(os.path.join(outdir, seriesname + '.json.gz'), 'w', 9)
