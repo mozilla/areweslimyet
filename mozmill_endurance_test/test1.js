@@ -221,8 +221,7 @@ function testMemoryUsage() {
       var site = TEST_SITES[siteIndex];
 
       controller.open(site);
-      // controller.waitForPageLoad(controller.tabs.activeTab, 60000, 500);
-      tabBrowser.waitForActiveTabComplete(); // FIXME revert to ^ when 751424 is fixed
+      controller.waitForPageLoad(controller.tabs.activeTab, 60000, 500);
       controller.assert(function () { return controller.tabs.activeTab.readyState == "complete"; });
       if (perTabPause) controller.sleep(perTabPause * 1000)
     });
@@ -233,9 +232,7 @@ function testMemoryUsage() {
     waitGC();
     enduranceManager.addCheckpoint("TabsOpenForceGC");
     tabBrowser.closeAllTabs();
-    // controller.waitForPageLoad(controller.tabs.activeTab);
-    tabBrowser.waitForActiveTabComplete(); // FIXME revert to ^ when 751424 is fixed
-
+    controller.waitForPageLoad(controller.tabs.activeTab);
     enduranceManager.addCheckpoint("TabsClosed");
     controller.sleep(30000);
     enduranceManager.addCheckpoint("TabsClosedSettled");

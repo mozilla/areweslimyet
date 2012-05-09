@@ -185,19 +185,6 @@ tabBrowser.prototype = {
   },
 
   /**
-   * Waits for page load, avoiding the controller.waitForPageLoad() call as a
-   * HACK around bug 751424 - remove when fixed
-   */
-  waitForActiveTabComplete : function tabBrowserwaitForActiveTabComplete()
-  {
-    this._controller.sleep(1000);
-    var tab = this._controller.tabs.activeTab;
-    return this._controller.waitFor(function () {
-      return tab.readyState == "complete";
-     }, null, 60000, 100);
-  },
-
-  /**
    * Close all tabs of the window except the last one and open a blank page.
    */
   closeAllTabs : function tabBrowser_closeAllTabs()
@@ -207,7 +194,7 @@ tabBrowser.prototype = {
     }
 
     this._controller.open("about:blank");
-    this.waitForActiveTabComplete();
+    this._controller.waitForPageLoad();
   },
 
   /**
