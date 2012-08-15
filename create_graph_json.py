@@ -52,6 +52,9 @@ gTests = {
       "MaxHeapUnclassified" : { "datapoint": "Iteration 5/TabsOpenSettled/explicit/heap-unclassified" },
       "MaxJS" : {
         "datapoint": [
+          # As of Jul 2012
+          "Iteration 5/TabsOpenSettled/js-main-runtime",
+          # Pre-Jul 2012
           "Iteration 5/TabsOpenSettled/explicit/js",
           # Old ~FF4 reporters
           "Iteration 5/TabsOpenSettled/js",
@@ -93,6 +96,9 @@ gTests = {
       "MaxHeapUnclassifiedV2" : { "datapoint": "Iteration 5/TabsOpenSettled/explicit/heap-unclassified" },
       "MaxJSV2" : {
         "datapoint": [
+          # As of Jul 2012
+          "Iteration 5/TabsOpenSettled/js-main-runtime",
+          # Pre-Jul 2012
           "Iteration 5/TabsOpenSettled/explicit/js",
           # Old ~FF4 reporters
           "Iteration 5/TabsOpenSettled/js",
