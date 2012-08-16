@@ -59,6 +59,7 @@ var gDarkColorsFirst = [
 
 // Dates mozilla-central *branched* to form various release trees. Used to
 // determine date placement on the X-axis of graphs
+// See: https://wiki.mozilla.org/RapidRelease/Calendar
 var gReleases = [
   {dateStr: "2011-03-03", name: "FF 5"},
   {dateStr: "2011-04-12", name: "FF 6"},
@@ -72,9 +73,10 @@ var gReleases = [
   {dateStr: "2012-03-13", name: "FF 14"},
   {dateStr: "2012-04-24", name: "FF 15"},
   {dateStr: "2012-06-05", name: "FF 16"},
-  {dateStr: "2012-07-17", name: "FF 17"},
-  {dateStr: "2012-08-28", name: "FF 18"},
-  {dateStr: "2012-10-09", name: "FF 19"}
+  {dateStr: "2012-07-16", name: "FF 17"},
+  {dateStr: "2012-08-27", name: "FF 18"},
+  {dateStr: "2012-10-08", name: "FF 19"},
+  {dateStr: "2012-11-19", name: "FF 20"}
 ];
 
 // Create gReleases[x].date objects
