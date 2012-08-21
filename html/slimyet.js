@@ -445,7 +445,19 @@ function Tooltip(parent) {
   if (parent)
     this.obj.appendTo(parent);
 
+  // Track mouseover state for delayed fade out
+  var self = this;
+  this.mouseover = false;
+  this.obj.bind("mouseover", function(e) { self.mouseover = true; });
+  this.obj.mouseleave(function(e) {
+    self.mouseover = false;
+    if (!self.hovered) {
+      self._fadeOut();
+    }
+  });
+
   this.obj.data('owner', this);
+  this.hovered = false;
   this.onUnzoomFuncs = [];
 }
 
@@ -463,6 +475,7 @@ Tooltip.prototype.hover = function(x, y, nofade) {
   if (this.isZoomed())
     return;
 
+  this.hovered = true;
   var poffset = this.obj.parent().offset();
 
   var h = this.obj.outerHeight();
@@ -488,9 +501,17 @@ Tooltip.prototype.hover = function(x, y, nofade) {
     this.obj.stop().fadeTo(200, 1);
 }
 
-Tooltip.prototype.unHover = function(nofade) {
+Tooltip.prototype.unHover = function() {
   if (this.isZoomed())
     return;
+  this.hovered = false;
+  if (!this.mouseover) {
+    // Don't actually fade till the mouse goes away, see handlers in constructor
+    this._fadeOut();
+  }
+}
+
+Tooltip.prototype._fadeOut = function() {
   this.obj.stop().fadeTo(200, 0, function () { $(this).hide(); });
 }
 
@@ -1270,8 +1291,16 @@ Plot.prototype.onHover = function(item, pos) {
       var offset = this.container.offset();
       this.tooltip.hover(item.pageX - offset.left, item.pageY - offset.top, this.hoveredItem ? true : false);
     } else {
-      if (this.hoveredItem)
-        this.tooltip.unHover();
+      if (this.hoveredItem) {
+        // Only send unhover to the tooltip after we have processed all
+        // graphhover events, and the tooltip has processed its mouseover events
+        var self = this;
+        window.setTimeout(function () {
+          if (!self.hoveredItem) {
+            self.tooltip.unHover();
+          }
+        }, 0);
+      }
       // Move hover highlight for zooming
       var left = pos.pageX - this.flot.offset().left + this.flot.getPlotOffset().left;
       this.showHighlight(left, gHighlightWidth);

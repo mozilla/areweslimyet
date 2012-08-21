@@ -293,7 +293,6 @@ body.faqPage {
   text-align: left;
   position: absolute;
   width: 25em;
-  pointer-events: none;
   overflow: hidden;
 }
 
@@ -304,7 +303,6 @@ body.faqPage {
 .tooltip a:visited:hover { color: #EFE; }
 
 .tooltip.zoomed {
-  pointer-events: inherit;
   overflow-y: auto;
 }
 
