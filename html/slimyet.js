@@ -1244,8 +1244,24 @@ Plot.prototype.onHover = function(item, pos) {
       ttinner.append($.new('b').text('build '));
       ttinner.append(revlink(rev));
       if (buildinfo['lastrev']) {
+        // Multiple revisions, add range link
         ttinner.append(' .. ');
         ttinner.append(revlink(buildinfo['lastrev'].slice(0,12)));
+      }
+      if (item.dataIndex > 0) {
+        // Add pushlog link
+        // Because 'merged' points use median values for the graph data, we
+        // show the broadest push log possible when dealing with them
+        var prevbuild = item.series.buildinfo[item.dataIndex - 1];
+        if (prevbuild && prevbuild['firstrev']) {
+          var prevrev = prevbuild['firstrev'].slice(0,12);
+          var pushrev = buildinfo['lastrev'] ? buildinfo['lastrev'].slice(0,12) : rev;
+          var pushlog = "https://hg.mozilla.org/mozilla-central/pushloghtml?fromchange=" + prevrev + "&tochange=" + pushrev;
+          ttinner.append(" (");
+          ttinner.append($.new('a', { 'href' : pushlog })
+                         .text("pushlog"));
+          ttinner.append(")");
+        }
       }
       ttinner.append($.new('p').text(prettyDate(item.datapoint[0])));
       this.tooltip.append(ttinner);
