@@ -306,6 +306,8 @@ body.faqPage {
   overflow-y: auto;
 }
 
+.tooltip .hoverNote { color: #777; }
+
 .memoryTree {
   margin-top: 5px;
   margin-bottom: 15px;

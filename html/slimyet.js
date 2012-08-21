@@ -1118,6 +1118,7 @@ Plot.prototype.onClick = function(item) {
       'text-align': 'center',
     }).text('Loading test data...')
     this.tooltip.append(loading);
+    this.tooltip.obj.find(".hoverNote").remove();
     loading.fadeIn();
 
     // Load per build data
@@ -1249,6 +1250,7 @@ Plot.prototype.onHover = function(item, pos) {
             .attr('href', "http://hg.mozilla.org/mozilla-central/rev/" + rev)
             .text(rev);
   }
+  var self = this;
   if ((!item || item !== this.hoveredItem) && !this.tooltip.isZoomed()) {
     if (item) {
       this.hideHighlight();
@@ -1285,6 +1287,10 @@ Plot.prototype.onHover = function(item, pos) {
         }
       }
       ttinner.append($.new('p').text(prettyDate(item.datapoint[0])));
+      ttinner.append($.new('p').addClass("hoverNote")
+                     .text("click for full memory info").click(function () {
+                       self.onClick(item);
+                     }));
       this.tooltip.append(ttinner);
 
       // Tooltips move relative to the graphContainer
@@ -1294,7 +1300,6 @@ Plot.prototype.onHover = function(item, pos) {
       if (this.hoveredItem) {
         // Only send unhover to the tooltip after we have processed all
         // graphhover events, and the tooltip has processed its mouseover events
-        var self = this;
         window.setTimeout(function () {
           if (!self.hoveredItem) {
             self.tooltip.unHover();
