@@ -292,7 +292,7 @@ body.faqPage {
   line-height: 1.4em;
   text-align: left;
   position: absolute;
-  width: 350px;
+  width: 25em;
   pointer-events: none;
   overflow: hidden;
 }
