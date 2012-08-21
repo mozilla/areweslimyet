@@ -1,4 +1,4 @@
-
+/* -*- fill-column: 80; js-indent-level: 2; -*- */
 /*
  * Copyright © 2012 Mozilla Corporation
  *
