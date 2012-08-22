@@ -1256,7 +1256,6 @@ Plot.prototype.onHover = function(item, pos) {
   var self = this;
   if (item &&
       (!this.hoveredItem || (item.dataIndex !== this.hoveredItem.dataIndex))) {
-    logMsg("Building tooltip");
     this.hideHighlight();
     // Tooltip Content
     this.tooltip.empty();
