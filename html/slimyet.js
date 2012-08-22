@@ -451,7 +451,7 @@ function Tooltip(parent) {
   this.obj.bind("mouseover", function(e) { self.mouseover = true; });
   this.obj.mouseleave(function(e) {
     self.mouseover = false;
-    if (!self.hovered && !self.isZoomed()) {
+    if (self.obj.is(":visible") && !self.hovered && !self.isZoomed()) {
       self._fadeOut();
     }
   });
