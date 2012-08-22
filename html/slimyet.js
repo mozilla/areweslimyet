@@ -1250,68 +1250,71 @@ Plot.prototype.onHover = function(item, pos) {
             .attr('href', "http://hg.mozilla.org/mozilla-central/rev/" + rev)
             .text(rev);
   }
-  var self = this;
-  if ((!item || item !== this.hoveredItem) && !this.tooltip.isZoomed()) {
-    if (item) {
-      this.hideHighlight();
-      // Tooltip Content
-      this.tooltip.empty();
-      var buildinfo = item.series.buildinfo[item.dataIndex];
-      var rev = buildinfo['firstrev'].slice(0,12);
-
-      // Label
-      this.tooltip.append($.new('h3').text(item.series['label']));
-      // Build link / time
-      var ttinner = $.new('p');
-      ttinner.append($.new('p').text(formatBytes(item.datapoint[1])));
-      ttinner.append($.new('b').text('build '));
-      ttinner.append(revlink(rev));
-      if (buildinfo['lastrev']) {
-        // Multiple revisions, add range link
-        ttinner.append(' .. ');
-        ttinner.append(revlink(buildinfo['lastrev'].slice(0,12)));
-      }
-      if (item.dataIndex > 0) {
-        // Add pushlog link
-        // Because 'merged' points use median values for the graph data, we
-        // show the broadest push log possible when dealing with them
-        var prevbuild = item.series.buildinfo[item.dataIndex - 1];
-        if (prevbuild && prevbuild['firstrev']) {
-          var prevrev = prevbuild['firstrev'].slice(0,12);
-          var pushrev = buildinfo['lastrev'] ? buildinfo['lastrev'].slice(0,12) : rev;
-          var pushlog = "https://hg.mozilla.org/mozilla-central/pushloghtml?fromchange=" + prevrev + "&tochange=" + pushrev;
-          ttinner.append(" (");
-          ttinner.append($.new('a', { 'href' : pushlog })
-                         .text("pushlog"));
-          ttinner.append(")");
-        }
-      }
-      ttinner.append($.new('p').text(prettyDate(item.datapoint[0])));
-      ttinner.append($.new('p').addClass("hoverNote")
-                     .text("click for full memory info").click(function () {
-                       self.onClick(item);
-                     }));
-      this.tooltip.append(ttinner);
-
-      // Tooltips move relative to the graphContainer
-      var offset = this.container.offset();
-      this.tooltip.hover(item.pageX - offset.left, item.pageY - offset.top, this.hoveredItem ? true : false);
-    } else {
-      if (this.hoveredItem) {
-        // Only send unhover to the tooltip after we have processed all
-        // graphhover events, and the tooltip has processed its mouseover events
-        window.setTimeout(function () {
-          if (!self.hoveredItem) {
-            self.tooltip.unHover();
-          }
-        }, 0);
-      }
-      // Move hover highlight for zooming
-      var left = pos.pageX - this.flot.offset().left + this.flot.getPlotOffset().left;
-      this.showHighlight(left, gHighlightWidth);
-    }
-    this.hoveredItem = item;
+  if (this.tooltip.isZoomed()) {
+    return;
   }
+  var self = this;
+  if (item &&
+      (!this.hoveredItem || (item.dataIndex !== this.hoveredItem.dataIndex))) {
+    logMsg("Building tooltip");
+    this.hideHighlight();
+    // Tooltip Content
+    this.tooltip.empty();
+    var buildinfo = item.series.buildinfo[item.dataIndex];
+    var rev = buildinfo['firstrev'].slice(0,12);
+
+    // Label
+    this.tooltip.append($.new('h3').text(item.series['label']));
+    // Build link / time
+    var ttinner = $.new('p');
+    ttinner.append($.new('p').text(formatBytes(item.datapoint[1])));
+    ttinner.append($.new('b').text('build '));
+    ttinner.append(revlink(rev));
+    if (buildinfo['lastrev']) {
+      // Multiple revisions, add range link
+      ttinner.append(' .. ');
+      ttinner.append(revlink(buildinfo['lastrev'].slice(0,12)));
+    }
+    if (item.dataIndex > 0) {
+      // Add pushlog link
+      // Because 'merged' points use median values for the graph data, we
+      // show the broadest push log possible when dealing with them
+      var prevbuild = item.series.buildinfo[item.dataIndex - 1];
+      if (prevbuild && prevbuild['firstrev']) {
+        var prevrev = prevbuild['firstrev'].slice(0,12);
+        var pushrev = buildinfo['lastrev'] ? buildinfo['lastrev'].slice(0,12) : rev;
+        var pushlog = "https://hg.mozilla.org/mozilla-central/pushloghtml?fromchange=" + prevrev + "&tochange=" + pushrev;
+        ttinner.append(" (");
+        ttinner.append($.new('a', { 'href' : pushlog })
+                       .text("pushlog"));
+        ttinner.append(")");
+      }
+    }
+    ttinner.append($.new('p').text(prettyDate(item.datapoint[0])));
+    ttinner.append($.new('p').addClass("hoverNote")
+                   .text("click for full memory info").click(function () {
+                     self.onClick(item);
+                   }));
+    this.tooltip.append(ttinner);
+
+    // Tooltips move relative to the graphContainer
+    var offset = this.container.offset();
+    this.tooltip.hover(item.pageX - offset.left, item.pageY - offset.top, this.hoveredItem ? true : false);
+  } else if (!item) {
+    if (this.hoveredItem) {
+      // Only send unhover to the tooltip after we have processed all
+      // graphhover events, and the tooltip has processed its mouseover events
+      window.setTimeout(function () {
+        if (!self.hoveredItem) {
+          self.tooltip.unHover();
+        }
+      }, 0);
+    }
+    // Move hover highlight for zooming
+    var left = pos.pageX - this.flot.offset().left + this.flot.getPlotOffset().left;
+    this.showHighlight(left, gHighlightWidth);
+  }
+  this.hoveredItem = item;
 }
 
 //
