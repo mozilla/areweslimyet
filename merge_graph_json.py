@@ -64,12 +64,11 @@ def condense_data(data):
   for point in ranges:
     build = {}
     build['firstrev'] = data['builds'][point[0]]['revision']
-    build['time'] = data['builds'][point[0]]['time']
+    build['time'] = dayof(data['builds'][point[0]]['time'])
     if point[0] != point[1]:
       build['count'] = point[1] - point[0] + 1
       build['lastrev'] = data['builds'][point[1]]['revision']
       build['timerange'] = [ data['builds'][point[0]]['time'], data['builds'][point[1]]['time'] ]
-      build['time'] = dayof(build['time'])
 
     cdata['builds'].append(build)
 

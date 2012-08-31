@@ -941,12 +941,6 @@ Plot.prototype._buildSeries = function(start, stop) {
   function pushdp(series, buildinf, ctime) {
     // Push a datapoint onto builds/ranges/data
     if (ctime != -1) {
-      if (!buildinf['lastrev']) {
-        // Only one datapoint, use specific time and remove
-        // timerange
-        buildinf['time'] = buildinf['timerange'][0];
-        delete buildinf['timerange']
-      }
       builds.push(buildinf);
       for (axis in self.axis) {
         var flat = flatten(series[axis]);
