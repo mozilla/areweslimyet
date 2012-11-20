@@ -82,10 +82,6 @@ a:visited:hover { color: #494; }
   position: relative;
 }
 
-.graphContainer h2 {
-  width: 1000px;
-}
-
 #graphs {
   position: relative;
   width: 1290px; /* .graph width + rhsContainer width */
