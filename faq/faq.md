@@ -32,15 +32,13 @@ where an increase in memory usage came from.
 We run against Linux 64-bit (non-pgo) builds, so platform-specific changes may
 not be captured here.
 
-The dates on the x-axis indicate when we switched development *to* a given
-version.  For example, we started developing Firefox 5 on March 3, 2011, but we
-didn't release it for three months after that.  In the meantime, we started on
-the code which would become Firefox 6 on April 12.
+The dates on the x-axis indicate when a version of Firefox split off from the
+central repository.  For example, we started developing Firefox 5 on March 3,
+2011, and it branched from central on April 12th, when the central repository
+began work on what would be Firefox 6.
 
-The memory usage of version that we shipped as "Firefox N" corresponds roughly
-to the points directly under the "FF N+1" line, but we normally make some
-changes to Firefox N even after we started working on Firefox N+1, and those
-changes aren't plotted here.
+We normally make further changes to the release after it leaves the central
+repository, but those changes are not plotted here.
 
 ## How is this data generated?
 

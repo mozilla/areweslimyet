@@ -61,27 +61,27 @@ var gDarkColorsFirst = [
 // determine date placement on the X-axis of graphs
 // See: https://wiki.mozilla.org/RapidRelease/Calendar
 var gReleases = [
-  {dateStr: "2011-03-03", name: "FF 5"},
-  {dateStr: "2011-04-12", name: "FF 6"},
-  {dateStr: "2011-05-24", name: "FF 7"},
-  {dateStr: "2011-07-05", name: "FF 8"},
-  {dateStr: "2011-08-16", name: "FF 9"},
-  {dateStr: "2011-09-27", name: "FF 10"},
-  {dateStr: "2011-11-08", name: "FF 11"},
-  {dateStr: "2011-12-20", name: "FF 12"},
-  {dateStr: "2012-01-31", name: "FF 13"},
-  {dateStr: "2012-03-13", name: "FF 14"},
-  {dateStr: "2012-04-24", name: "FF 15"},
-  {dateStr: "2012-06-05", name: "FF 16"},
-  {dateStr: "2012-07-16", name: "FF 17"},
-  {dateStr: "2012-08-27", name: "FF 18"},
-  {dateStr: "2012-10-08", name: "FF 19"},
-  {dateStr: "2012-11-19", name: "FF 20"},
-  {dateStr: "2013-01-06", name: "FF 21"}, // FIXME, this date is tentative due to christmas
-  {dateStr: "2013-02-18", name: "FF 22"},
-  {dateStr: "2013-04-01", name: "FF 23"},
-  {dateStr: "2013-05-13", name: "FF 24"},
-  {dateStr: "2013-06-24", name: "FF 25"}
+  {dateStr: "2011-03-03", name: "FF 4"},
+  {dateStr: "2011-04-12", name: "FF 5"},
+  {dateStr: "2011-05-24", name: "FF 6"},
+  {dateStr: "2011-07-05", name: "FF 7"},
+  {dateStr: "2011-08-16", name: "FF 8"},
+  {dateStr: "2011-09-27", name: "FF 9"},
+  {dateStr: "2011-11-08", name: "FF 10"},
+  {dateStr: "2011-12-20", name: "FF 11"},
+  {dateStr: "2012-01-31", name: "FF 12"},
+  {dateStr: "2012-03-13", name: "FF 13"},
+  {dateStr: "2012-04-24", name: "FF 14"},
+  {dateStr: "2012-06-05", name: "FF 15"},
+  {dateStr: "2012-07-16", name: "FF 16"},
+  {dateStr: "2012-08-27", name: "FF 17"},
+  {dateStr: "2012-10-08", name: "FF 18"},
+  {dateStr: "2012-11-19", name: "FF 19"},
+  {dateStr: "2013-01-06", name: "FF 20"}, // FIXME, this date is tentative due to christmas
+  {dateStr: "2013-02-18", name: "FF 21"},
+  {dateStr: "2013-04-01", name: "FF 22"},
+  {dateStr: "2013-05-13", name: "FF 23"},
+  {dateStr: "2013-06-24", name: "FF 24"}
 ];
 
 // Create gReleases[x].date objects
