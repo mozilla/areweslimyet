@@ -18,6 +18,9 @@ import sqlite3
 import json
 import time
 import gzip
+# For looking up build rev numbers
+import mercurial, mercurial.ui, mercurial.hg, mercurial.commands
+gMercurialRepo = "./mozilla-central"
 
 # Config for which tests to export
 # - nodeize : [char] split this test's datapoints by the given character and
@@ -155,8 +158,46 @@ sql = sqlite3.connect(gDatabase, 60)
 sql.row_factory = sqlite3.Row
 cur = sql.cursor()
 
-cur.execute('''SELECT `id`, `name`, `time` FROM `benchtester_builds` ORDER BY `time` ASC''')
+# Fetch and sort the builds by timestamp. For builds with identical push dates,
+# lookup the revision number from hg
+cur.execute('''SELECT `id`, `name`, `time` FROM `benchtester_builds`''')
 builds = cur.fetchall()
+hg_ui = None
+hg_repo = None
+def build_sort(build_a, build_b):
+  global hg_repo, hg_ui
+  if build_a['time'] != build_b['time']:
+    return 1 if build_b['time'] > build_a['time'] else -1
+  # Builds have equal timestamp, look up their revision number in repo if
+  # possible
+  if not hg_repo:
+    hg_ui = mercurial.ui.ui()
+    hg_repo = mercurial.hg.repository(hg_ui, gMercurialRepo)
+    hg_ui.readconfig(os.path.join(gMercurialRepo, ".hg", "hgrc"))
+    hg_ui.pushbuffer()
+    # Pull repo, but don't update so we don't conflict with whatever the test
+    # daemon is doing with it
+    mercurial.commands.pull(hg_ui, hg_repo, check=False, update=False)
+    hg_ui.popbuffer()
+
+  # Get revisions
+  try:
+    hg_ui.pushbuffer()
+    mercurial.commands.log(hg_ui, hg_repo, rev=[ "%s" % (build_a['name'],) ], template="{rev}", date="", user=None, follow=None)
+    a_rev = int(hg_ui.popbuffer())
+    hg_ui.pushbuffer()
+    mercurial.commands.log(hg_ui, hg_repo, rev=[ "%s" % (build_b['name'],) ], template="{rev}", date="", user=None, follow=None)
+    b_rev = int(hg_ui.popbuffer())
+  except Exception as e:
+    # mercurial throws all kinds of fun exceptions for bad input
+    print("WARNING: Couldn't lookup ordering of commits with identical timestamp: %s / %s (%s: %s)" % (build_a[1], build_b[1], type(e), e))
+    return 0
+
+  print("Builds %s and %s have identical timestamp, using rev numbers %u and %u" % (build_a['name'], build_b['name'], a_rev, b_rev))
+  return 1 if b_rev > a_rev else -1 if a_rev > b_rev else 0
+
+print("Sorting builds...")
+builds = sorted(builds, cmp=build_sort)
 
 # series - a dict of series name (e.g. StartMemory) -> [[x,y], [x2, y2], ...]
 #          All series have the same length, such the same index in any series
