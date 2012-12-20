@@ -167,7 +167,7 @@ hg_repo = None
 def build_sort(build_a, build_b):
   global hg_repo, hg_ui
   if build_a['time'] != build_b['time']:
-    return 1 if build_b['time'] > build_a['time'] else -1
+    return 1 if build_a['time'] > build_b['time'] else -1
   # Builds have equal timestamp, look up their revision number in repo if
   # possible
   if not hg_repo:
@@ -194,7 +194,7 @@ def build_sort(build_a, build_b):
     return 0
 
   print("Builds %s and %s have identical timestamp, using rev numbers %u and %u" % (build_a['name'], build_b['name'], a_rev, b_rev))
-  return 1 if b_rev > a_rev else -1 if a_rev > b_rev else 0
+  return 1 if a_rev > b_rev else -1 if b_rev > a_rev else 0
 
 print("Sorting builds...")
 builds = sorted(builds, cmp=build_sort)
