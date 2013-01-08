@@ -132,31 +132,6 @@ var gSeries = {
   }
 };
 
-/*
- * Hidden, these should be given their own page or something, as they are useful
- * for regression tracking. The FAQ needs to explain them, however
-  "All-At-Once Test :: Resident Memory" : {
-    'StartMemoryResident':         "RSS: Fresh start",
-    'StartMemoryResidentSettled':  "RSS: Fresh start [+30s]",
-    'MaxMemoryResident':           "RSS: After TP5",
-    'MaxMemoryResidentSettled':    "RSS: After TP5 [+30s]",
-    'MaxMemoryResidentForceGC':    "RSS: After TP5 [+30s, forced GC]",
-    'EndMemoryResident':           "RSS: After TP5, tabs closed",
-    'EndMemoryResidentSettled':    "RSS: After TP5, tabs closed [+30s]",
-    'EndMemoryResidentForceGC':    "RSS: After TP5, tabs closed [+30s, forced GC]"
-  },
-  "All-At-Once Test :: Explicit Memory" : {
-    'StartMemory':         "Explicit: Fresh start",
-    'StartMemorySettled':  "Explicit: Fresh start [+30s]",
-    'MaxMemory':           "Explicit: After TP5",
-    'MaxMemorySettled':    "Explicit: After TP5 [+30s]",
-    'MaxMemoryForceGC':    "Explicit: After TP5 [+30s, forced GC]",
-    'EndMemory':           "Explicit: After TP5, tabs closed",
-    'EndMemorySettled':    "Explicit: After TP5, tabs closed [+30s]",
-    'EndMemoryForceGC':    "Explicit: After TP5, tabs closed [+30s, forced GC]"
-  },
- */
-
 // gGraphData pulls /data/<series>.json which has a *condensed* series of builds
 // and associated data-lines. After a certain zoom level we need to pull in the
 // full-resolution data into gFullData. gGraphData['allseries'] contains info on

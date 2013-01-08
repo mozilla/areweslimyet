@@ -32,50 +32,6 @@ gMercurialRepo = "./mozilla-central"
 #                    full datapoint name.
 #                    If a list is given, interpret as alternate names for the datapoint
 gTests = {
-  "Slimtest-TalosTP5" : {
-    "nodeize" : "/",
-    "dump" : True,
-    "series" : {
-      "MaxMemory" : { "datapoint": "Iteration 5/TabsOpen/explicit" },
-      "MaxMemorySettled" : { "datapoint": "Iteration 5/TabsOpenSettled/explicit" },
-      "MaxMemoryForceGC" : { "datapoint": "Iteration 5/TabsOpenForceGC/explicit" },
-      "MaxMemoryResident" : { "datapoint": "Iteration 5/TabsOpen/resident" },
-      "MaxMemoryResidentSettled" : { "datapoint": "Iteration 5/TabsOpenSettled/resident" },
-      "MaxMemoryResidentForceGC" : { "datapoint": "Iteration 5/TabsOpenForceGC/resident" },
-      "StartMemory" : { "datapoint": "Iteration 1/Start/explicit" },
-      "StartMemoryResident" : { "datapoint": "Iteration 1/Start/resident" },
-      "StartMemorySettled" : { "datapoint": "Iteration 1/StartSettled/explicit" },
-      "StartMemoryResidentSettled" : { "datapoint": "Iteration 1/StartSettled/resident" },
-      "EndMemory" : { "datapoint": "Iteration 5/TabsClosed/explicit" },
-      "EndMemoryResident" : { "datapoint": "Iteration 5/TabsClosed/resident" },
-      "EndMemorySettled" : { "datapoint": "Iteration 5/TabsClosedSettled/explicit" },
-      "EndMemoryForceGC" : { "datapoint": "Iteration 5/TabsClosedForceGC/explicit" },
-      "EndMemoryResidentSettled" : { "datapoint": "Iteration 5/TabsClosedSettled/resident" },
-      "EndMemoryResidentForceGC" : { "datapoint": "Iteration 5/TabsClosedForceGC/resident" },
-      "MaxHeapUnclassified" : { "datapoint": "Iteration 5/TabsOpenSettled/explicit/heap-unclassified" },
-      "MaxJS" : {
-        "datapoint": [
-          # As of Jul 2012
-          "Iteration 5/TabsOpenSettled/js-main-runtime",
-          # Pre-Jul 2012
-          "Iteration 5/TabsOpenSettled/explicit/js",
-          # Old ~FF4 reporters
-          "Iteration 5/TabsOpenSettled/js",
-          # Brief period in may 2011 before heap-used became explicit
-          "Iteration 5/TabsOpenSettled/heap-used/js"
-        ],
-      },
-      "MaxImages" : {
-        "datapoint": [
-          "Iteration 5/TabsOpenSettled/explicit/images",
-          # Old ~FF4 reporters
-          "Iteration 5/TabsOpenSettled/images",
-          # Brief period in may 2011 before heap-used became explicit
-          "Iteration 5/TabsOpenSettled/heap-used/images"
-        ]
-      }
-    }
-  },
   "Slimtest-TalosTP5-Slow" : {
     "nodeize" : "/",
     "dump" : True,
