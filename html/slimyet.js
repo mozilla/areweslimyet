@@ -449,6 +449,9 @@ Tooltip.prototype.append = function(obj) {
 
 Tooltip.prototype.empty = function() {
   this.content.empty();
+  this.seriesname = null;
+  this.buildset = null;
+  this.buildindex = null;
 }
 
 Tooltip.prototype.hover = function(x, y, nofade) {
@@ -493,6 +496,130 @@ Tooltip.prototype.unHover = function() {
 
 Tooltip.prototype._fadeOut = function() {
   this.obj.stop().fadeTo(200, 0, function () { $(this).hide(); });
+}
+
+// value      - Value of displayed point
+// label      - tooltip header/label
+// buildset   - set of builds shown for this graph (different from gBuildInfo as
+//              it may have been condensed)
+// buildindex - index of this build in buildset
+// series     - the series we are showing
+Tooltip.prototype.buildInfo = function(value, label, buildset, buildindex, series) {
+  this.empty();
+  this.series = series;
+  this.buildset = buildset;
+  this.buildindex = buildindex;
+
+  function revlink(rev) {
+    return $.new('a')
+            .attr('href', "http://hg.mozilla.org/mozilla-central/rev/" + rev)
+            .text(rev);
+  }
+
+  var build = buildset[buildindex];
+  var rev = build['firstrev'].slice(0,12);
+
+  // Label
+  this.append($.new('h3').text(label));
+  // Build link / time
+  var ttinner = $.new('p');
+  ttinner.append($.new('p').text(formatBytes(value)));
+  ttinner.append($.new('b').text('build '));
+  ttinner.append(revlink(rev));
+  if (build['lastrev']) {
+    // Multiple revisions, add range link
+    ttinner.append(' .. ');
+    ttinner.append(revlink(build['lastrev'].slice(0,12)));
+  }
+  if (buildindex > 0) {
+    // Add pushlog link
+    // Because 'merged' points use median values for the graph data, we
+    // show the broadest push log possible when dealing with them
+    var prevbuild = buildset[buildindex - 1];
+    if (prevbuild && prevbuild['firstrev']) {
+      var prevrev = prevbuild['firstrev'].slice(0,12);
+      var pushrev = build['lastrev'] ? build['lastrev'].slice(0,12) : rev;
+      var pushlog = "https://hg.mozilla.org/mozilla-central/pushloghtml?fromchange=" + prevrev + "&tochange=" + pushrev;
+      ttinner.append(" (");
+      ttinner.append($.new('a', { 'href' : pushlog })
+                     .text("pushlog"));
+      ttinner.append(")");
+    }
+  }
+  ttinner.append($.new('p').text(prettyDate(value)));
+  var self = this;
+  ttinner.append($.new('p').addClass("hoverNote")
+                 .text("click for full memory info").click(function () {
+                   self.buildDetail();
+                 }));
+  this.append(ttinner);
+}
+
+// The zoomed build-detail view for builds we represent. Requires the tooltip be
+// visible and initialized with buildInfo();
+Tooltip.prototype.buildDetail = function() {
+  this.zoom();
+
+  // We should already be populated from buildInfo().
+  // Zoom tooltip, remove the 'click to hover' note and add a loading banner.
+  var loading = $.new('h2', null, {
+    display: 'none',
+    'text-align': 'center',
+  }).text('Loading test data...')
+  this.append(loading);
+  this.obj.find(".hoverNote").remove();
+  loading.fadeIn();
+
+  // Load per build data
+  var build = this.buildset[this.buildindex];
+  var canceled = false;
+  var revision = build['firstrev'];
+  var self = this;
+  getPerBuildData(revision, function () {
+    // On get data (can be immediate)
+    if (canceled) { return; }
+
+    // Build zoomed tooltip
+    var series_info = gGraphData['series_info'][self.series];
+    var nodes = gPerBuildData[revision][series_info['test']]['nodes'];
+    var datapoint = series_info['datapoint'];
+
+    // series_info['datapoint'] might be a list of aliases for the datapoint.
+    // find the one actually used in this node tree.
+    if (datapoint instanceof Array) {
+      for (var i = 0; i < datapoint.length; i++) {
+        var dlist = datapoint[i].split('/');
+        var p = nodes;
+        while (dlist.length) {
+          p = p[dlist.shift()];
+          if (!p) break;
+        }
+        if (p) {
+          datapoint = datapoint[i];
+          break;
+        }
+      }
+    }
+
+    loading.css({ 'width' : '100%', 'position': 'absolute' }).fadeOut(250);
+
+    var title;
+    if ('lastrev' in build)
+      title = revision.slice(0,12) + " @ " + series_info['test'];
+    else
+      title = series_info['test'];
+    var memoryTree = makeMemoryTree(title, nodes, datapoint);
+
+    self.append(memoryTree);
+    memoryTree.fadeIn();
+  }, function (error) {
+    // On failure
+    loading.text("An error occured while loading the datapoint");
+    self.append($.new('p', null, { color: '#F55' }).text(status + ': ' + error));
+  });
+
+  // Cancel loading if tooltip is closed before the callback
+  this.onUnzoom(function () { canceled = true; });
 }
 
 Tooltip.prototype.zoom = function(callback) {
@@ -1084,65 +1211,8 @@ Plot.prototype._buildSeries = function(start, stop) {
 // Either zoom in on a datapoint or trigger a graph zoom or do nothing.
 Plot.prototype.onClick = function(item) {
   if (item) {
-    // Clicked on an item - zoom the tooltip and load full data dump
-    var zoomedCallback;
-    this.tooltip.zoom();
-    var loading = $.new('h2', null, {
-      display: 'none',
-      'text-align': 'center',
-    }).text('Loading test data...')
-    this.tooltip.append(loading);
-    this.tooltip.obj.find(".hoverNote").remove();
-    loading.fadeIn();
-
-    // Load per build data
-    var canceled = false;
-    var revision = item.series.buildinfo[item.dataIndex]['firstrev'];
-    var self = this;
-    getPerBuildData(revision, function () {
-      // On get data (can be immediate)
-      if (canceled) { return; }
-
-      // Build zoomed tooltip
-      var series_info = gGraphData['series_info'][item.series.name];
-      var nodes = gPerBuildData[revision][series_info['test']]['nodes'];
-      var datapoint = series_info['datapoint'];
-
-      // series_info['datapoint'] might be a list of aliases for the datapoint.
-      // find the one actually used in this node tree.
-      if (datapoint instanceof Array) {
-        for (var i = 0; i < datapoint.length; i++) {
-          var dlist = datapoint[i].split('/');
-          var p = nodes;
-          while (dlist.length) {
-            p = p[dlist.shift()];
-            if (!p) break;
-          }
-          if (p) {
-            datapoint = datapoint[i];
-            break;
-          }
-        }
-      }
-
-      loading.css({ 'width' : '100%', 'position': 'absolute' }).fadeOut(250);
-
-      var title;
-      if ('lastrev' in item.series.buildinfo[item.dataIndex])
-        title = revision.slice(0,12) + " @ " + series_info['test'];
-      else
-        title = series_info['test'];
-      var memoryTree = makeMemoryTree(title, nodes, datapoint);
-
-      self.tooltip.append(memoryTree);
-      memoryTree.fadeIn();
-    }, function (error) {
-      // On failure
-      loading.text("An error occured while loading the datapoint");
-      self.tooltip.append($.new('p', null, { color: '#F55' }).text(status + ': ' + error));
-    });
-    // Cancel loading if tooltip is closed before the callback
-    this.tooltip.onUnzoom(function () { canceled = true; });
+    // Clicked an item, switch tooltip to build detail mode
+    this.tooltip.buildDetail();
   } else if (this.highlighted) {
     // Clicked on highlighted zoom space, do a graph zoom
 
@@ -1219,11 +1289,6 @@ Plot.prototype.hideHighlight = function() {
 // If we're hovering over a point, show a tooltip. Otherwise, show the
 // zoom selector if we're not beyond our zoom-in limit
 Plot.prototype.onHover = function(item, pos) {
-  function revlink(rev) {
-    return $.new('a')
-            .attr('href', "http://hg.mozilla.org/mozilla-central/rev/" + rev)
-            .text(rev);
-  }
   if (this.tooltip.isZoomed()) {
     return;
   }
@@ -1231,44 +1296,11 @@ Plot.prototype.onHover = function(item, pos) {
   if (item &&
       (!this.hoveredItem || (item.dataIndex !== this.hoveredItem.dataIndex))) {
     this.hideHighlight();
-    // Tooltip Content
-    this.tooltip.empty();
-    var buildinfo = item.series.buildinfo[item.dataIndex];
-    var rev = buildinfo['firstrev'].slice(0,12);
-
-    // Label
-    this.tooltip.append($.new('h3').text(item.series['label']));
-    // Build link / time
-    var ttinner = $.new('p');
-    ttinner.append($.new('p').text(formatBytes(item.datapoint[1])));
-    ttinner.append($.new('b').text('build '));
-    ttinner.append(revlink(rev));
-    if (buildinfo['lastrev']) {
-      // Multiple revisions, add range link
-      ttinner.append(' .. ');
-      ttinner.append(revlink(buildinfo['lastrev'].slice(0,12)));
-    }
-    if (item.dataIndex > 0) {
-      // Add pushlog link
-      // Because 'merged' points use median values for the graph data, we
-      // show the broadest push log possible when dealing with them
-      var prevbuild = item.series.buildinfo[item.dataIndex - 1];
-      if (prevbuild && prevbuild['firstrev']) {
-        var prevrev = prevbuild['firstrev'].slice(0,12);
-        var pushrev = buildinfo['lastrev'] ? buildinfo['lastrev'].slice(0,12) : rev;
-        var pushlog = "https://hg.mozilla.org/mozilla-central/pushloghtml?fromchange=" + prevrev + "&tochange=" + pushrev;
-        ttinner.append(" (");
-        ttinner.append($.new('a', { 'href' : pushlog })
-                       .text("pushlog"));
-        ttinner.append(")");
-      }
-    }
-    ttinner.append($.new('p').text(prettyDate(item.datapoint[0])));
-    ttinner.append($.new('p').addClass("hoverNote")
-                   .text("click for full memory info").click(function () {
-                     self.onClick(item);
-                   }));
-    this.tooltip.append(ttinner);
+    this.tooltip.buildInfo(item.datapoint[0],
+                           item.series.label,
+                           item.series.buildinfo,
+                           item.dataIndex,
+                           item.series.name);
 
     // Tooltips move relative to the graphContainer
     var offset = this.container.offset();
