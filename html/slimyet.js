@@ -504,11 +504,12 @@ Tooltip.prototype._fadeOut = function() {
 //              it may have been condensed)
 // buildindex - index of this build in buildset
 // series     - the series we are showing
-Tooltip.prototype.buildInfo = function(value, label, buildset, buildindex, series) {
+Tooltip.prototype.showBuild = function(label, series, buildset, buildindex, seriesname) {
   this.empty();
-  this.series = series;
-  this.buildset = buildset;
-  this.buildindex = buildindex;
+  this.build_series = series;
+  this.build_seriesname = seriesname;
+  this.build_set = buildset;
+  this.build_index = buildindex;
 
   function revlink(rev) {
     return $.new('a')
@@ -516,6 +517,7 @@ Tooltip.prototype.buildInfo = function(value, label, buildset, buildindex, serie
             .text(rev);
   }
 
+  var value = series[buildindex][1];
   var build = buildset[buildindex];
   var rev = build['firstrev'].slice(0,12);
 
@@ -556,11 +558,11 @@ Tooltip.prototype.buildInfo = function(value, label, buildset, buildindex, serie
 }
 
 // The zoomed build-detail view for builds we represent. Requires the tooltip be
-// visible and initialized with buildInfo();
+// visible and initialized with showBuild();
 Tooltip.prototype.buildDetail = function() {
   this.zoom();
 
-  // We should already be populated from buildInfo().
+  // We should already be populated from showBuild().
   // Zoom tooltip, remove the 'click to hover' note and add a loading banner.
   var loading = $.new('h2', null, {
     display: 'none',
@@ -1304,8 +1306,8 @@ Plot.prototype.onHover = function(item, pos) {
   if (item &&
       (!this.hoveredItem || (item.dataIndex !== this.hoveredItem.dataIndex))) {
     this.hideHighlight();
-    this.tooltip.buildInfo(item.datapoint[0],
-                           item.series.label,
+    this.tooltip.showBuild(item.series.label,
+                           item.series.data,
                            item.series.buildinfo,
                            item.dataIndex,
                            item.series.name);
