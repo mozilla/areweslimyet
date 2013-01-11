@@ -565,11 +565,18 @@ Tooltip.prototype.buildDetail = function() {
   var loading = $.new('h2', null, {
     display: 'none',
     'text-align': 'center',
-  }).text('Loading test data...')
+  }).text('Loading test data...').attr('id', 'loading');
+
   this.append(loading);
   this.obj.find(".hoverNote").remove();
   loading.fadeIn();
 
+  var memoryview = this._memoryView();
+
+  this.append(memoryview);
+}
+
+Tooltip.prototype._memoryView = function() {
   // Load per build data
   var build = this.buildset[this.buildindex];
   var canceled = false;
@@ -601,6 +608,7 @@ Tooltip.prototype.buildDetail = function() {
       }
     }
 
+    var loading = self.obj.find('#loading');
     loading.css({ 'width' : '100%', 'position': 'absolute' }).fadeOut(250);
 
     var title;
