@@ -250,9 +250,9 @@ for build in builds:
         nodeize = False
 
       # Pull all data for latest run of this test on this build
-      allrows = cur.execute('''SELECT datapoint, value
-                               FROM benchtester_data d
-                               WHERE test_id = ?
+      allrows = cur.execute('''SELECT p.name AS datapoint, d.value
+                               FROM benchtester_data d, benchtester_datapoints p
+                               WHERE test_id = ? AND p.id = d.datapoint_id
                             ''', [testdata[testname]['id']])
 
       # Sort data, splitting it up into nodes if requested. Calculate the value
