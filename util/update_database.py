@@ -42,7 +42,7 @@ for x in omit_tests:
 
 newdb = sys.argv[1] + '.new'
 print("Creating %s..." % (newdb,))
-sql = sqlite3.connect(newdb, 60)
+sql = sqlite3.connect(newdb, timeout=300)
 sql.row_factory = sqlite3.Row
 cur = sql.cursor()
 for schema in BenchTester.gTableSchemas:
