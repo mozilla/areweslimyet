@@ -108,8 +108,13 @@ for fname in files:
     # make sure we pad out with nulls to keep the indexes lined up
     totaldata['series'][x].extend([None for y in range(len(totaldata['builds']) - len(totaldata['series'][x]))])
     totaldata['series'][x].extend(cdata['series'][x])
+  # Continue pad out series that dont exist in this file
+  for x in totaldata['series'].keys():
+    if x not in cdata['series']:
+      totaldata['series'][x].extend([None for y in range(len(cdata['builds'])) ])
   totaldata['builds'].extend(cdata['builds'])
   totaldata['series_info'].update(fdata['series_info'])
+
   # Sanity check this, logic bugs here cause massively bogus data
   for x in totaldata['series'].keys():
     a = len(totaldata['builds'])
