@@ -817,7 +817,7 @@ Tooltip.prototype._buildlistView = function () {
 
   // Fill header now that we counted builds and min/max
   header.append($.new('p').text('Datapoint is the median of ' + numbuilds + ' tests'));
-  header.append(mkDelta(first, last));
+  header.append(mkDelta(last, first));
   header.append($.new('span').addClass('small')
                  .text(' ( ' + formatBytes(min) + ' min, ' + formatBytes(max) + ' max )'));
   return wrapper;
