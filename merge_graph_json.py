@@ -110,16 +110,15 @@ for fname in files:
     totaldata['series'][x].extend(cdata['series'][x])
   totaldata['builds'].extend(cdata['builds'])
   totaldata['series_info'].update(fdata['series_info'])
+  # Sanity check this, logic bugs here cause massively bogus data
+  for x in totaldata['series'].keys():
+    a = len(totaldata['builds'])
+    b = len(totaldata['series'][x])
+    if a != b:
+      sys.stderr.write("Error series %s does not match build count: %u builds vs %u datapoints" % (x, a, b))
+      sys.exit(1)
 
 totaldata['generated'] = time.time()
-
-# Sanity check this, logic bugs here cause massively bogus data
-for x in totaldata['series'].keys():
-  a = len(totaldata['builds'])
-  b = len(totaldata['series'][x])
-  if a != b:
-    sys.stderr.write("Error series %s does not match build count: %u builds vs %u datapoints" % (x, a, b))
-    sys.exit(1)
 
 print("Writing %s.json.gz" % (seriesname,))
 datafile = gzip.open(os.path.join(outdir, seriesname + '.json.gz'), 'w', 9)
