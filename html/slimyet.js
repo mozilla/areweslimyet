@@ -1551,6 +1551,7 @@ $(function () {
         // Load all graph data, all the time, not using the condensed 'overview'
         // data
         $('#graphs h3').text("Loading all the things [nocondense]...");
+        var pending = 0;
         for (var x in gGraphData['allseries']) {
           pending++;
           getFullSeries(gGraphData['allseries'][x]['dataname'], function () {
