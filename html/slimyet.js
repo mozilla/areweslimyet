@@ -205,7 +205,7 @@ function prettyDate(aTimestamp) {
   return new Date(aTimestamp * 1000).toUTCString().replace('00:00:00 GMT', '');
 }
 
-function mkDelta(mem, lastmem) {
+function mkDelta(mem, lastmem, highlight_pct = 10) {
   var delta = mem - lastmem;
   var obj = $.new('span').addClass('delta');
   if (delta < 0) {
@@ -215,6 +215,8 @@ function mkDelta(mem, lastmem) {
     obj.text('Δ '+formatBytes(delta));
     obj.addClass('pos');
   }
+  if (delta / mem > highlight_pct / 100)
+    obj.addClass('significant');
   return obj;
 }
 
