@@ -716,7 +716,7 @@ Tooltip.prototype._buildlistView = function () {
   var wrapper = $.new('div').addClass('buildList');
   var header = $.new('div').addClass('buildListHead').appendTo(wrapper);
   $.new('div').addClass('buildListSubHead').appendTo(wrapper)
-              .text('Only tested revisions shown, range may include more changesets');
+              .text('Only revisions with test data shown, range may include more changesets');
   var obj = $.new('div').addClass('buildListContent').appendTo(wrapper);
   var numbuilds = 0;
 
@@ -816,9 +816,10 @@ Tooltip.prototype._buildlistView = function () {
   }
 
   // Fill header now that we counted builds and min/max
-  header.text(numbuilds + ' builds.');
-  header.append(' ' + formatBytes(min) + ' min, ' + formatBytes(max) + ' max ');
+  header.append($.new('p').text('Datapoint is the median of ' + numbuilds + ' tests'));
   header.append(mkDelta(first, last));
+  header.append($.new('span').addClass('small')
+                 .text(' ( ' + formatBytes(min) + ' min, ' + formatBytes(max) + ' max )'));
   return wrapper;
 }
 
