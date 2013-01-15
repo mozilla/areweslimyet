@@ -725,6 +725,7 @@ Tooltip.prototype._buildlistView = function () {
   var max = null;
   var first = null;
   var last = null;
+  var start;
 
   for (var m = 0; m < involvedseries.length; m++) {
     var series = gFullData[involvedseries[m]];
@@ -732,82 +733,89 @@ Tooltip.prototype._buildlistView = function () {
       var mem = series.series[this.build_seriesname][n];
       var build = series.builds[n];
       // Scan to first build
-      if (!first && build['revision'] == condensedbuild['firstrev']) {
-        first = mem;
-      } else if (!first) {
-        lastmem = mem;
+      if (!start && build['revision'] == condensedbuild['firstrev']) {
+        start = true;
+      } else if (!start) {
+        if (mem !== null) {
+          lastmem = mem;
+        }
         continue;
       }
-      numbuilds++;
 
-      //
-      // Create build link and append to list
-      //
-      var buildcrumb = $.new('div', { 'class': 'buildcrumb' });
+      if (mem !== null) {
+        if (!first) {
+          first = mem;
+        }
+        numbuilds++;
+        //
+        // Create build link and append to list
+        //
+        var buildcrumb = $.new('div', { 'class': 'buildcrumb' });
 
-      // series value for this build
-      // [view]
-      buildcrumb.append('[');
-      var viewlink  = $.new('a', { 'href': '#' })
-                       .text('view')
-                       .appendTo(buildcrumb);
-      buildcrumb.append('] ');
-      // revision (also takes you to hg)
-      buildcrumb.append(mkHgLink(build['revision']));
-      // Memory usage
-      buildcrumb.append($.new('span').text(' ' + formatBytes(mem)));
-      // delta
-      if (lastmem) {
-        var deltaobj = mkDelta(mem, lastmem);
-        buildcrumb.append(' ');
-        buildcrumb.append(deltaobj);
+        // series value for this build
+        // [view]
+        buildcrumb.append('[');
+        var viewlink  = $.new('a', { 'href': '#' })
+                         .text('view')
+                         .appendTo(buildcrumb);
+        buildcrumb.append('] ');
+        // revision (also takes you to hg)
+        buildcrumb.append(mkHgLink(build['revision']));
+        // Memory usage
+        buildcrumb.append($.new('span').text(' ' + formatBytes(mem)));
+        // delta
+        if (lastmem) {
+          var deltaobj = mkDelta(mem, lastmem);
+          buildcrumb.append(' ');
+          buildcrumb.append(deltaobj);
+        }
+
+        // track min/max
+        if (max === null || mem > max) max = mem;
+        if (min === null || mem < min) min = mem;
+        lastmem = mem;
+
+        viewlink.click(function (rev) {
+          // Close over rev
+          return function() {
+            if (obj.is('.fading'))
+              return;
+
+            // Fade out buildlist, fade in loading, fade in memoryview when fetch
+            // completes.
+            wrapper.insertBefore(loading);
+            wrapper.addClass('fading').fadeOut(250);
+            loading.removeClass('fading').fadeIn(250);
+            self._asyncHelper(getPerBuildData, rev, function () {
+              var memoryview = self._memoryView(rev);
+              // Append back arrow to memory view
+              var back = $.new('a', { 'href': '#', 'class': 'button backButton' })
+                          .text('[<- list]')
+                          .click(function () {
+                  // Return to buildlist view
+                  memoryview.addClass('fading').fadeOut(250, function () {
+                    memoryview.remove();
+                  });
+                  wrapper.removeClass('fading').fadeIn(250);
+                  return false;
+                });
+              memoryview.find('.treeTitle').prepend(back);
+              // insertBefore so it get pushed down by the buildlist when the
+              // buildlist fades back in. (while the memory view would still be
+              // fading out)
+              memoryview.insertBefore(wrapper);
+              memoryview.fadeIn(250);
+            });
+            return false;
+          };
+        } (build['revision']));
+
+        obj.append(buildcrumb);
       }
-
-      // track min/max
-      if (max === null || mem > max) max = mem;
-      if (min === null || mem < min) min = mem;
-      lastmem = mem;
-
-      viewlink.click(function (rev) {
-        // Close over rev
-        return function() {
-          if (obj.is('.fading'))
-            return;
-
-          // Fade out buildlist, fade in loading, fade in memoryview when fetch
-          // completes.
-          wrapper.insertBefore(loading);
-          wrapper.addClass('fading').fadeOut(250);
-          loading.removeClass('fading').fadeIn(250);
-          self._asyncHelper(getPerBuildData, rev, function () {
-            var memoryview = self._memoryView(rev);
-            // Append back arrow to memory view
-            var back = $.new('a', { 'href': '#', 'class': 'button backButton' })
-                        .text('[<- list]')
-                        .click(function () {
-                          // Return to buildlist view
-                          memoryview.addClass('fading').fadeOut(250, function () {
-                            memoryview.remove();
-                          });
-                          wrapper.removeClass('fading').fadeIn(250);
-                          return false;
-                        });
-            memoryview.find('.treeTitle').prepend(back);
-            // insertBefore so it get pushed down by the buildlist when the
-            // buildlist fades back in. (while the memory view would still be
-            // fading out)
-            memoryview.insertBefore(wrapper);
-            memoryview.fadeIn(250);
-          });
-          return false;
-        };
-      } (build['revision']));
-
-      obj.append(buildcrumb);
 
       // Stop at lastrev
       if (build['revision'] == condensedbuild['lastrev']) {
-        last = mem;
+        last = mem !== null ? mem : lastmem;
         // Break out of nested loop
         m = involvedseries.length;
         break;
