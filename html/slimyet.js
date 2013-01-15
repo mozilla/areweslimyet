@@ -215,7 +215,7 @@ function mkDelta(mem, lastmem) {
     obj.text('Δ '+formatBytes(delta));
     obj.addClass('pos');
   }
-  if (delta / mem > 0.02)
+  if (Math.abs(delta) / mem > 0.02)
     obj.addClass('significant');
   return obj;
 }

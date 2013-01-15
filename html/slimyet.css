@@ -366,8 +366,8 @@ body.faqPage {
 /* Positive is bad! */
 .delta.pos { color: #E44; }
 .delta.neg { color: #4E4; }
-.delta.pos.significant { color: red; }
-.delta.neg.significant { color: green; }
+.delta.pos.significant { color: #F00; }
+.delta.neg.significant { color: #0F0; }
 .delta.significant { text-decoration: underline; }
 
 .tooltip h2, p {
