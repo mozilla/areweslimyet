@@ -77,7 +77,7 @@ var gReleases = [
   {dateStr: "2012-08-27", name: "FF 17"},
   {dateStr: "2012-10-08", name: "FF 18"},
   {dateStr: "2012-11-19", name: "FF 19"},
-  {dateStr: "2013-01-06", name: "FF 20"}, // FIXME, this date is tentative due to christmas
+  {dateStr: "2013-01-07", name: "FF 20"},
   {dateStr: "2013-02-18", name: "FF 21"},
   {dateStr: "2013-04-01", name: "FF 22"},
   {dateStr: "2013-05-13", name: "FF 23"},
