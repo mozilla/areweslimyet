@@ -141,7 +141,7 @@ var gSeries = {
 // min/median/max data, and the revision-range and time-range. See the
 // /data/areweslimyet.json file.
 //
-// Plot._getInvolvedSeries() - Determines if our zoom level justifies using
+// _getInvolvedSeries() - Determines if our zoom level justifies using
 //   full data series, lists them (none means 'just use gGraphData')
 // Plot.SetZoomRange() - Changes the zoom level, if _getInvolvedSeries() advises
 //   use of series we don't have, fire off requests for them. Once those have
@@ -203,6 +203,25 @@ function prettyDate(aTimestamp) {
   // If the date is exactly midnight, remove the time portion.
   // (overview data is coalesced by day by default)
   return new Date(aTimestamp * 1000).toUTCString().replace('00:00:00 GMT', '');
+}
+
+function mkDelta(mem, lastmem) {
+  var delta = mem - lastmem;
+  var obj = $.new('span').addClass('delta');
+  if (delta < 0) {
+    obj.text('Δ -'+formatBytes(-delta));
+    obj.addClass('neg');
+  } else {
+    obj.text('Δ '+formatBytes(delta));
+    obj.addClass('pos');
+  }
+  return obj;
+}
+
+function mkHgLink(rev) {
+  return $.new('a', { 'class': 'buildlink' })
+          .attr('href', "https://hg.mozilla.org/mozilla-central/rev/" + rev.slice(0,12))
+          .text(rev);
 }
 
 // float 12039123.439 -> String "12,039,123.44"
@@ -409,6 +428,50 @@ function memoryTreeNode(target, data, select, depth) {
   }
 }
 
+// If this range is 'zoomed' enough to warrant using full-resolution data
+// (based on gMaxPoints), return the list of gFullData series names that would
+// be needed. Return false if overview data is sufficient for this range.
+// It's up to the caller to call getFullSeries(name) to start downloading any
+// of these that arn't downloaded.
+function _getInvolvedSeries(range) {
+  var ret = [];
+  var groupdist = gMaxPoints < 1 ? 1 : (Math.round((range[1] - range[0]) / gMaxPoints));
+
+  // Unless the requested grouping distance is < 80% of the overview data's
+  // distance, don't pull in more
+  if (!gQueryVars['nocondense'] && groupdist / gGraphData['condensed'] > 0.8)
+    return null;
+
+  for (var x in gGraphData['allseries']) {
+    var s = gGraphData['allseries'][x];
+    if (range[1] >= s['fromtime'] && range[0] <= s['totime'])
+      ret.push(s['dataname']);
+  }
+
+  return ret;
+}
+
+// Helper to call _getInvolvedSeries and call GetFullSeries on all results, with
+// final callback.
+function _fetchInvolvedSeries(range, callback) {
+  var fullseries = _getInvolvedSeries(range);
+  var queued = 0;
+  var pending = 0;
+  for (var x in fullseries) {
+    if (!(fullseries[x] in gFullData)) {
+      pending++;
+      var self = this;
+      getFullSeries(fullseries[x], function () {
+        if (--pending == 0)
+          callback.call(null, queued);
+      });
+    }
+  }
+  queued = pending;
+  if (queued == 0)
+    callback.call(null, 0);
+}
+
 //
 // Tooltip
 //
@@ -511,12 +574,6 @@ Tooltip.prototype.showBuild = function(label, series, buildset, buildindex, seri
   this.build_set = buildset;
   this.build_index = buildindex;
 
-  function revlink(rev) {
-    return $.new('a')
-            .attr('href', "http://hg.mozilla.org/mozilla-central/rev/" + rev)
-            .text(rev);
-  }
-
   var value = series[buildindex][1];
   var build = buildset[buildindex];
   var rev = build['firstrev'].slice(0,12);
@@ -525,13 +582,18 @@ Tooltip.prototype.showBuild = function(label, series, buildset, buildindex, seri
   this.append($.new('h3').text(label));
   // Build link / time
   var ttinner = $.new('p');
-  ttinner.append($.new('p').text(formatBytes(value)));
+  var valobj = $.new('p').text(formatBytes(value) + ' ');
+  // Delta
+  if (buildindex > 0) {
+    valobj.append(mkDelta(value, series[buildindex - 1][1]));
+  }
+  ttinner.append(valobj);
   ttinner.append($.new('b').text('build '));
-  ttinner.append(revlink(rev));
+  ttinner.append(mkHgLink(rev));
   if (build['lastrev']) {
     // Multiple revisions, add range link
     ttinner.append(' .. ');
-    ttinner.append(revlink(build['lastrev'].slice(0,12)));
+    ttinner.append(mkHgLink(build['lastrev'].slice(0,12)));
   }
   if (buildindex > 0) {
     // Add pushlog link
@@ -548,7 +610,16 @@ Tooltip.prototype.showBuild = function(label, series, buildset, buildindex, seri
       ttinner.append(")");
     }
   }
-  ttinner.append($.new('p').text(prettyDate(value)));
+  // Time
+  ttinner.append($.new('p').addClass('timestamp').text(prettyDate(build['time'])));
+  // Full timerange (shown on zoom)
+  if (build['timerange']) {
+    var timerange = $.new('p').addClass('timerange').hide();
+    timerange.append(prettyDate(build['timerange'][0]));
+    timerange.append(' — ');
+    timerange.append(prettyDate(build['timerange'][1]));
+    ttinner.append(timerange);
+  }
   var self = this;
   ttinner.append($.new('p').addClass("hoverNote")
                  .text("click for full memory info").click(function () {
@@ -569,67 +640,211 @@ Tooltip.prototype.buildDetail = function() {
     'text-align': 'center',
   }).text('Loading test data...').attr('id', 'loading');
 
+  // Switch to showing full timerange until unzoomed
+  var timerangeobj = this.content.find('.timerange');
+  if (timerangeobj.length) {
+    var timeobj = this.content.find('.timestamp');
+    timeobj.insertBefore(timerangeobj);
+    timeobj.addClass('fading').fadeOut(250);
+    timerangeobj.removeClass('fading').fadeIn(250);
+    this.onUnzoom(function () {
+      timerangeobj.insertBefore(timeobj);
+      timerangeobj.addClass('fading').fadeOut(250);
+      timeobj.removeClass('fading').fadeIn(250);
+    });
+  }
+
   this.append(loading);
   this.obj.find(".hoverNote").remove();
   loading.fadeIn();
 
-  var memoryview = this._memoryView();
+  var self = this;
+  var build = this.build_set[this.build_index];
 
-  this.append(memoryview);
+  if ('lastrev' in build) {
+    // Build is a series. We need to make sure we have full res data to
+    // enumerate all the builds in this range.
+    this._asyncHelper(_fetchInvolvedSeries, build['timerange'], function() {
+      self.append(self._buildlistView());
+    });
+  } else {
+    // Only one build, just display memory view
+    var revision = build['firstrev'];
+    this._asyncHelper(getPerBuildData, revision, function () {
+      var memoryview = self._memoryView(revision);
+      self.append(memoryview);
+      memoryview.fadeIn(250);
+    });
+  }
 }
 
-Tooltip.prototype._memoryView = function() {
-  // Load per build data
-  var build = this.buildset[this.buildindex];
+// Wraps a |someAsyncThing(arg, success_callback, fail_callback)| style call,
+// handling fading in/out the 'Loading...' message, displaying an error, and
+// aborting if the tooltip leaves zoom mode.
+Tooltip.prototype._asyncHelper = function(target, arg, success) {
+  var loading = this.obj.find('#loading');
   var canceled = false;
-  var revision = build['firstrev'];
+  this.onUnzoom(function () { canceled = true; });
+
   var self = this;
-  getPerBuildData(revision, function () {
-    // On get data (can be immediate)
-    if (canceled) { return; }
+  target.call(null, arg, function () {
+    // Success
+    if (!canceled) {
+      loading.addClass('fading').fadeOut(250);
+      success.call(null);
+    }
+  }, function (error) {
+    // Failed
+    if (!canceled) {
+      loading.text("Failed to fetch data :(");
+      logError("Error while loading data: " + error);
+      self.content.append($.new('p').css({ 'color': 'red', 'text-align': 'center' })
+                           .text("Error: " + error));
+    }
+  });
+}
 
-    // Build zoomed tooltip
-    var series_info = gGraphData['series_info'][self.series];
-    var nodes = gPerBuildData[revision][series_info['test']]['nodes'];
-    var datapoint = series_info['datapoint'];
+Tooltip.prototype._buildlistView = function () {
+  // Get the full list of builds our condensed build covers
+  var condensedbuild = this.build_set[this.build_index];
+  var involvedseries = _getInvolvedSeries(condensedbuild['timerange']);
+  var self = this;
+  var loading = this.content.find('#loading');
 
-    // series_info['datapoint'] might be a list of aliases for the datapoint.
-    // find the one actually used in this node tree.
-    if (datapoint instanceof Array) {
-      for (var i = 0; i < datapoint.length; i++) {
-        var dlist = datapoint[i].split('/');
-        var p = nodes;
-        while (dlist.length) {
-          p = p[dlist.shift()];
-          if (!p) break;
-        }
-        if (p) {
-          datapoint = datapoint[i];
-          break;
-        }
+  var wrapper = $.new('div').addClass('buildList');
+  var header = $.new('div').addClass('buildListHead').appendTo(wrapper);
+  $.new('div').addClass('buildListSubHead').appendTo(wrapper)
+              .text('Only tested revisions shown, range may include more changesets');
+  var obj = $.new('div').addClass('buildListContent').appendTo(wrapper);
+  var numbuilds = 0;
+
+  var lastmem;
+  var min = null;
+  var max = null;
+  var first = null;
+  var last = null;
+
+  for (var m = 0; m < involvedseries.length; m++) {
+    var series = gFullData[involvedseries[m]];
+    for (var n = 0; n < series.builds.length; n++) {
+      var mem = series.series[this.build_seriesname][n];
+      var build = series.builds[n];
+      // Scan to first build
+      if (!first && build['revision'] == condensedbuild['firstrev']) {
+        first = mem;
+      } else if (!first) {
+        lastmem = mem;
+        continue;
+      }
+      numbuilds++;
+
+      //
+      // Create build link and append to list
+      //
+      var buildcrumb = $.new('div', { 'class': 'buildcrumb' });
+
+      // series value for this build
+      // [view]
+      buildcrumb.append('[');
+      var viewlink  = $.new('a', { 'href': '#' })
+                       .text('view')
+                       .appendTo(buildcrumb);
+      buildcrumb.append('] ');
+      // revision (also takes you to hg)
+      buildcrumb.append(mkHgLink(build['revision']));
+      // Memory usage
+      buildcrumb.append($.new('span').text(' ' + formatBytes(mem)));
+      // delta
+      if (lastmem) {
+        var deltaobj = mkDelta(mem, lastmem);
+        buildcrumb.append(' ');
+        buildcrumb.append(deltaobj);
+      }
+
+      // track min/max
+      if (max === null || mem > max) max = mem;
+      if (min === null || mem < min) min = mem;
+      lastmem = mem;
+
+      viewlink.click(function (rev) {
+        // Close over rev
+        return function() {
+          if (obj.is('.fading'))
+            return;
+
+          // Fade out buildlist, fade in loading, fade in memoryview when fetch
+          // completes.
+          wrapper.insertBefore(loading);
+          wrapper.addClass('fading').fadeOut(250);
+          loading.removeClass('fading').fadeIn(250);
+          self._asyncHelper(getPerBuildData, rev, function () {
+            var memoryview = self._memoryView(rev);
+            // Append back arrow to memory view
+            var back = $.new('a', { 'href': '#', 'class': 'button backButton' })
+                        .text('[<- list]')
+                        .click(function () {
+                          // Return to buildlist view
+                          memoryview.addClass('fading').fadeOut(250, function () {
+                            memoryview.remove();
+                          });
+                          wrapper.removeClass('fading').fadeIn(250);
+                          return false;
+                        });
+            memoryview.find('.treeTitle').prepend(back);
+            // insertBefore so it get pushed down by the buildlist when the
+            // buildlist fades back in. (while the memory view would still be
+            // fading out)
+            memoryview.insertBefore(wrapper);
+            memoryview.fadeIn(250);
+          });
+          return false;
+        };
+      } (build['revision']));
+
+      obj.append(buildcrumb);
+
+      // Stop at lastrev
+      if (build['revision'] == condensedbuild['lastrev']) {
+        last = mem;
+        // Break out of nested loop
+        m = involvedseries.length;
+        break;
       }
     }
+  }
 
-    var loading = self.obj.find('#loading');
-    loading.css({ 'width' : '100%', 'position': 'absolute' }).fadeOut(250);
+  // Fill header now that we counted builds and min/max
+  header.text(numbuilds + ' builds.');
+  header.append(' ' + formatBytes(min) + ' min, ' + formatBytes(max) + ' max ');
+  header.append(mkDelta(first, last));
+  return wrapper;
+}
 
-    var title;
-    if ('lastrev' in build)
-      title = revision.slice(0,12) + " @ " + series_info['test'];
-    else
-      title = series_info['test'];
-    var memoryTree = makeMemoryTree(title, nodes, datapoint);
+Tooltip.prototype._memoryView = function(revision) {
+  // Build zoomed tooltip
+  var series_info = gGraphData['series_info'][this.build_seriesname];
+  var nodes = gPerBuildData[revision][series_info['test']]['nodes'];
+  var datapoint = series_info['datapoint'];
 
-    self.append(memoryTree);
-    memoryTree.fadeIn();
-  }, function (error) {
-    // On failure
-    loading.text("An error occured while loading the datapoint");
-    self.append($.new('p', null, { color: '#F55' }).text(status + ': ' + error));
-  });
+  // series_info['datapoint'] might be a list of aliases for the datapoint.
+  // find the one actually used in this node tree.
+  if (datapoint instanceof Array) {
+    for (var i = 0; i < datapoint.length; i++) {
+      var dlist = datapoint[i].split('/');
+      var p = nodes;
+      while (dlist.length) {
+        p = p[dlist.shift()];
+        if (!p) break;
+      }
+      if (p) {
+        datapoint = datapoint[i];
+        break;
+      }
+    }
+  }
 
-  // Cancel loading if tooltip is closed before the callback
-  this.onUnzoom(function () { canceled = true; });
+  var title = series_info['test'] + ' :: ' + revision.slice(0,12);
+  return makeMemoryTree(title, nodes, datapoint);
 }
 
 Tooltip.prototype.zoom = function(callback) {
@@ -661,7 +876,7 @@ Tooltip.prototype.zoom = function(callback) {
 
   // Close button
   var self = this;
-  $.new('a', { class: 'closeButton', href: '#' })
+  $.new('a', { class: 'button closeButton', href: '#' })
    .text('[x]')
    .appendTo(this.obj).css('display', 'none')
    .fadeIn(500).click(function () {
@@ -707,7 +922,8 @@ Tooltip.prototype.unzoom = function() {
 var gPendingFullData = {}
 function getFullSeries(dataname, success, fail) {
   if (dataname in gFullData) {
-    if (success instanceof Function) success.apply(null);
+    if (success instanceof Function)
+      window.setTimeout(success, 0);
   } else {
     if (!(dataname in gPendingFullData)) {
       gPendingFullData[dataname] = { 'success': [], 'fail': [] };
@@ -721,7 +937,7 @@ function getFullSeries(dataname, success, fail) {
         },
         error: function(xhr, status, error) {
           for (var i in gPendingFullData[dataname]['fail'])
-            gPendingFullData[dataname]['fail'][i].call(null);
+            gPendingFullData[dataname]['fail'][i].call(null, error);
           delete gPendingFullData[dataname];
         },
         dataType: 'json'
@@ -966,18 +1182,10 @@ Plot.prototype.setZoomRange = function(range, nosync) {
 
     // If there are sub-series we should pull in that we haven't cached,
     // set requests for them and reprocess the zoom when complete
-    var fullseries = self._getInvolvedSeries(range);
-    var pending = 0;
-    for (var x in fullseries) {
-      if (!(fullseries[x] in gFullData)) {
-        pending++;
-        var self = this;
-        getFullSeries(fullseries[x], function () {
-          if (--pending == 0 && self.zoomed)
-            self.setZoomRange(self.zoomRange, true);
-        });
-      }
-    }
+    _fetchInvolvedSeries(range, function (fetched) {
+      if (fetched > 0)
+        self.setZoomRange(self.zoomRange, true);
+    });
 
     this.zoomRange = range;
     var newseries = this._buildSeries(range[0], range[1]);
@@ -996,29 +1204,6 @@ Plot.prototype.setZoomRange = function(range, nosync) {
           gZoomSyncPlots[x].setZoomRange(zoomOut ? undefined : range, true);
 }
 
-// If this range is 'zoomed' enough to warrant using full-resolution data
-// (based on gMaxPoints), return the list of gFullData series names that would
-// be needed. Return false if overview data is sufficient for this range.
-// It's up to the caller to call getFullSeries(name) to start downloading any
-// of these that arn't downloaded.
-Plot.prototype._getInvolvedSeries = function(range) {
-  var ret = [];
-  var groupdist = gMaxPoints < 1 ? 1 : (Math.round((range[1] - range[0]) / gMaxPoints));
-
-  // Unless the requested grouping distance is < 80% of the overview data's
-  // distance, don't pull in more
-  if (!gQueryVars['nocondense'] && groupdist / gGraphData['condensed'] > 0.8)
-    return null;
-
-  for (var x in gGraphData['allseries']) {
-    var s = gGraphData['allseries'][x];
-    if (range[1] >= s['fromtime'] && range[0] <= s['totime'])
-      ret.push(s['dataname']);
-  }
-;
-  return ret;
-}
-
 // Takes two timestamps and builds a list of series based on this plot's axis
 // suitable for passing to flot - condensed to try to hit gMaxPoints.
 // Uses series returned by _getInvolvedSeries *if they are all downloaded*,
@@ -1026,7 +1211,7 @@ Plot.prototype._getInvolvedSeries = function(range) {
 // See comment about gFullData at top of file
 Plot.prototype._buildSeries = function(start, stop) {
   var self = this; // for closures
-  var involvedseries = this._getInvolvedSeries([start, stop]);
+  var involvedseries = _getInvolvedSeries([start, stop]);
 
   // Don't use the involved series if they're not all downloaded
   for (var x in involvedseries) {
@@ -1355,7 +1540,6 @@ $(function () {
         // Load all graph data, all the time, not using the condensed 'overview'
         // data
         $('#graphs h3').text("Loading all the things [nocondense]...");
-        var pending = 0;
         for (var x in gGraphData['allseries']) {
           pending++;
           getFullSeries(gGraphData['allseries'][x]['dataname'], function () {

@@ -1,7 +1,7 @@
 
 /*
  * Copyright © 2012 Mozilla Corporation
- * 
+ *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this file,
  * You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -141,6 +141,31 @@ a:visited:hover { color: #494; }
 
 .zoomOutButton:hover {
   text-decoration: underline;
+}
+
+.buildList {
+    text-align: center;
+}
+
+.buildListHead {
+    font-weight: bold;
+    color: #CCC;
+    padding: 5px;
+}
+
+.buildListSubHead {
+    color: #AAA;
+    font-size: 0.8em;
+    text-style: italic;
+}
+
+.buildListContent {
+    display: inline-block;
+    text-align: left;
+}
+
+.buildcrumb {
+  font-family: monospace;
 }
 
 .note, .small {
@@ -315,19 +340,39 @@ body.faqPage {
   padding: 5px;
 }
 
-.closeButton {
+.button {
   color: #CCC;
+  font-family: monospace;
+  cursor: pointer;
+}
+
+.closeButton {
   position: absolute;
   top: 15px;
   right: 15px;
-  font-family: monospace;
   font-size: 1.5em;
-  cursor: pointer;
 }
+
+.backButton {
+  float: left;
+}
+
+.delta {
+  font-size: 0.8em;
+}
+
+/* Positive is bad! */
+.delta.pos { color: red; }
+.delta.neg { color: green; }
 
 .tooltip h2, p {
   line-height: inherit;
   margin: inherit;
+}
+
+.tooltip .fading {
+  width: 100%;
+  position: absolute;
 }
 
 /*
