@@ -64,8 +64,9 @@ def condense_data(data):
   for point in ranges:
     build = {}
     build['firstrev'] = data['builds'][point[0]]['revision']
-    build['time'] = dayof(data['builds'][point[0]]['time'])
+    build['time'] = data['builds'][point[0]]['time']
     if point[0] != point[1]:
+      build['time'] = dayof(build['time'])
       build['count'] = point[1] - point[0] + 1
       build['lastrev'] = data['builds'][point[1]]['revision']
       build['timerange'] = [ data['builds'][point[0]]['time'], data['builds'][point[1]]['time'] ]
@@ -96,12 +97,12 @@ for fname in files:
   fdata = json.loads(f.read())
   f.close()
   if not len(fdata['builds']): continue
-  cdata = condense_data(fdata)
   totaldata['allseries'].append({
       'fromtime' : fdata['builds'][0]['time'],
       'totime' : fdata['builds'][-1]['time'],
       'dataname' : fname.replace('.json.gz', '')
     })
+  cdata = condense_data(fdata)
   for x in cdata['series'].keys():
     totaldata['series'].setdefault(x, [])
     # If this series just appeared, or was absent from some datafiles before this,
