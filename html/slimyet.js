@@ -615,7 +615,7 @@ Tooltip.prototype.showBuild = function(label, series, buildset, buildindex, seri
   // Time
   ttinner.append($.new('p').addClass('timestamp').text(prettyDate(build['time'])));
   // Full timerange (shown on zoom)
-  if (build['timerange']) {
+  if (build['lastrev'] && build['timerange']) {
     var timerange = $.new('p').addClass('timerange').hide();
     timerange.append(prettyDate(build['timerange'][0]));
     timerange.append(' — ');
