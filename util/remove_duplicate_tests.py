@@ -26,7 +26,7 @@ if not os.path.exists(sys.argv[1]):
   sys.stderr.write("Database '%s' does not exist" % (sys.argv[1],))
   sys.exit(1)
 
-sql = sqlite3.connect(sys.argv[1], timeout=300)
+sql = sqlite3.connect(sys.argv[1], timeout=900)
 sql.row_factory = sqlite3.Row
 cur = sql.cursor()
 
@@ -56,6 +56,6 @@ for build in qbuilds:
         print("Deleted %u rows with %u datapoints for %s/%s" % (i, x, build['name'], test))
         totalrows += i
         totaldatapoints += x
+      sql.commit()
 
-sql.commit()
 print("Deleted total of %u rows with %u datapoints. A vacuum will be required to actually reclaim this space" % (totalrows, totaldatapoints))
