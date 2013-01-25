@@ -42,13 +42,13 @@ var performance = require("performance");
 var domWindowUtils = (function () {
   var wm = Cc["@mozilla.org/appshell/window-mediator;1"]
            .getService(Ci.nsIWindowMediator);
-           
+
   var e = wm.getEnumerator("navigator:browser");
   if (!e.hasMoreElements()) return null;
-  
+
   var window = e.getNext();
   window instanceof Ci.nsIDOMWindow;
-  
+
   return window.QueryInterface(Components.interfaces.nsIInterfaceRequestor)
                .getInterface(Components.interfaces.nsIDOMWindowUtils);
 })();
@@ -65,7 +65,7 @@ Components.utils.import('resource://mozmill/modules/frame.js', frame);
  * Constructor
  *
  * @constructor
- * 
+ *
  * @param {MozMillController} controller
  *        MozMillController of the window to operate on
  */
@@ -109,7 +109,7 @@ EnduranceManager.prototype = {
 
   /**
    * Run a complete GC -> CC cycle to attempt to minimize memory usage
-   * 
+   *
    * @param {function} callback
    *        Callback to call when GC/CC cycles have completed
    */
@@ -131,9 +131,9 @@ EnduranceManager.prototype = {
       if (++j <= iterations) {
         var schedGC = Cu.schedulePreciseShrinkingGC;
         if (!schedGC) schedGC = Cu.schedulePreciseGC;
-        
+
         obsService.notifyObservers(null, "child-gc-request", null);
-        
+
         if (schedGC) {
           schedGC.call(Cu, { callback: function () {
             runSoon(function () { cc(); runSoon(minimizeInner); });

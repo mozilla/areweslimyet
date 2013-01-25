@@ -172,7 +172,7 @@ function setupModule() {
 
   tabBrowser = new tabs.tabBrowser(controller);
   tabBrowser.closeAllTabs();
-  
+
   // Use bad proxy settings to break any non-localhost access
   //var prefs = Components.classes["@mozilla.org/preferences-service;1"]
   //                      .getService(Components.interfaces.nsIPrefService);
@@ -181,7 +181,7 @@ function setupModule() {
   prefs.preferences.setPref("network.proxy.socks_port", 90000); // Invalid port
   prefs.preferences.setPref("network.proxy.socks_remote_dns", true);
   prefs.preferences.setPref("network.proxy.type", 1); // Socks
-  
+
   // We're not testing flash memory usage. Also, it likes to crash in VNC sessions.
   prefs.preferences.setPref("plugin.disable", true);
 }
@@ -197,7 +197,7 @@ function testMemoryUsage() {
     }, 50);
     controller.waitFor(function () { return complete; }, null, 60000, 500);
   }
-  
+
   var initial = true;
   enduranceManager.run(function () {
     if (initial) {
