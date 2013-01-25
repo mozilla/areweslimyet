@@ -132,14 +132,40 @@ PerfTracer.prototype = {
     var knownHeap = 0;
 
     function addReport(path, amount, kind, units) {
-      if (units !== undefined && units != Ci.nsIMemoryReporter.UNITS_BYTES)
-        // Unhandled. (old builds don't specify units, but use only bytes)
-        return;
+      // Harness assumes a default of bytes to not bloat output (99% of
+      // reporters are bytes)
+      var unitname;
+      switch (units) {
+        // Old builds had no units field and assumed bytes
+        case undefined:
+        case Ci.nsIMemoryReporter.UNITS_BYTES:
+          break;
+        case Ci.nsIMemoryReporter.UNITS_COUNT:
+          unitname = "cnt";
+          break;
+        case Ci.nsIMemoryReporter.UNITS_PERCENTAGE:
+          unitname = "pct";
+          break;
+        default:
+          // Unhandled
+          return;
+      }
 
-      if (result['memory'][path])
-        result['memory'][path] += amount;
-      else
+      // For types with non-bytes units the value is
+      //   { 'unit': 'percent', 'val': 1234 }
+      // For bytes it is just a number, so as not to bloat output (we end up
+      // exporting 11k+ reporters on newer builds)
+      if (result['memory'][path]) {
+        if (unitname)
+          result['memory'][path]['val'] += amount;
+        else
+          result['memory'][path] += amount;
+      } else if (unitname) {
+        result['memory'][path] = { 'unit': unitname, 'val': amount };
+      } else {
         result['memory'][path] = amount;
+      }
+
       if (kind !== undefined && kind == Ci.nsIMemoryReporter.KIND_HEAP
           && path.indexOf('explicit/') == 0)
         knownHeap += amount;

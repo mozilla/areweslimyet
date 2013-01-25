@@ -260,10 +260,20 @@ for build in builds:
       # given. The idea is to reduce the amount of data juggling the frontend
       # needs to do.
       for row in allrows:
+        # If the datapoint begins with "AAA:..." then the datapoint has
+        # non-bytes units, and we include _units and strip the prefix
+        datapoint = row['datapoint']
+        units = datapoint.find(':', 0, 4)
+        if hasunits != -1:
+          units = datapoint[0:units]
+          datapoint = datapoint[units + 1:]
+        else:
+          units = None
+
         if nodeize:
           # Note that we perserve null values as 'none', to differentiate missing data from values of 0
           cursor = testdata[testname]['nodes']
-          thisnode = row['datapoint'].split(nodeize)
+          thisnode = datapoint.split(nodeize)
           for n in range(len(thisnode)):
             leaf = thisnode[n]
             cursor.setdefault(leaf, {})
@@ -271,6 +281,8 @@ for build in builds:
             # Nodes can have a value *and* childnodes, so we set _val for specific
             # values, and _sum for derived childnodes
             if n == len(thisnode) - 1:
+              if units:
+                cursor['_units'] = units
               cursor['_val'] = row['value']
 
             if not '_sum' in cursor or cursor['_sum'] == None:
@@ -279,7 +291,9 @@ for build in builds:
               cursor['_sum'] += row['value']
         else:
           # Flat data
-          testdata[testname]['nodes'][row['datapoint']] = row['value']
+          # For types with units, we use [ 'unit', val ] pairs
+          val = [ units, row['value'] ] if units else row['value']
+          testdata[testname]['nodes'][row['datapoint']] = val
 
     # Discard duplicate _sum/_val data after totalling, flatten node if there
     # are no children
@@ -291,6 +305,7 @@ for build in builds:
       for x in node:
         if x != '_val':
           discard(node[x])
+          # Just _val, no _units or _sum, replace node with just raw value
           if len(node[x]) == 1:
             node[x] = node[x]['_val']
     for x in testdata:
@@ -329,7 +344,7 @@ for build in builds:
           value = node
 
         data['series'][sname].append(value)
-    
+
     #
     # Discard data for tests not requested to be dumped
     #
@@ -337,7 +352,7 @@ for build in builds:
       if not testname in gTests.keys() or \
          not gTests[testname].get('dump'):
         del testdata[testname]
-    
+
     #
     # Write out the test data for this build into <buildname>.json.gz
     #
