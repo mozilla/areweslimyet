@@ -209,8 +209,8 @@ for build in builds:
 
     # Get latest test for this build
     cur.execute('''SELECT id, time FROM benchtester_tests
-                    WHERE name = ? AND build_id = ?
-                    ORDER BY time DESC LIMIT 1''', [testname, build['id']])
+                   WHERE name = ? AND build_id = ? AND successful = 1
+                   ORDER BY time DESC LIMIT 1''', [testname, build['id']])
     testrow = cur.fetchone()
     if not testrow:
       continue
