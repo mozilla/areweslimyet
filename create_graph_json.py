@@ -264,9 +264,8 @@ for build in builds:
         # non-bytes units, and we include _units and strip the prefix
         datapoint = row['datapoint']
         units = datapoint.find(':', 0, 4)
-        if hasunits != -1:
-          units = datapoint[0:units]
-          datapoint = datapoint[units + 1:]
+        if units != -1:
+          (units, datapoint) = datapoint.split(':', 1)
         else:
           units = None
 
@@ -303,7 +302,7 @@ for build in builds:
       if '_sum' in node:
         del node['_sum']
       for x in node:
-        if x != '_val':
+        if x not in [ '_val', '_units' ]:
           discard(node[x])
           # Just _val, no _units or _sum, replace node with just raw value
           if len(node[x]) == 1:
