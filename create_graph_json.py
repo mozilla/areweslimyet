@@ -267,7 +267,7 @@ for build in builds:
         if units != -1:
           (units, datapoint) = datapoint.split(':', 1)
         else:
-          units = None
+          units = 'bytes'
 
         if nodeize:
           # Note that we perserve null values as 'none', to differentiate missing data from values of 0
@@ -280,9 +280,15 @@ for build in builds:
             # Nodes can have a value *and* childnodes, so we set _val for specific
             # values, and _sum for derived childnodes
             if n == len(thisnode) - 1:
-              if units:
-                cursor['_units'] = units
+              cursor['_units'] = units
               cursor['_val'] = row['value']
+
+            # discard() will make this the canonical units if no explicit value
+            # for this node shows up.
+            if '_childunits' in cursor and cursor['_childunits'] != units:
+              cursor['_childunits'] = 'mixed'
+            else:
+              cursor['_childunits'] = units
 
             if not '_sum' in cursor or cursor['_sum'] == None:
               cursor['_sum'] = row['value']
@@ -297,10 +303,18 @@ for build in builds:
     # Discard duplicate _sum/_val data after totalling, flatten node if there
     # are no children
     def discard(node):
+      # If no explicit value or units, use the sum/childunits
       if '_val' not in node:
-        node['_val'] = node['_sum'] if '_sum' in node else None
+        node['_val'] = node.get('_sum')
+      if '_units' not in node:
+        node['_units'] = node.get('_childunits')
       if '_sum' in node:
         del node['_sum']
+      if '_childunits' in node:
+        del node['_childunits']
+      # Bytes is the default unit
+      if node.get('_units') == 'bytes':
+        del node['_units']
       for x in node:
         if x not in [ '_val', '_units' ]:
           discard(node[x])
