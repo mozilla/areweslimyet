@@ -331,7 +331,8 @@ function memoryTreeNode(target, data, select, depth) {
   if (depth === undefined)
     depth = 0;
 
-  // TODO Better selection of nodes that should show Mem/Pct
+  // TODO Use 'mixed' units as an indicator of container nodes instead of hard
+  //      coding.
   var showVal = depth >= 2;
   var showPct = depth >= 3;
 
@@ -370,7 +371,12 @@ function memoryTreeNode(target, data, select, depth) {
   var parentval = defval(data);
   var node;
   while (node = rows.shift()) {
-    var leaf = typeof(data[node]) == 'number';
+    var leaf = true;
+    if (typeof(data[node]) != 'number') {
+      for (var key in data[node])
+        if (key[0] !== '_')
+          leaf = false
+    }
     var treeNode = $.new('div')
                     .addClass('treeNode')
                     .data('nodeData', data[node])
@@ -383,15 +389,29 @@ function memoryTreeNode(target, data, select, depth) {
     var val = defval(data[node]);
     if (showVal && val != null) {
       // Value
+      var prettyval;
+      if (data[node] instanceof Object && '_units' in data[node]) {
+        if (data[node]['_units'] == 'pct')
+          // 'percent' memory reporters are fixed point
+          prettyval = (val / 100).toFixed(2) + '%';
+        else if (data[node]['_units'] == 'cnt')
+          // 'count' memory reporters are unitless
+          prettyval = val
+        else
+          logError("unknown unit type " + data[node]['_units']);
+      } else {
+        // Default unit is bytes
+        prettyval = formatBytes(val);
+      }
       $.new('span').addClass('treeValue')
-                  .text(formatBytes(val))
-                  .appendTo(nodeTitle);
-      // Percentage
+                   .text(prettyval)
+                   .appendTo(nodeTitle);
+      // Percentage of parent node
       var pct = "("+prettyFloat(100* (val / parentval))+"%)";
       if (showPct && parentval != null) {
         $.new('span').addClass('treeValuePct')
-                    .text(pct)
-                    .appendTo(nodeTitle);
+                     .text(pct)
+                     .appendTo(nodeTitle);
       }
     }
 
