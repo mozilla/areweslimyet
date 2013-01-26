@@ -332,7 +332,7 @@ function memoryTreeNode(target, data, select, depth) {
     depth = 0;
 
   // TODO Better selection of nodes that should show Mem/Pct
-  var showMem = depth >= 2;
+  var showVal = depth >= 2;
   var showPct = depth >= 3;
 
   // if select is passed as "a/b/c", split it so it is an array
@@ -349,11 +349,12 @@ function memoryTreeNode(target, data, select, depth) {
   // Sort nodes
   var rows = [];
   for (var node in data) {
-    if (node == '_val')
+    // Nodes starting with _ are not children (_val, _sum, _units)
+    if (node[0] == '_')
       continue;
     rows.push(node);
   }
-  if (showMem) {
+  if (showVal) {
     // Sort by memory size
     rows.sort(function (a, b) {
       var av = defval(data[a]) == null ? 0 : defval(data[a]);
@@ -380,7 +381,7 @@ function memoryTreeNode(target, data, select, depth) {
 
     // Add value if inside a memNode
     var val = defval(data[node]);
-    if (showMem && val != null) {
+    if (showVal && val != null) {
       // Value
       $.new('span').addClass('treeValue')
                   .text(formatBytes(val))
