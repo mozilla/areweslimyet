@@ -317,7 +317,7 @@ $(function () {
         alert("Missing fields");
         return false;
       }
-      if (doseries && !series.match('^[a-z0-9\-]$')) {
+      if (doseries && !series.match('^[a-z0-9\-]+$')) {
         alert("Series name can only contain lowercase, numbers, and dash");
         return false;
       }
@@ -330,6 +330,10 @@ $(function () {
       if (mode == "ftp") {
         start = start.replace("^((https?)|(ftp))://ftp.mozilla.org", "");
         start = start.replace("^pub", "/pub");
+        if (!start.match('^/pub/')) {
+          alert("The path for an FTP build should start with /pub/");
+          return false;
+        }
       }
 
       var args = { 'mode': mode };
