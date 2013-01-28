@@ -24,8 +24,11 @@ execfile("slimtest_config.py")
 
 sql = None
 
-def database_for_timestamp(ts = time.time()):
-  date = datetime.date.fromtimestamp(ts)
+def database_for_build(build):
+  if build.series:
+    return os.path.join("db", "custom-%s.sqlite" % build.series)
+
+  date = datetime.date.fromtimestamp(build.build.get_timestamp())
   return os.path.join("db", "areweslimyet-%04u-%02u.sqlite" % (date.year, date.month))
 
 def stat(msg, logfile=None):
@@ -39,13 +42,13 @@ def cli_hook(parser):
   parser.add_argument('--skip-existing', action='store_true', help="Check the sqlite database and skip a build if it already has complete test data")
 
 def should_test(build, args):
-  dbname = database_for_timestamp(build.build.get_buildtime())
+  dbname = database_for_build(build)
   if os.path.exists("%s.xz" % (dbname,)):
     # Database is archived, don't create a duplicate
     build.note = "Test database for this build's month (%s) has been archived, refusing to test" % (dbname,)
     return False
 
-  # No builds for this month yet
+  # No builds for this db yet
   if not os.path.exists("%s" % (dbname,)):
     return True
 
@@ -90,12 +93,12 @@ def run_tests(build, args):
     logfile = os.path.join(args.get('logdir'), "%s.test.log" % (build.revision,))
   else:
     logfile = None
-      
+
   tester.setup({
     'buildname': build.revision,
     'binary': build.build.get_binary(),
     'buildtime': build.build.get_buildtime(),
-    'sqlitedb': database_for_timestamp(build.build.get_buildtime()),
+    'sqlitedb': database_for_build(build),
     'logfile': logfile,
     'jsbridge_port': 24242 + build.num # Use different jsbridge ports so as not to collide
   })
