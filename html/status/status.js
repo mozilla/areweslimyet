@@ -268,11 +268,11 @@ $(function () {
           label.text("Revision");
         }
       } else {
-        $('#reqStartBox, #reqEndBox, #reqNote, #reqSubmitbox, #reqMsgBox').hide();
+        $('.field').hide();
         return;
       }
 
-      $('#reqStartBox, #reqNote, #reqSubmitbox, #reqMsgBox').show();
+      $('.field').show();
       if (multi) $('#reqEndBox').show();
       else $('#reqEndBox').hide();
     });

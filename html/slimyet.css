@@ -247,6 +247,8 @@ body.faqPage {
   margin: 5px;
 }
 
+.field { display: none; }
+
 /*
  * Tree views
  */
