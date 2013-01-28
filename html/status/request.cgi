@@ -24,18 +24,27 @@ def main():
   start = val('startbuild')
   end = val('endbuild')
   note = val('note')
+  series = val('series')
+  path = val('path')
 
   if not start or not mode:
     error("startbuild and mode are required")
 
-  if mode not in [ 'nightly', 'tinderbox', 'compile' ]:
+  if mode not in [ 'nightly', 'tinderbox', 'compile', 'ftp' ]:
     error("Unknown mode")
 
   invalid = re.compile("[^a-zA-Z0-9\-]")
-  if invalid.match(start) or (end and invalid.match(end)):
+  if invalid.match(series) invalid.match(start) or (end and invalid.match(end)):
     error("Invalid input")
 
-  ret = { "mode": mode, "firstbuild": start }
+  ret = { "mode": mode }
+  if mode == "ftp":
+    ret['path'] = path
+  else:
+    ret['firstbuild'] = start
+
+  if series:
+    ret['series'] = series
   if note:
     ret['note'] = note
   if end:

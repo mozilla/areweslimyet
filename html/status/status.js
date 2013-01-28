@@ -235,8 +235,9 @@ $(function () {
     // Request form
     //
     $('#reqBuildType option:first').prop('selected', true);
-    $('#reqBuildType, #reqBuildMulti').change(function() {
+    $('#reqBuildType, #reqBuildMulti, #reqDoSeries').change(function() {
       var val = $('#reqBuildType').val();
+      var series = $('#reqDoSeries:checked').length;
       var label = $('#reqStartLabel');
       var elabel = $('#reqEndLabel');
       var multi = $('#reqBuildMulti:checked').length;
@@ -273,8 +274,8 @@ $(function () {
       }
 
       $('.field').show();
-      if (multi) $('#reqEndBox').show();
-      else $('#reqEndBox').hide();
+      series ? $('.series').show() : $('.series').hide();
+      multi ? $('#reqEndBox').show() : $('#reqEndBox').hide();
     });
 
     // Submit the request
