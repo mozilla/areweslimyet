@@ -17,7 +17,9 @@ import os
 import sqlite3
 import json
 import time
+import re
 import gzip
+
 # For looking up build rev numbers
 import mercurial, mercurial.ui, mercurial.hg, mercurial.commands
 gMercurialRepo = "./mozilla-central"
@@ -75,8 +77,25 @@ gTests = {
         ]
       }
     }
+  },
+  "Android-ARMv6" : {
+    "nodeize" : "/",
+    "dump" : True,
+    # See below
+    "series" : {}
   }
 }
+
+# Reuse default tests for android, but s/Iteration 5/Iteration 1/
+for k, v in gTests['Slimtest-TalosTP5-Slow']['series'].iteritems():
+  if type(v['datapoint']) is list:
+    out = []
+    for x in v['datapoint']:
+      out.append(re.sub('^Iteration 5', 'Iteration 1', x))
+  else:
+    out = re.sub('^Iteration 5', 'Iteration 1', v['datapoint'])
+  gTests['Android-ARMv6']['series']['Android'+k] = { "datapoint": out }
+
 
 # Python 2 compat
 if sys.hexversion < 0x03000000:
