@@ -136,6 +136,17 @@ var gSeries = {
   }
 };
 
+// Select android data. Use the same gSeries, but s/After TP5/After tabs/ and
+// prepend 'Android' to series names.
+if (gQueryVars['mobile']) {
+  for (var series in gSeries) {
+    for (var dp in gSeries[series]) {
+      gSeries[series]['Android'+dp] = gSeries[series][dp].replace("After TP5", "After tabs");
+      delete gSeries[series][dp];
+    }
+  }
+}
+
 // gGraphData pulls /data/<series>.json which has a *condensed* series of builds
 // and associated data-lines. After a certain zoom level we need to pull in the
 // full-resolution data into gFullData. gGraphData['allseries'] contains info on
