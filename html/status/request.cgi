@@ -37,6 +37,12 @@ def main():
   if invalid.match(series) invalid.match(start) or (end and invalid.match(end)):
     error("Invalid input")
 
+  if series.startswith("areweslimyet"):
+    error("Series names may not start with areweslimyet")
+
+  if mode == "ftp" and not series:
+    error("FTP builds must use a custom series")
+
   ret = { "mode": mode }
   if mode == "ftp":
     ret['path'] = path

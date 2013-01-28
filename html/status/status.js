@@ -242,6 +242,18 @@ $(function () {
       var elabel = $('#reqEndLabel');
       var multi = $('#reqBuildMulti:checked').length;
       var note = $('#reqNote');
+
+      // Ftp doesn't support multi builds, and requires a custom series.
+      if (val == "ftp" && multi) {
+        $('#reqBuildMulti').attr('checked', false);
+        multi = false;
+      }
+      if (val == "ftp" && !series) {
+        series = true;
+        $('#reqDoSeries').attr('checked', true);
+      }
+
+      $('#reqDoSeries,#reqBuildMulti').attr('disabled', false);
       if (val == "nightly") {
         note.text("Build the nightly for a specified date (YYYY-MM-DD)");
         if (multi) {
@@ -268,6 +280,11 @@ $(function () {
           note.text("Compile and test this specific mozilla-central revision.");
           label.text("Revision");
         }
+      } else if (val == "ftp") {
+        $('#reqBuildMulti,#reqDoSeries').attr('disabled', true);
+        note.text("Download and test a specific build on ftp.mozilla.org");
+        note.append("<br />Provided path must contain a linux-64 build (*.linux-x86_64.tar.bz2)");
+        label.text("FTP path or link");
       } else {
         $('.field').hide();
         return;
@@ -286,6 +303,8 @@ $(function () {
       var multi = $('#reqBuildMulti:checked').length;
       var end = $('#reqEndBuild').val();
       var note = $('#reqMsg').val();
+      var doseries = $('#reqDoSeries:checked').length;
+      var series = $('#reqSeries').val();
 
       function dParse(d) {
         var ret = +(Date.parse(d) / 1000);
@@ -295,7 +314,11 @@ $(function () {
       }
 
       if (!start.length || (multi && !end.length) || !mode) {
-        alert("Fill out all the boxes. There's only two, come on!");
+        alert("Missing fields");
+        return false;
+      }
+      if (doseries && !series.match('^[a-z0-9\-]$')) {
+        alert("Series name can only contain lowercase, numbers, and dash");
         return false;
       }
       if (mode == "tinderbox" && multi) {
@@ -304,8 +327,20 @@ $(function () {
         if (isNaN(start) || isNaN(end)) return false;
       }
 
-      var args = { 'mode': mode, 'startbuild': start };
+      if (mode == "ftp") {
+        start = start.replace("^((https?)|(ftp))://ftp.mozilla.org", "");
+        start = start.replace("^pub", "/pub");
+      }
+
+      var args = { 'mode': mode };
+      if (mode == "ftp") {
+        args['path'] = start;
+      } else {
+        args['startbuild'] = start;
+      }
+      if (doseries) args['series'] = series;
       if (multi) args['endbuild'] = end;
+      if ($('#reqDoSeries:checked').length) args['series'] = $('#reqSeries').val();
       if ($('#reqPriority:checked').length) args['prioritize'] = 'true';
       if ($('#reqForce:checked').length) args['force'] = 'true';
       if (note) args['note'] = note;
