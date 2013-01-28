@@ -9,16 +9,20 @@
 
 "use strict";
 
-// Query (search) vars. (Because screw the hashbang, I suppose)
+// Vars from query or hash in form #key[:val],...
 var gQueryVars = (function () {
   var ret = {};
-  if (document.location.search) {
-    var vars = document.location.search.slice(1).split('&');
+  function expand(target, outer, inner) {
+    var vars = target.split(outer);
     for (var x in vars) {
-      x = vars[x].split('=');
+      x = vars[x].split(inner);
       ret[decodeURIComponent(x[0])] = x.length > 1 ? decodeURIComponent(x[1]) : true;
     }
   }
+  if (document.location.search)
+    expand(document.location.search.slice(1), '&', '=')
+  if (document.location.hash)
+    expand(document.location.hash.slice(1), ',', ':')
   return ret;
 })();
 
