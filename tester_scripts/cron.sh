@@ -5,7 +5,7 @@ set -e
 cd "$(dirname "$0")"
 
 # Queue any new tinderbox builds
-util/queue_tinderbox_builds.py html/status/batch last_tinderbox.json
+util/queue_tinderbox_builds.py html/status/batch last_tinderbox.json integration/mozilla-inbound
 
 # Compress logs from >7days ago
 (
