@@ -529,7 +529,10 @@ function Tooltip(parent) {
   // Track mouseover state for delayed fade out
   var self = this;
   this.mouseover = false;
-  this.obj.bind("mouseover", function(e) { self.mouseover = true; });
+  this.obj.bind("mouseover", function(e) {
+    self.mouseover = true;
+    self._fadeIn();
+  });
   this.obj.mouseleave(function(e) {
     self.mouseover = false;
     if (self.obj.is(":visible") && !self.hovered && !self.isZoomed()) {
@@ -582,7 +585,7 @@ Tooltip.prototype.hover = function(x, y, nofade) {
 
   // Show tooltip
   if (!nofade)
-    this.obj.stop().fadeTo(200, 1);
+    this._fadeIn();
 }
 
 Tooltip.prototype.unHover = function() {
@@ -593,6 +596,10 @@ Tooltip.prototype.unHover = function() {
     // Don't actually fade till the mouse goes away, see handlers in constructor
     this._fadeOut();
   }
+}
+
+Tooltip.prototype._fadeIn = function() {
+  this.obj.stop().fadeTo(200, 1);
 }
 
 Tooltip.prototype._fadeOut = function() {
