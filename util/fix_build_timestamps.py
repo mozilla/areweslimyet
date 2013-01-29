@@ -34,7 +34,7 @@ builds = 0
 touched = 0
 for build in cur.fetchall():
     builds += 1
-    newstamp = BuildGetter.pushlog_lookup(build[1])
+    newstamp = BuildGetter.pushlog_lookup(build[1])[1]
     if not newstamp:
         print("!! Couldn't lookup build %s" % (build[1],))
     if int(newstamp) != int(build[2]):
