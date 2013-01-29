@@ -37,7 +37,7 @@ def main():
     error("Unknown mode")
 
 
-  if series.startswith("areweslimyet"):
+  if series and series.startswith("areweslimyet"):
     error("Series names may not start with areweslimyet")
 
   if mode == "ftp" and not series:
