@@ -564,7 +564,7 @@ Tooltip.prototype.hover = function(x, y, nofade) {
 
   var h = this.obj.outerHeight();
   var w = this.obj.outerWidth();
-  var pad = 1;
+  var pad = 10;
   // Lower-right of cursor
   var top = y + pad;
   var left = x + pad;
