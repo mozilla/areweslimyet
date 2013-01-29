@@ -27,15 +27,15 @@ def main():
   series = val('series')
   path = val('path')
 
-  if not start or not mode:
-    error("startbuild and mode are required")
+  invalid = re.compile("[^a-zA-Z0-9\-]")
+  if not mode or (mode == "ftp" and not path) or (mode != "ftp" and not start) \
+        (series and invalid.match(series)) or (start and invalid.match(start)) \
+        or (end and invalid.match(end)):
+    error("Invalid input")
 
   if mode not in [ 'nightly', 'tinderbox', 'compile', 'ftp' ]:
     error("Unknown mode")
 
-  invalid = re.compile("[^a-zA-Z0-9\-]")
-  if invalid.match(series) or invalid.match(start) or (end and invalid.match(end)):
-    error("Invalid input")
 
   if series.startswith("areweslimyet"):
     error("Series names may not start with areweslimyet")
