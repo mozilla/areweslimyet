@@ -15,6 +15,10 @@ import sqlite3
 import os
 import sys
 
+# Run from root
+sys.path.append(os.abspath('benchtester'))
+import BuildGetter
+
 if len(sys.argv) != 3:
     sys.stderr.write("Requires arguments: sqlitedb branchname")
     sys.exit(1)
