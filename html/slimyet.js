@@ -136,6 +136,8 @@ var gSeries = {
   }
 };
 
+var gHgBaseUrl = 'https://hg.mozilla.org/mozilla-central';
+
 // Select android data. Use the same gSeries, but s/After TP5/After tabs/ and
 // prepend 'Android' to series names.
 if (gQueryVars['mobile']) {
@@ -145,6 +147,8 @@ if (gQueryVars['mobile']) {
       delete gSeries[series][dp];
     }
   }
+  // Android data is based off inbound builds
+  gHgBaseUrl = 'https://hg.mozilla.org/integration/mozilla-inbound';
 }
 
 // gGraphData pulls /data/<series>.json which has a *condensed* series of builds
@@ -237,7 +241,7 @@ function mkDelta(mem, lastmem) {
 
 function mkHgLink(rev) {
   return $.new('a', { 'class': 'buildlink' })
-          .attr('href', "https://hg.mozilla.org/mozilla-central/rev/" + rev.slice(0,12))
+          .attr('href', gHgBaseUrl + "/rev/" + rev.slice(0,12))
           .text(rev);
 }
 
@@ -648,7 +652,7 @@ Tooltip.prototype.showBuild = function(label, series, buildset, buildindex, seri
     if (prevbuild && prevbuild['firstrev']) {
       var prevrev = prevbuild['firstrev'].slice(0,12);
       var pushrev = build['lastrev'] ? build['lastrev'].slice(0,12) : rev;
-      var pushlog = "https://hg.mozilla.org/mozilla-central/pushloghtml?fromchange=" + prevrev + "&tochange=" + pushrev;
+      var pushlog = gHgBaseUrl + "/pushloghtml?fromchange=" + prevrev + "&tochange=" + pushrev;
       ttinner.append(" (");
       ttinner.append($.new('a', { 'href' : pushlog })
                      .text("pushlog"));
