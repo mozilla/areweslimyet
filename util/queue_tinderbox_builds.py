@@ -23,11 +23,12 @@ def err(msg):
   stat(msg)
   sys.exit(1)
 
-if len(sys.argv) != 3 or not os.path.exists(sys.argv[2]):
+if len(sys.argv) != 4 or not os.path.exists(sys.argv[2]):
   err("Incorrect usage. See comments")
 
 batchdir = sys.argv[1]
 knownbuilds = sys.argv[2]
+branch = sys.argv[3]
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(sys.argv[0]), "..", "benchtester")))
 import BuildGetter
@@ -37,7 +38,7 @@ knownfp = file(knownbuilds, 'r')
 old_builds = json.load(knownfp)
 knownfp.close()
 
-builds = BuildGetter.list_tinderbox_builds()
+builds = BuildGetter.list_tinderbox_builds(branch = branch)
 if not len(builds):
   stat("No builds to queue")
   sys.exit(0)
