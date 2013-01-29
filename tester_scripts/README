@@ -1,0 +1,3 @@
+These are the scripts the internal test box uses to automate running AWSY,
+they're mostly hacky and setup for that specific environment. Useful as examples
+at best.
