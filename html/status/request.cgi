@@ -25,13 +25,11 @@ def main():
   end = val('endbuild')
   note = val('note')
   series = val('series')
-  path = val('path')
 
   invalid = re.compile("[^a-zA-Z0-9\-]")
-  if not mode or (mode == "ftp" and not path) \
-        or (mode != "ftp" and not start) \
+  if not mode or not start \
         or (series and invalid.match(series)) \
-        or (start and invalid.match(start)) \
+        or (mode != "ftp" and start and invalid.match(start)) \
         or (end and invalid.match(end)):
     error("Invalid input")
 
@@ -45,15 +43,10 @@ def main():
   if mode == "ftp" and not series:
     error("FTP builds must use a custom series")
 
-  if path and not path.startswith('/pub'):
+  if mode == "ftp" and not start.startswith('/pub'):
     error("Invalid ftp path");
 
-  ret = { "mode": mode }
-  if mode == "ftp":
-    ret['path'] = path
-  else:
-    ret['firstbuild'] = start
-
+  ret = { "mode": mode, "firstbuild": start }
   if series:
     ret['series'] = series
   if note:

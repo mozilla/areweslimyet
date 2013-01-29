@@ -336,12 +336,7 @@ $(function () {
         }
       }
 
-      var args = { 'mode': mode };
-      if (mode == "ftp") {
-        args['path'] = start;
-      } else {
-        args['startbuild'] = start;
-      }
+      var args = { 'mode': mode, 'startbuild': start };
       if (doseries) args['series'] = series;
       if (multi) args['endbuild'] = end;
       if ($('#reqDoSeries:checked').length) args['series'] = $('#reqSeries').val();
