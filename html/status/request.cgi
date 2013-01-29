@@ -34,7 +34,7 @@ def main():
     error("Unknown mode")
 
   invalid = re.compile("[^a-zA-Z0-9\-]")
-  if invalid.match(series) invalid.match(start) or (end and invalid.match(end)):
+  if invalid.match(series) or invalid.match(start) or (end and invalid.match(end)):
     error("Invalid input")
 
   if series.startswith("areweslimyet"):
