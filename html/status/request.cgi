@@ -28,8 +28,10 @@ def main():
   path = val('path')
 
   invalid = re.compile("[^a-zA-Z0-9\-]")
-  if not mode or (mode == "ftp" and not path) or (mode != "ftp" and not start) \
-        (series and invalid.match(series)) or (start and invalid.match(start)) \
+  if not mode or (mode == "ftp" and not path) \
+        or (mode != "ftp" and not start) \
+        or (series and invalid.match(series)) \
+        or (start and invalid.match(start)) \
         or (end and invalid.match(end)):
     error("Invalid input")
 
