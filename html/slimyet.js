@@ -569,10 +569,10 @@ Tooltip.prototype.hover = function(x, y, nofade) {
   var top = y + pad;
   var left = x + pad;
   // Move above cursor if too far down
-  if (window.innerHeight + document.body.scrollTop < poffset.top + top + h + 30)
+  if (window.innerHeight + window.scrollY < poffset.top + top + h + 30)
     top = y - h - pad;
   // Move left of cursor if too far right
-  if (window.innerWidth + document.body.scrollLeft < poffset.left + left + w + 30)
+  if (window.innerWidth + window.scrollX < poffset.left + left + w + 30)
     left = x - w - pad;
 
   this.obj.css({
