@@ -22,7 +22,7 @@ import gzip
 
 # For looking up build rev numbers
 import mercurial, mercurial.ui, mercurial.hg, mercurial.commands
-gMercurialRepo = "./mozilla-central"
+gMercurialRepo = "./mozilla-inbound"
 
 # Config for which tests to export
 # - nodeize : [char] split this test's datapoints by the given character and

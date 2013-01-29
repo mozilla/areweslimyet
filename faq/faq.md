@@ -18,7 +18,7 @@ Come say hi on [GitHub][awsy-github].
 
 ## Exactly which versions of Firefox are plotted here?
 
-For each [change][pushlog] to Mozilla's central repository, our build
+For each [change][pushlog] to Mozilla's inbound repository, our build
 infrastructure generates a [build][tinderbox builds] which we test and include
 in the graphs here.
 
@@ -169,11 +169,11 @@ If you don't want to file a bug, find us on IRC (irc.mozilla.org, \#memshrink),
 send smoke signals...do something!  We need your help, particularly in this
 case.
 
-[tinderbox builds]: ftp://ftp.mozilla.org/pub/mozilla.org/firefox/tinderbox-builds/mozilla-central-linux64/
+[tinderbox builds]: ftp://ftp.mozilla.org/pub/mozilla.org/firefox/tinderbox-builds/mozilla-inbound-linux64/
 [nightly builds]: http://nightly.mozilla.org/
 [IRC]: https://wiki.mozilla.org/IRC
 [tbpl]: https://tbpl.mozilla.org/
-[pushlog]: http://hg.mozilla.org/mozilla-central/pushloghtml
+[pushlog]: http://hg.mozilla.org/integration/mozilla-inbound/pushloghtml
 [awsy-github]: https://github.com/Nephyrin/MozAreWeSlimYet
 [MemShrink]: https://wiki.mozilla.org/Performance/MemShrink
 [TP5]: https://wiki.mozilla.org/Buildbot/Talos#tp5

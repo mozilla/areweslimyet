@@ -136,7 +136,7 @@ var gSeries = {
   }
 };
 
-var gHgBaseUrl = 'https://hg.mozilla.org/mozilla-central';
+var gHgBaseUrl = 'https://hg.mozilla.org/integration/mozilla-inbound';
 
 // Select android data. Use the same gSeries, but s/After TP5/After tabs/ and
 // prepend 'Android' to series names.
@@ -147,8 +147,6 @@ if (gQueryVars['mobile']) {
       delete gSeries[series][dp];
     }
   }
-  // Android data is based off inbound builds
-  gHgBaseUrl = 'https://hg.mozilla.org/integration/mozilla-inbound';
 }
 
 // gGraphData pulls /data/<series>.json which has a *condensed* series of builds
