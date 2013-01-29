@@ -125,7 +125,7 @@ function statusTable(name, rows, mode) {
 
       cell(row, type);
       if (data['revision']) {
-        var link = "https://hg.mozilla.org/mozilla-central/rev/" + data['revision'].slice(0, 12);
+        var link = "https://hg.mozilla.org/integration/mozilla-inbound/rev/" + data['revision'].slice(0, 12);
         cell(row).append($.new('a', { href: link }).text(data['revision']));
       } else {
         cell(row, '<i class="small">none</i>');
@@ -268,16 +268,16 @@ $(function () {
           label.html("Builds starting at");
           elabel.text("And ending at");
         } else {
-          note.html("Build an exact build available at <a href=\"ftp://ftp.mozilla.org/pub/firefox/tinderbox-builds/mozilla-central-linux64/\">ftp://ftp.mozilla.org/pub/firefox/tinderbox-builds/mozilla-central-linux64/</a>");
+          note.html("Build an exact build available at <a href=\"ftp://ftp.mozilla.org/pub/firefox/tinderbox-builds/mozilla-inbound-linux64/\">ftp://ftp.mozilla.org/pub/firefox/tinderbox-builds/mozilla-inbound-linux64/</a>");
           label.text("Timestamp of build");
         }
       } else if (val == "compile") {
         if (multi) {
-          note.text("Compile and test all revisions on mozilla-central between these two [inclusive].");
+          note.text("Compile and test all revisions on mozilla-inbound between these two [inclusive].");
           label.text("First revision");
           elabel.text("Last revision");
         } else {
-          note.text("Compile and test this specific mozilla-central revision.");
+          note.text("Compile and test this specific mozilla-inbound revision.");
           label.text("Revision");
         }
       } else if (val == "ftp") {
