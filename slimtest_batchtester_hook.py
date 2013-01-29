@@ -28,7 +28,7 @@ def database_for_build(build):
   if build.series:
     return os.path.join("db", "custom-%s-x.sqlite" % build.series)
 
-  date = datetime.date.fromtimestamp(build.build.get_timestamp())
+  date = datetime.date.fromtimestamp(build.build.get_buildtime())
   return os.path.join("db", "areweslimyet-%04u-%02u.sqlite" % (date.year, date.month))
 
 def stat(msg, logfile=None):
