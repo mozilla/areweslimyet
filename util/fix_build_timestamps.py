@@ -16,7 +16,7 @@ import os
 import sys
 
 # Run from root
-sys.path.append(os.abspath('benchtester'))
+sys.path.append(os.path.abspath('benchtester'))
 import BuildGetter
 
 if len(sys.argv) != 3:
