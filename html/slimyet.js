@@ -545,6 +545,7 @@ function Tooltip(parent) {
   this.obj.data('owner', this);
   this.hovered = false;
   this.onUnzoomFuncs = [];
+  this.faded = true;
 }
 
 Tooltip.prototype.isZoomed = function () { return this.obj.is('.zoomed'); }
@@ -601,10 +602,14 @@ Tooltip.prototype.unHover = function() {
 }
 
 Tooltip.prototype._fadeIn = function() {
-  this.obj.stop().fadeTo(200, 1);
+  if (this.faded) {
+    this.obj.stop().fadeTo(200, 1);
+    this.faded = false;
+  }
 }
 
 Tooltip.prototype._fadeOut = function() {
+  this.faded = true;
   this.obj.stop().fadeTo(200, 0, function () { $(this).hide(); });
 }
 
