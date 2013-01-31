@@ -11,10 +11,14 @@ Are we Slim Yet? was created by John Schoenick of Mozilla's [MemShrink][]
 team.  The MemShrink team was formed in June 2011, and is tasked with monitoring
 and reducing Firefox's memory usage.
 
+Are we Slim Yet? originally tested only desktop Firefox builds.  But in late 2012,
+AWSY started tracking memory usage in Firefox for Android (ARMv6) as well.
+
 This site allows us to observe long-term trends in memory usage and hopefully
 catch regressions before we ship them to users.
 
-Come say hi on [GitHub][awsy-github].
+Come say hi on [GitHub][awsy-github].  The scripts used for the mobile benchmark
+can be found in the [awsy-armv6][] repository.
 
 ## Exactly which versions of Firefox are plotted here?
 
@@ -42,11 +46,13 @@ repository, but those changes are not plotted here.
 
 ## How is this data generated?
 
-We run the target build of Firefox (Linux 64-bit, non-pgo) through a benchmark
-script (written using [mozmill][]) and measure its memory usage at a variety of
-points along the way.  The testing procedure is as follows.
+For the desktop benchmark, we run the target build of Firefox (Linux 64-bit,
+non-pgo) through a benchmark script (written using [mozmill][]) and measure its
+memory usage at a variety of points along the way.  The testing procedure is
+as follows.
 
   * Start the browser, record **fresh start** memory.
+  * Sit idle for 30 seconds and record **fresh start [+30s]** memory.
   * Run Mozilla's [TP5][] pageload benchmark 5 times.  TP5 loads 100 popular
     webpages, served from a local webserver.  We load the pages round-robin into
     30 different tabs, with a 10 second delay between pageloads.
@@ -55,6 +61,12 @@ points along the way.  The testing procedure is as follows.
   * Force a garbage collection and measure **after TP5 [+30s, forced GC]**.
   * Close all open tabs and record **after TP5, tabs closed** and then
     **after TP5, tabs closed [+30s]**.
+
+For the mobile benchmark, we run the target build of Firefox (ARMv6 version)
+on a Samsung B6510 device.  A script combined with an addon records Firefox's
+memory usage at various points.  The testing procedure for the mobile benchmark
+is identical to the desktop benchmark, except that instead of loading all 100
+pages from the TP5 pagesent 5 times, we load only 15 pages from TP5.
 
 Every time we measure memory usage, we also collect a full snapshot of
 about:memory.  You can browse these snapshots by clicking on any point in the
@@ -183,3 +195,4 @@ case.
 [safe mode]: http://support.mozilla.org/en-US/kb/Safe%20Mode
 [zombie compartments]: https://developer.mozilla.org/en/Zombie_compartments#Reactive_checking
 [file a bug]: https://bugzilla.mozilla.org/enter_bug.cgi?product=Core&component=General&status_whiteboard=[MemShrink]
+[awsy-armv6]: https://github.com/staktrace/awsy-armv6
