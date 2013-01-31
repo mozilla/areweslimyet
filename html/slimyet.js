@@ -26,6 +26,19 @@ var gQueryVars = (function () {
   return ret;
 })();
 
+// /mobile/ is an alias for ?mobile
+(function () {
+  if (document.location.pathname.indexOf('/mobile') == 0)
+    gQueryVars['mobile'] = true;
+
+  // Set proper link to inactive
+  var inactive = gQueryVars['mobile'] ? '/mobile/' : '/';
+  $(function () {
+    inactive = $("#navbar a[href='"+inactive+"']");
+    inactive.replaceWith($('<span>').addClass('inactive').text(inactive.text()));
+  });
+})();
+
 // Width in pixels of highlight (zoom) selector
 var gHighlightWidth = gQueryVars['zoomwidth'] ? +gQueryVars['zoomwidth'] : 400;
 
