@@ -22,7 +22,7 @@ For each [change][pushlog] to Mozilla's inbound repository, our build
 infrastructure generates a [build][tinderbox builds] which we test and include
 in the graphs here.
 
-We don't keep these per-change builds are around forever, so for data points
+We don't keep these per-change builds around forever, so for data points
 before March 2012, we tested Firefox [nightly builds][].
 
 A push may include multiple changes, and we have the ability to build and test
