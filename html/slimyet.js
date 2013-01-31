@@ -989,7 +989,7 @@ function getFullSeries(dataname, success, fail) {
     if (!(dataname in gPendingFullData)) {
       gPendingFullData[dataname] = { 'success': [], 'fail': [] };
       $.ajax({
-        url: './data/' + dataname + '.json',
+        url: '/data/' + dataname + '.json',
         success: function (data) {
           gFullData[dataname] = data;
           for (var i in gPendingFullData[dataname]['success'])
@@ -1017,7 +1017,7 @@ function getPerBuildData(buildname, success, fail) {
     if (success instanceof Function) success.apply(null);
   } else {
     $.ajax({
-      url: './data/' + buildname + '.json',
+      url: '/data/' + buildname + '.json',
       success: function (data) {
         gPerBuildData[buildname] = data;
         if (success instanceof Function) success.call(null);
@@ -1585,7 +1585,7 @@ $(function () {
   // Load graph data
   // Allow selecting an alternate series
   var series = gQueryVars['series'] ? gQueryVars['series'] : 'areweslimyet';
-  var url = './data/' + series + '.json';
+  var url = '/data/' + series + '.json';
 
   $.ajax({
     url: url,
