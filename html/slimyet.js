@@ -42,7 +42,7 @@ var gQueryVars = (function () {
 /*
  * Annotations to draw on the graph. Format:
  * {
- *   // Anything Date.parse recognizes
+ *   // Anything Date.parse recognizes *or* numeric unix timestamp
  *   'date': "Feb 1 2012 GMT",
  *   // HTML content of tooltip message
  *   'msg': "<h2>Blah</h2><p>Some message</p>",
@@ -1593,7 +1593,9 @@ Plot.prototype._drawAnnotations = function() {
         return;
       if (anno['whitelist'] && anno['whitelist'].indexOf(self.name) == -1)
         return;
-      var date = new Date(Date.parse(anno['date']));
+      var date = new Date(typeof(anno['date']) == "number"
+                          ? anno['date'] * 1000
+                          : anno['date']);
 
 
       var div = $.new('div').addClass('annotation').text('?');
