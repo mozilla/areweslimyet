@@ -1618,7 +1618,7 @@ $(function () {
   // Load graph data
   // Allow selecting an alternate series
   var series = 'areweslimyet';
-  if ('series' in gQueryVars && gQueryVars['series'].match('^[a-z0-9\-_]$'))
+  if ('series' in gQueryVars && gQueryVars['series'].match('^[a-z0-9\-_]+$'))
     series = gQueryVars['series'];
   var url = '/data/' + series + '.json';
 
