@@ -1388,7 +1388,7 @@ Plot.prototype._buildSeries = function(start, stop) {
         var rev = b['revision'];
         if (!buildinf['firstrev']) {
           buildinf['firstrev'] = b['revision'];
-          buildinf['timerange'] = [ b['time'], null ];
+          buildinf['timerange'] = [ b['time'], b['time'] ];
         } else {
           buildinf['lastrev'] = b['revision'];
           buildinf['timerange'][1] = b['time'];
