@@ -1617,7 +1617,9 @@ Plot.prototype.onHover = function(item, pos) {
 $(function () {
   // Load graph data
   // Allow selecting an alternate series
-  var series = gQueryVars['series'] ? gQueryVars['series'] : 'areweslimyet';
+  var series = 'areweslimyet';
+  if ('series' in gQueryVars && gQueryVars['series'].match('^[a-z0-9\-_]$'))
+    series = gQueryVars['series'];
   var url = '/data/' + series + '.json';
 
   $.ajax({
