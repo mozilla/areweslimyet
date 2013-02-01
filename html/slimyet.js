@@ -1608,7 +1608,7 @@ Plot.prototype._drawAnnotations = function() {
       var left = self.flot.getAxes().xaxis.p2c(date.getTime() / 1000)
                - divwidth / 2;
 
-      if (left + divwidth > self.flot.width()) {
+      if (left + divwidth + 5 > self.flot.width() || left - 5 < 0) {
         div.remove();
         return;
       }
