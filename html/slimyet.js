@@ -16,7 +16,7 @@ var gQueryVars = (function () {
     var vars = target.split(outer);
     for (var x in vars) {
       x = vars[x].split(inner);
-      ret[decodeURIComponent(x[0])] = x.length > 1 ? decodeURIComponent(x[1]) : true;
+      ret[decodeURIComponent(x[0]).toLowerCase()] = x.length > 1 ? decodeURIComponent(x[1]) : true;
     }
   }
   if (document.location.search)
