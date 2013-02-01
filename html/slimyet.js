@@ -45,7 +45,12 @@ var gQueryVars = (function () {
  *   // Anything Date.parse recognizes *or* numeric unix timestamp
  *   'date': "Feb 1 2012 GMT",
  *   // HTML content of tooltip message
- *   'msg': "<h2>Blah</h2><p>Some message</p>",
+ *   'msg': '
+ *     We fixed something to do with images sometime before \
+ *     <a href="https://hg.mozilla.org/integration/mozilla-inbound/rev/3fdc1c14a8ce">3fdc1c14a8ce</a> \
+ *     <p style="color:grey">This is grey text</p> \
+ *     <p class="small">yay</p> \
+ *   ',
  *   // Optional, disable on desktop or mobile:
  *   'desktop': false,
  *   'mobile': false,
@@ -55,32 +60,7 @@ var gQueryVars = (function () {
  */
 var gAnnotations = [
   {
-    'date': "Feb 1 2012 GMT",
-    'msg': "<h2>Test!</h2><p>Mobile Only on all</p>",
-    'desktop': false
-  },
-  {
-    'date' : "Jan 1 2012 GMT",
-    'msg': '<h2>Test</h2><p><b>Desktop</b> only on explicit</p>',
-    'mobile': false,
-    'whitelist': [ "Explicit Memory" ],
-  },
-  {
-    'date': "Feb 20 2011",
-    'msg': "Both, but not on explicit",
-    'whitelist': [ "Resident Memory", "Miscellaneous Measurements" ]
-  },
-  {
-    'date': "Mar 7 2012 04:00 GMT",
-    'msg': ' \
-      We fixed something to do with images sometime before \
-      <a href="https://hg.mozilla.org/integration/mozilla-inbound/rev/3fdc1c14a8ce">3fdc1c14a8ce</a> \
-      <p style="color:grey">This is grey text</p> \
-      <p class="small">yay</p> \
-    '
-  },
-  {
-    'date': "1358920410",
+    'date': 1358920410,
     'desktop': false,
     'msg': ' \
       Some graphics code is loaded earlier, moving the Start memory usage up but leaving StartSettled as-is. \
@@ -88,7 +68,7 @@ var gAnnotations = [
     '
   },
   {
-    'date': "1358593871",
+    'date': 1358593871,
     'desktop': false,
     'msg': ' \
       Regression from adding new fonts. Tradeoff accepted for increased readability. See \
