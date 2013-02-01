@@ -1576,8 +1576,6 @@ Plot.prototype.onClick = function(item) {
 }
 
 Plot.prototype._drawAnnotations = function() {
-  if (!gQueryVars['test_annotations']) // Disabled for now
-    return;
   var self = this;
   this.annotations.empty();
   for (var i = 0; i < gAnnotations.length; i++) {
