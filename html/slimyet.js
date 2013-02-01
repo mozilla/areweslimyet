@@ -46,6 +46,10 @@ var gHighlightWidth = gQueryVars['zoomwidth'] ? +gQueryVars['zoomwidth'] : 400;
 // Default to 150, or 0 (disabled) if nocondense is supplied
 var gMaxPoints = gQueryVars['maxpoints'] ? +gQueryVars['maxpoints'] : (gQueryVars['nocondense'] ? 0 : 150);
 
+// How much time between successfully tested builds on the graph should result
+// in a disjointed line. Default 24h
+var gDisjointTime = 'disjointtime' in gQueryVars ? +gQueryVars['disjointtime'] : (60 * 60 * 24);
+
 // 10-class paired qualitative color scheme from http://colorbrewer2.org/.
 // Ordered so that the important memory lines are given more prominent colors.
 var gDefaultColors = [
@@ -1317,11 +1321,27 @@ Plot.prototype._buildSeries = function(start, stop) {
   function pushdp(series, buildinf, ctime) {
     // Push a datapoint onto builds/ranges/data
     if (ctime != -1) {
+      // Flatten the axis first and determine if this is a null build
+      var flat = {};
+      var nullbuild = true;
+      for (var axis in self.axis) {
+        flat[axis] = flatten(series[axis]);
+        if (flat[axis][1] !== null)
+          nullbuild = false;
+      }
+      if (nullbuild && builds.length) {
+        // Null builds in the series cause the line to be disjointed. Only push
+        // one if there is >= 24h of consecutive untested builds.
+        var diff = buildinf['timerange'][0] -
+                   builds[builds.length - 1]['timerange'][1];
+        if (diff < gDisjointTime)
+          return;
+      }
+      // Add to series
       builds.push(buildinf);
       for (axis in self.axis) {
-        var flat = flatten(series[axis]);
-        data[axis].push([ +buildinf['time'], flat[1] ]);
-        ranges[axis].push([flat[0], flat[2]]);
+        data[axis].push([ +buildinf['time'], flat[axis][1] ]);
+        ranges[axis].push([flat[axis][0], flat[axis][2]]);
       }
     }
   }
