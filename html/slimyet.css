@@ -93,6 +93,38 @@ a:visited:hover { color: #494; }
   text-align: center;
 }
 
+.annotations {
+  position: absolute;
+  width: 100%;
+}
+
+.annotation {
+  position: absolute;
+  background-color: rgba(0,0,0,0.5);
+  padding: 5px 10px 5px 10px;
+  border-radius: 5px;
+  top: 5px;
+  color: #CCC;
+  font-family: sans-serif;
+  font-weight: bold;
+  z-index: 1;
+  user-select: none;
+  cursor: pointer;
+  cursor: help;
+}
+
+.annotation::after {
+  display: block;
+  content: "";
+  position: absolute;
+  left: 50%;
+  margin-left: -6px;
+  top: 100%;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-top: 6px solid rgba(0,0,0,0.5);
+}
+
 .rhsContainer {
   padding-top: 0.5em;
   float: right;
@@ -319,6 +351,7 @@ body.faqPage {
   position: absolute;
   width: 25em;
   overflow: hidden;
+  z-index: 2;
 }
 
 .tooltip a:link { color: #E77; }

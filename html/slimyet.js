@@ -39,8 +39,53 @@ var gQueryVars = (function () {
   });
 })();
 
+/*
+ * Annotations to draw on the graph. Format:
+ * {
+ *   // Anything Date.parse recognizes
+ *   'date': "Feb 1 2012 GMT",
+ *   // HTML content of tooltip message
+ *   'msg': "<h2>Blah</h2><p>Some message</p>",
+ *   // Optional, disable on desktop or mobile:
+ *   'desktop': false,
+ *   'mobile': false,
+ *   // Show only on some graphs (default all):
+ *   'whitelist': [ "Explicit Memory", "Resident Memory" ]
+ * }
+ */
+var gAnnotations = [
+  {
+    'date': "Feb 1 2012 GMT",
+    'msg': "<h2>Test!</h2><p>Mobile Only on all</p>",
+    'desktop': false
+  },
+  {
+    'date' : "Jan 1 2012 GMT",
+    'msg': '<h2>Test</h2><p><b>Desktop</b> only on explicit</p>',
+    'mobile': false,
+    'whitelist': [ "Explicit Memory" ],
+  },
+  {
+    'date': "Feb 20 2011",
+    'msg': "Both, but not on explicit",
+    'whitelist': [ "Resident Memory", "Miscellaneous Measurements" ]
+  },
+  {
+    'date': "Mar 7 2012 04:00 GMT",
+    'msg': ' \
+      We fixed something to do with images sometime before \
+      <a href="https://hg.mozilla.org/integration/mozilla-inbound/rev/3fdc1c14a8ce">3fdc1c14a8ce</a> \
+      <p style="color:grey">This is grey text</p> \
+      <p class="small">yay</p> \
+    '
+  },
+];
+
 // Width in pixels of highlight (zoom) selector
 var gHighlightWidth = gQueryVars['zoomwidth'] ? +gQueryVars['zoomwidth'] : 400;
+
+// Offset between tooltip and cursor
+var gTooltipOffset = 'tooltipoffset' in gQueryVars ? +gQueryVars['tooltipoffset'] : 10;
 
 // Coalesce datapoints to keep them under this many per zoom level.
 // Default to 150, or 0 (disabled) if nocondense is supplied
@@ -587,16 +632,15 @@ Tooltip.prototype.hover = function(x, y, nofade) {
 
   var h = this.obj.outerHeight();
   var w = this.obj.outerWidth();
-  var pad = 10;
   // Lower-right of cursor
-  var top = y + pad;
-  var left = x + pad;
+  var top = y + gTooltipOffset;
+  var left = x + gTooltipOffset;
   // Move above cursor if too far down
   if (window.innerHeight + window.scrollY < poffset.top + top + h + 30)
-    top = y - h - pad;
+    top = y - h - gTooltipOffset;
   // Move left of cursor if too far right
   if (window.innerWidth + window.scrollX < poffset.left + left + w + 30)
-    left = x - w - pad;
+    left = x - w - gTooltipOffset;
 
   this.obj.css({
     top: top,
@@ -1061,6 +1105,7 @@ function Plot(name, appendto) {
     return;
   }
 
+  this.name = name;
   this.axis = gSeries[name];
   this.zoomed = false;
   var firstb = gGraphData['builds'][0];
@@ -1208,6 +1253,15 @@ function Plot(name, appendto) {
   // Graph Tooltip
   //
 
+  // Setup annotations container
+  var offset = this.flot.getPlotOffset();
+  this.annotations = $.new('div').addClass('annotations')
+                      .css('width', this.flot.width() + 'px')
+                      .css('left', offset.left + 'px')
+                      .css('top', offset.top + 'px');
+  this.obj.prepend(this.annotations);
+  this._drawAnnotations();
+
   this.tooltip = new Tooltip(this.container);
   var self = this;
   this.obj.bind("plotclick", function(event, pos, item) { self.onClick(item); });
@@ -1270,6 +1324,7 @@ Plot.prototype.setZoomRange = function(range, nosync) {
     this.flot.setData(newseries);
     this.flot.setupGrid();
     this.flot.draw();
+    this._drawAnnotations();
 
     // The highlight has the wrong range now that we mucked with the graph
     if (this.highlighted)
@@ -1521,6 +1576,60 @@ Plot.prototype.onClick = function(item) {
     zoomrange[0] = Math.min(this.highlightRange[0], buildrange[0]);
     zoomrange[1] = Math.max(this.highlightRange[1], buildrange[1]);
     this.setZoomRange(zoomrange);
+  }
+}
+
+Plot.prototype._drawAnnotations = function() {
+  if (!gQueryVars['test_annotations']) // Disabled for now
+    return;
+  var self = this;
+  this.annotations.empty();
+  for (var i = 0; i < gAnnotations.length; i++) {
+    (function () {
+      var anno = gAnnotations[i];
+      if (gQueryVars['mobile'] && anno['mobile'] === false)
+        return;
+      if (!gQueryVars['mobile'] && anno['desktop'] === false)
+        return;
+      if (anno['whitelist'] && anno['whitelist'].indexOf(self.name) == -1)
+        return;
+      var date = new Date(Date.parse(anno['date']));
+
+
+      var div = $.new('div').addClass('annotation').text('?');
+      self.annotations.append(div);
+      var tooltiptop = parseInt(div.css('padding-top')) * 2 + 5
+                     + parseInt(div.css('height'))
+                     + parseInt(self.annotations.css('top'))
+                     + self.flot.getPlotOffset().top
+                     + self.obj.offset().top - self.container.offset().top;
+      var divwidth = parseInt(div.css('padding-left'))
+                   + parseInt(div.css('width'));
+      var left = self.flot.getAxes().xaxis.p2c(date.getTime() / 1000)
+               - divwidth / 2;
+
+      if (left + divwidth > self.flot.width()) {
+        div.remove();
+        return;
+      }
+      div.css('left', left);
+
+      div.mouseover(function() {
+        // Don't hijack a tooltip that's in the process of zooming
+        if (self.tooltip.isZoomed())
+          return;
+        self.tooltip.empty();
+        self.tooltip.append(anno['msg']);
+        var x = left
+              - parseInt(self.tooltip.obj.css('width')) / 2
+              - parseInt(self.tooltip.obj.css('padding-left'))
+              - gTooltipOffset
+              + divwidth / 2
+              + self.flot.getPlotOffset().left;
+        self.tooltip.hover(x, tooltiptop);
+      });
+      div.mouseout(function() { self.tooltip.unHover(); });
+    })();
   }
 }
 
