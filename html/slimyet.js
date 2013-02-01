@@ -79,6 +79,22 @@ var gAnnotations = [
       <p class="small">yay</p> \
     '
   },
+  {
+    'date': "1358920410",
+    'desktop': false,
+    'msg': ' \
+      Some graphics code is loaded earlier, moving the Start memory usage up but leaving StartSettled as-is. \
+      See <a href="https://bugzilla.mozilla.org/show_bug.cgi?id=828126#c14">bug 8282126 comment 14</a>. \
+    '
+  },
+  {
+    'date': "1358593871",
+    'desktop': false,
+    'msg': ' \
+      Regression from adding new fonts. Tradeoff accepted for increased readability. See \
+      <a href="https://bugzilla.mozilla.org/show_bug.cgi?id=831354">bug 831354</a>. \
+    '
+  },
 ];
 
 // Width in pixels of highlight (zoom) selector
