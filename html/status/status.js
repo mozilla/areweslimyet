@@ -286,13 +286,14 @@ $(function () {
         note.append("<br />Provided path must contain a linux-64 build (*.linux-x86_64.tar.bz2)");
         label.text("FTP path or link");
       } else {
-        $('.field').hide();
+        $('.field,#reqSubmitBox').hide();
         return;
       }
 
-      $('.field').show();
+      $('.field').css('display', 'table-row');
+      $('#reqSubmitBox').show();
       series ? $('.series').show() : $('.series').hide();
-      multi ? $('#reqEndBox').show() : $('#reqEndBox').hide();
+      multi ? $('#reqEndRow').show() : $('#reqEndRow').hide();
     });
 
     // Submit the request

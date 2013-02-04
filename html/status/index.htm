@@ -34,27 +34,31 @@
       <input type="checkbox" value="true" id="reqForce"></input><label for="reqForce"> Force re-test</label>
       <input type="checkbox" value="true" id="reqDoSeries"></input><label for="reqDoSeries"> Add to custom series</label>
     </div>
-    <div id="reqNote" class="field note"></div>
-    <div id="reqStartBox" class="field">
-      <span id="reqStartLabel" class="note"></span>
-      <input type="text" id="reqStartBuild"></input>
+    <div id="reqNote" class="note"></div>
+    <div class="table">
+      <div class="field">
+        <span id="reqStartLabel" class="note"></span>
+        <input type="text" id="reqStartBuild"></input>
+      </div>
+      <div id="reqEndRow" class="field">
+        <span id="reqEndLabel" class="note"></span>
+        <input type="text" id="reqEndBuild"></input>
+      </div>
+      <div class="field">
+        <span class="note">Note</span>
+        <input type="text" id="reqMsg"></input>
+      </div>
+      <div class="field series">
+        <span class="note">Series</span>
+        <input type="text" id="reqSeries"></input>
+      </div>
     </div>
-    <div id="reqEndBox" class="field">
-      <span id="reqEndLabel" class="note"></span>
-      <input type="text" id="reqEndBuild"></input>
-    </div>
-    <div id="reqMsgBox" class="field">
-      <span id="reqMsgLabel" class="note">Note</span>
-      <input type="text" id="reqMsg"></input>
-    </div>
-    <div class="field series">
-      <span class="note">Series</span>
-      <input type="text" id="reqSeries"></input>
-    </div>
-    <div id="reqSubmitbox" class="field">
+    <div id="reqSubmitBox">
       <span class="small series">Custom series will be viewable at https://areweslimyet.com/#series:blah</span>
-      <br /><input id="reqSubmit" type="submit" value="Queue"></input>
-      <br /><span class="note" id="reqError"></span>
+      <div>
+        <br /><input id="reqSubmit" type="submit" value="Queue"></input>
+        <br /><span class="note" id="reqError"></span>
+      </div>
     </div>
 
   </form>

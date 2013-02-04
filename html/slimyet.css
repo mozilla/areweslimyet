@@ -274,12 +274,30 @@ body.faqPage {
   background-color: rgba(255, 255, 255, 0.05);
 }
 
-.statusPage #reqNote { padding: 10px; }
+.statusPage #reqNote {
+    padding: 10px;
+    display:none;
+}
+
 .statusPage #requestBuilds input {
   margin: 5px;
 }
 
-.field { display: none; }
+.statusPage .table {
+    display: table;
+    margin: auto;
+}
+
+.statusPage .field { display: none; }
+
+.statusPage .field>span,.statusPage .field>input,.statusPage .field>div {
+    display: table-cell;
+}
+
+.statusPage .field>span {
+    text-align: right;
+    padding-right: 1em;
+}
 
 /*
  * Tree views
