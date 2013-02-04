@@ -76,7 +76,7 @@ var gAnnotations = [
     '
   },
   {
-    'date': "1359474609",
+    'date': 1359474609,
     'desktop': false,
     'msg': ' \
       Regression from <a href="https://bugzilla.mozilla.org/show_bug.cgi?id=828201">bug 828201</a>. \
