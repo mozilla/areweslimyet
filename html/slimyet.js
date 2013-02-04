@@ -75,6 +75,14 @@ var gAnnotations = [
       <a href="https://bugzilla.mozilla.org/show_bug.cgi?id=831354">bug 831354</a>. \
     '
   },
+  {
+    'date': "1359474609",
+    'desktop': false,
+    'msg': ' \
+      Regression from <a href="https://bugzilla.mozilla.org/show_bug.cgi?id=828201">bug 828201</a>. \
+      Backed out in 8728de36d4a8. \
+    '
+  }
 ];
 
 // Width in pixels of highlight (zoom) selector
