@@ -17,7 +17,7 @@
 <body class="statusPage">
   <h1>Are we <span class="emph">slim</span> yet?</h1>
 
-  <h2>Request builds</h2>
+  <h2>Queue a Test</h2>
   <p id="requestBuildsNote" class="note">To request per-changeset resolution builds, or tests for custom patches, ask in #memshrink.</p>
   <form id="requestBuilds" style="display: none;">
     <div>
@@ -26,11 +26,11 @@
         <option value="try">Try build</option>
         <option value="nightly">Nightly build</option>
         <option value="tinderbox">Tinderbox build (mozilla-inbound)</option>
-        <option value="compile">Compile of specific revision(s) (mozilla-inbound)</option>
-        <option value="ftp">Specific build on ftp.mozilla.org</option>
+        <option value="compile">Compile specific revision(s) (mozilla-inbound)</option>
+        <option value="ftp">Other build on ftp.mozilla.org</option>
       </select>
       <br />
-      <input type="checkbox" value="true" id="reqBuildMulti"></input><label for="reqBuildMulti"> Build range</label>
+      <input type="checkbox" value="true" id="reqBuildMulti"></input><label for="reqBuildMulti"> Build Range</label>
       <input type="checkbox" value="true" id="reqPriority"></input><label for="reqPriority"> Insert at front of queue</label>
       <input type="checkbox" value="true" id="reqForce"></input><label for="reqForce"> Force re-test</label>
       <input type="checkbox" value="true" id="reqDoSeries"></input><label for="reqDoSeries"> Add to custom series</label>
