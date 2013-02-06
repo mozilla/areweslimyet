@@ -261,7 +261,8 @@ $(function () {
         $('.'+sel + (multi ? '.single' : '.multi')).hide();
       }
 
-      $('#reqDoSeries,#reqBuildMulti').attr('disabled', false);
+      $('#reqDoSeries,#reqBuildMulti').attr('disabled',
+                                            val == "try" || val == "ftp");
       showhide('modeTinderbox', "tinderbox");
       showhide('modeNightly', "nightly")
       showhide('modeCompile', "compile")
