@@ -41,7 +41,7 @@ echo "Re-adding indexes"
 echo ":: Adding test_lookup"
 sqlite3 "$db" 'CREATE INDEX IF NOT EXISTS test_lookup ON benchtester_tests ( name, build_id DESC )'
 echo ":: Adding data_for_test"
-sqlite3 "$db" 'CREATE INDEX IF NOT EXISTS data_for_test ON benchtester_data ( test_id DESC )'
+sqlite3 "$db" 'CREATE INDEX IF NOT EXISTS data_for_test ON benchtester_data ( test_id DESC, datapoint_id )'
 
 # Now we can get rid of dummy .xz
 rm -v "$dbxz"
