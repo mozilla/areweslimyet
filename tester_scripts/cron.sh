@@ -4,6 +4,9 @@
 set -e
 cd "$(dirname "$0")"
 
+# Update git
+git pull && git submodule update
+
 # Queue any new tinderbox builds
 util/queue_tinderbox_builds.py html/status/batch last_tinderbox.json integration/mozilla-inbound
 
