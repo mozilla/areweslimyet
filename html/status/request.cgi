@@ -43,7 +43,7 @@ def main():
   if mode == "ftp" and not series:
     error("FTP builds must use a custom series")
 
-  if mode == "ftp" and not start.startswith('/pub'):
+  if mode == "ftp" and not (start.startswith('/pub') or start.startswith('try:'):
     error("Invalid ftp path");
 
   ret = { "mode": mode, "firstbuild": start }

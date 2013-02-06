@@ -23,6 +23,7 @@
     <div>
       <select id="reqBuildType">
         <option value="" selected="selected">Select</option>
+        <option value="try">Try build</option>
         <option value="nightly">Nightly build</option>
         <option value="tinderbox">Tinderbox build (mozilla-inbound)</option>
         <option value="compile">Compile of specific revision(s) (mozilla-inbound)</option>
@@ -34,27 +35,77 @@
       <input type="checkbox" value="true" id="reqForce"></input><label for="reqForce"> Force re-test</label>
       <input type="checkbox" value="true" id="reqDoSeries"></input><label for="reqDoSeries"> Add to custom series</label>
     </div>
-    <div id="reqNote" class="note"></div>
+    <div id="reqNote">
+      <div class="modeTry note">
+        Test a try build. Has to be done on a custom series as we don't want these on the main graph.
+      </div>
+      <div class="modeNightly note">
+        Test one or more nightly builds. This is mainly used for getting/retesting historical data.
+      </div>
+      <div class="modeTinderbox multi note">
+        <p>Test all mozilla-inbound tinderbox builds between these two dates.</p>
+        <p>Start Time and Stop Time can be unix timestamps or dates Date.parse recognizes (e.g. "Jan 1 2013 4:00")</p>
+      </div>
+      <div class="modeTinderbox single note">
+        Build an exact build available at <a href="ftp://ftp.mozilla.org/pub/firefox/tinderbox-builds/mozilla-inbound-linux64/">ftp://ftp.mozilla.org/pub/firefox/tinderbox-builds/mozilla-inbound-linux64/</a>
+      </div>
+      <div class="modeTinderbox note">
+        These are usually auto-queued by the cron job, so this is mainly useful for forcing re-tests.
+      </div>
+      <div class="modeCompile multi note">
+        Compile and test all revisions on mozilla-inbound between these two [inclusive].
+      </div>
+      <div class="modeCompile single note">
+        Compile and test this specific mozilla-inbound revision.
+      </div>
+      <div class="modeFTP note">Queue a specific linux64 build on ftp.mozilla.org. This is useful for queuing builds from other branches not specifically supported here.</div>
+    </div>
     <div class="table">
-      <div class="field">
-        <span id="reqStartLabel" class="note"></span>
+      <div class="row">
+        <span class="modeTry note">
+          Try Revision
+          <p class="small">The changeset id of your try push</p>
+        </span>
+        <span class="modeTinderbox multi note">Start Time</span>
+        <div class="modeTinderbox single note">
+          Timestamp of build
+          <p class="small">Text</p>
+        </div>
+        <span class="modeNightly single note">Nightly Date</span>
+        <span class="modeNightly multi note">First Nightly</span>
+        <span class="modeCompile single note">Revision</span>
+        <span class="modeCompile multi note">First Revision</span>
+        <span class="modeFTP note">
+          FTP Path/Link
+          <p class="small">
+            The link (or FTP path) to a build directory containing a linux64 build. e.g. https://ftp.mozilla.org/pub/mozilla.org/firefox/nightly/latest-mozilla-aurora/
+          </p>
+        </span>
         <input type="text" id="reqStartBuild"></input>
       </div>
-      <div id="reqEndRow" class="field">
-        <span id="reqEndLabel" class="note"></span>
+      <div id="reqEndRow" class="row">
+        <span class="modeTinderbox note">End Time</span>
+        <span class="modeNightly note">Last Nightly</span>
+        <span class="modeCompile note">Last revision</span>
         <input type="text" id="reqEndBuild"></input>
       </div>
-      <div class="field">
-        <span class="note">Note</span>
+      <div class="row">
+        <span class="note">
+          Note
+          <p class="small">A note about this build request, only visible on this page (optional)</p>
+        </span>
         <input type="text" id="reqMsg"></input>
       </div>
-      <div class="field series">
-        <span class="note">Series</span>
+      <div class="row series">
+        <span class="note">
+          Series
+          <p class="small">Add the results to a custom series, rather than the main graph data. Required for builds not part of the m-i sequence.</p>
+        </span>
         <input type="text" id="reqSeries"></input>
       </div>
     </div>
-    <div id="reqSubmitBox">
-      <span class="small series">Custom series will be viewable at https://areweslimyet.com/#series:blah</span>
+    <div id="submit">
+      <span class="small series">Your custom series will be viewable at https://areweslimyet.com/?series=foo once the test completes. You can add multiple builds to the same series if desired.</span>
       <div>
         <br /><input id="reqSubmit" type="submit" value="Queue"></input>
         <br /><span class="note" id="reqError"></span>

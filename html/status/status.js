@@ -237,64 +237,40 @@ $(function () {
     $('#reqBuildType option:first').prop('selected', true);
     $('#reqBuildType, #reqBuildMulti, #reqDoSeries').change(function() {
       var val = $('#reqBuildType').val();
+      if (!val) {
+        $('.row,#submit,#reqNote').hide();
+        return;
+      }
+      $('.row,#submit,#reqNote').show();
+
       var series = $('#reqDoSeries:checked').length;
-      var label = $('#reqStartLabel');
-      var elabel = $('#reqEndLabel');
       var multi = $('#reqBuildMulti:checked').length;
-      var note = $('#reqNote');
 
       // Ftp doesn't support multi builds, and requires a custom series.
-      if (val == "ftp" && multi) {
+      if ((val == "ftp" || val == "try") && multi) {
         $('#reqBuildMulti').attr('checked', false);
         multi = false;
       }
-      if (val == "ftp" && !series) {
+      if ((val == "ftp" || val == "try") && !series) {
         series = true;
         $('#reqDoSeries').attr('checked', true);
       }
 
-      $('#reqDoSeries,#reqBuildMulti').attr('disabled', false);
-      if (val == "nightly") {
-        note.text("Build the nightly for a specified date (YYYY-MM-DD)");
-        if (multi) {
-          label.text("First nightly");
-          elabel.text("Last nightly");
-        } else {
-          label.text("Nightly date");
-        }
-      } else if (val == "tinderbox") {
-        if (multi) {
-          note.text("Build Tinderbox builds between two date ranges. Dates are of format \"Jan 5 2012\" or \"Jan 5 2012 4:00 pm\"");
-          label.html("Builds starting at");
-          elabel.text("And ending at");
-        } else {
-          note.html("Build an exact build available at <a href=\"ftp://ftp.mozilla.org/pub/firefox/tinderbox-builds/mozilla-inbound-linux64/\">ftp://ftp.mozilla.org/pub/firefox/tinderbox-builds/mozilla-inbound-linux64/</a>");
-          label.text("Timestamp of build");
-        }
-      } else if (val == "compile") {
-        if (multi) {
-          note.text("Compile and test all revisions on mozilla-inbound between these two [inclusive].");
-          label.text("First revision");
-          elabel.text("Last revision");
-        } else {
-          note.text("Compile and test this specific mozilla-inbound revision.");
-          label.text("Revision");
-        }
-      } else if (val == "ftp") {
-        $('#reqBuildMulti,#reqDoSeries').attr('disabled', true);
-        note.text("Download and test a specific build on ftp.mozilla.org");
-        note.append("<br />Provided path must contain a linux-64 build (*.linux-x86_64.tar.bz2)");
-        label.text("FTP path or link");
-      } else {
-        $('.field,#reqSubmitBox').hide();
-        return;
+      function showhide(sel, match) {
+        val == match ? $('.'+sel).show() : $('.'+sel).hide();
+        $('.'+sel + (multi ? '.single' : '.multi')).hide();
       }
 
-      $('.field').css('display', 'table-row');
-      $('#reqSubmitBox').show();
+      $('#reqDoSeries,#reqBuildMulti').attr('disabled', false);
+      showhide('modeTinderbox', "tinderbox");
+      showhide('modeNightly', "nightly")
+      showhide('modeCompile', "compile")
+      showhide('modeFTP', "ftp")
+      showhide('modeTry', "try")
+
       series ? $('.series').show() : $('.series').hide();
       multi ? $('#reqEndRow').show() : $('#reqEndRow').hide();
-    });
+    }).change();
 
     // Submit the request
     $('#requestBuilds').submit(function () {
@@ -308,7 +284,11 @@ $(function () {
       var series = $('#reqSeries').val();
 
       function dParse(d) {
-        var ret = +(Date.parse(d) / 1000);
+        var ret;
+        if (+d == d)
+          ret = d
+        else
+          ret = Math.round(Date.parse(d) / 1000)
         if (isNaN(ret))
           alert("Failed to parse date \"" + d + "\" with various advanced algorithms. (read: Date.parse(), and nothing else)");
         return ret;
@@ -329,12 +309,22 @@ $(function () {
       }
 
       if (mode == "ftp") {
-        start = start.replace("^((https?)|(ftp))://ftp.mozilla.org", "");
-        start = start.replace("^pub", "/pub");
+        start = start.replace(/^((https?)|(ftp)):\/\/ftp.mozilla.org/, "");
+        start = start.replace(/^pub/, "/pub");
         if (!start.match('^/pub/')) {
           alert("The path for an FTP build should start with /pub/");
           return false;
         }
+      }
+
+      if (mode == "try") {
+        if (!start.match('^[a-f0-9]+$')) {
+          alert("The try changeset ID should only contain a-f, 0-9");
+          return false;
+        }
+        // try is just a ftp build with a path of try:changeset
+        start = "try:" + start;
+        mode = "ftp";
       }
 
       var args = { 'mode': mode, 'startbuild': start };

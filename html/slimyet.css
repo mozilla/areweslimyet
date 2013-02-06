@@ -207,7 +207,7 @@ a:visited:hover { color: #494; }
 }
 
 .note { font-size: 80%; }
-.small { font-size: 50%; }
+.small { font-size: 80%; color: #666; }
 .error { color: #D99; }
 .success { color: #9D9; }
 
@@ -275,8 +275,25 @@ body.faqPage {
 }
 
 .statusPage #reqNote {
-    padding: 10px;
-    display:none;
+  margin: 10px auto 10px auto;
+  display: inline-block;
+  background-color: #EEE;
+  border-radius: 5px;
+  padding: 10px 10px 0px 10px;
+}
+
+.statusPage #reqNote div {
+  padding-bottom: 10px
+}
+
+.statusPage #requestBuilds {
+  max-width: 800px;
+  margin: auto;
+}
+
+.statusPage .series {
+  display: block;
+  margin-top: 2em;
 }
 
 .statusPage #requestBuilds input {
@@ -284,19 +301,25 @@ body.faqPage {
 }
 
 .statusPage .table {
-    display: table;
-    margin: auto;
+  max-width: 500px;
+  display: table;
+  margin: auto;
 }
 
-.statusPage .field { display: none; }
+.modeTinderbox,.modeNightly,.modeCompile,.modeFTP { display: none; }
 
-.statusPage .field>span,.statusPage .field>input,.statusPage .field>div {
-    display: table-cell;
+.statusPage .row {
+  display: table-row;
+  text-align: center;
 }
 
-.statusPage .field>span {
+.statusPage .row>span,.statusPage .row>input,.statusPage .row>div {
+  display: table-cell;
+}
+
+.statusPage .row .note {
     text-align: right;
-    padding-right: 1em;
+    padding: 0 1em 0 1em;
 }
 
 /*
