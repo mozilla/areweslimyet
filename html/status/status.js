@@ -235,7 +235,7 @@ $(function () {
     // Request form
     //
     $('#reqBuildType option:first').prop('selected', true);
-    $('.row,#submit,#reqNote').attr('display', null).hide();
+    $('.row,#submit,#reqNote').hide();
     $('#reqBuildType, #reqBuildMulti, #reqDoSeries').change(function() {
       var val = $('#reqBuildType').val();
 
@@ -243,7 +243,7 @@ $(function () {
         $('.row,#submit,#reqNote').hide();
         return;
       }
-      $('.row,#submit,#reqNote').show();
+      $('.row,#submit,#reqNote').css('display', '');
 
       var series = $('#reqDoSeries:checked').length;
       var multi = $('#reqBuildMulti:checked').length;
