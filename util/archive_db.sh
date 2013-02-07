@@ -36,6 +36,10 @@ while users="$(lsof "$db")" && [ ! -z "$users" ]; do
   sleep 1
 done
 
+before="$(du -h $db)"
+
+echo ":: Current DB size is $before"
+
 echo ":: Removing incomplete tests"
 time sqlite3 "$db" 'DELETE FROM benchtester_tests WHERE successful = 0; SELECT total_changes()'
 
@@ -77,3 +81,5 @@ mv -v "$db.xz.temp" "$db.xz"
 rm -v "$db"
 
 echo "Done"
+echo "Before: $before"
+echo "After: $(du -h "$db.xz")"
