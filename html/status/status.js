@@ -278,8 +278,8 @@ $(function () {
       showhide('modeFTP', "ftp")
       showhide('modeTry', "try")
 
-      series ? $('.series').show() : $('.series').hide();
-      multi ? $('#reqEndRow').show() : $('#reqEndRow').hide();
+      series ? $('.series').css('display', '') : $('.series').hide();
+      multi ? $('#reqEndRow').css('display', '') : $('#reqEndRow').hide();
     }).change();
 
     // Submit the request
