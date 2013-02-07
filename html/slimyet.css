@@ -296,6 +296,10 @@ body.faqPage {
   margin-top: 2em;
 }
 
+.statusPage .disabled {
+  color: grey;
+}
+
 .statusPage #requestBuilds input {
   margin: 5px;
 }

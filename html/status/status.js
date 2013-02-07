@@ -263,8 +263,15 @@ $(function () {
         $('.'+sel + (multi ? '.single' : '.multi')).hide();
       }
 
-      $('#reqDoSeries,#reqBuildMulti').attr('disabled',
-                                            val == "try" || val == "ftp");
+      function disablebutton(ele, truefalse) {
+        $('#'+ele).attr('disabled', truefalse);
+        var l = $("label[for='"+ele+"']");
+        truefalse ? l.addClass('disabled') : l.removeClass('disabled');
+      }
+
+      disablebutton('reqBuildMulti', val == 'try' || val == 'ftp');
+      disablebutton('reqDoSeries', val == 'try' || val == 'ftp');
+
       showhide('modeTinderbox', "tinderbox");
       showhide('modeNightly', "nightly")
       showhide('modeCompile', "compile")
