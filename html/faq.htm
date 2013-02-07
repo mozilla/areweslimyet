@@ -29,7 +29,11 @@
 <li><a href="#how-is-this-data-generated">How is this data generated?</a></li>
 <li><a href="#whats-the-difference-between-resident-memory-and-explicit">What's the difference between "resident memory" and "explicit"?</a></li>
 <li><a href="#why-are-there-gaps-in-the-graphs">Why are there gaps in the graphs?</a></li>
-<li><a href="#rss-after-tp5-tabs-closed-30s-is-almost-twice-as-high-as-rss-fresh-start-mdash-doesnt-that-mean-firefox-leaks-a-ton-of-memory">"RSS: After TP5, tabs closed [+30s]" is almost twice as high as "RSS: Fresh start" &mdash; doesn't that mean Firefox leaks a ton of memory?</a></li>
+<li><a href="#rss-after-tp5-tabs-closed-30s-is-almost-twice-as-high-as-rss-fresh-start-wzxhzdk0-doesnt-that-mean-firefox-leaks-a-ton-of-memory">"RSS: After TP5, tabs closed [+30s]" is almost twice as high as "RSS: Fresh start" &mdash; doesn't that mean Firefox leaks a ton of memory?</a></li>
+<li><a href="#how-can-i-request-additional-awsy-tests-on-specific-changesets-or-try-pushes">How can I request additional AWSY tests on specific changesets or try pushes?</a><ul>
+<li><a href="#but-i-dont-have-access-to-your-fancy-network">But... I don't have access to your fancy network!</a></li>
+</ul>
+</li>
 <li><a href="#this-is-all-well-and-good-but-my-firefox-still-leaks-like-a-sieve">This is all well and good, but my Firefox still leaks like a sieve.</a><ul>
 <li><a href="#check-your-version">Check your version</a><ul>
 <li><a href="#check-for-add-on-leaks">Check for add-on leaks</a></li>
@@ -74,8 +78,8 @@ repository, but those changes are not plotted here.</p>
 <h2 id="how-is-this-data-generated">How is this data generated?</h2>
 <p>For the desktop benchmark, we run the target build of Firefox (Linux 64-bit,
 non-pgo) through a benchmark script (written using <a href="https://github.com/mozautomation/mozmill">mozmill</a>) and measure its
-memory usage at a variety of points along the way.  The testing procedure is
-as follows.</p>
+memory usage at a variety of points along the way.  The testing procedure is as
+follows.</p>
 <ul>
 <li>Start the browser, record <strong>fresh start</strong> memory.</li>
 <li>Sit idle for 30 seconds and record <strong>fresh start [+30s]</strong> memory.</li>
@@ -88,11 +92,11 @@ as follows.</p>
 <li>Close all open tabs and record <strong>after TP5, tabs closed</strong> and then
     <strong>after TP5, tabs closed [+30s]</strong>.</li>
 </ul>
-<p>For the mobile benchmark, we run the target build of Firefox (ARMv6 version)
-on a Samsung GT-B7510 device.  A script combined with an addon records Firefox's
+<p>For the mobile benchmark, we run the target build of Firefox (ARMv6 version) on
+a Samsung GT-B7510 device.  A script combined with an addon records Firefox's
 memory usage at various points.  The testing procedure for the mobile benchmark
 is identical to the desktop benchmark, except that instead of loading all 100
-pages from the TP5 pagesent 5 times, we load only 15 pages from TP5.</p>
+pages from the TP5 pageset 5 times, we load only 15 pages from TP5.</p>
 <p>Every time we measure memory usage, we also collect a full snapshot of
 about:memory.  You can browse these snapshots by clicking on any point in the
 graph. The data that was used for generating that particular point will be
@@ -102,17 +106,17 @@ highlighted in red.</p>
 best measure of a process's memory usage.  RSS measures the amount of physical
 memory (RAM) Firefox's process is using.  This counts code, but does not count
 memory paged out to disk.</p>
-<p><strong>Explicit memory</strong> is memory that Firefox has explicitly allocated, either
-via <code>malloc</code> or <code>mmap</code>.  The explicit measure is particularly useful when
-checking for memory leaks.  If the measured explicit value at two points in time
-is the same, then we've <code>free</code>'d as much as we've <code>malloc</code>'ed between those two
-points in time.  In contrast, the RSS values at those two points might not be
-the same, for example because our heap might become fragmented.</p>
+<p><strong>Explicit memory</strong> is memory that Firefox has explicitly allocated, either via
+<code>malloc</code> or <code>mmap</code>.  The explicit measure is particularly useful when checking
+for memory leaks.  If the measured explicit value at two points in time is the
+same, then we've <code>free</code>'d as much as we've <code>malloc</code>'ed between those two points
+in time.  In contrast, the RSS values at those two points might not be the same,
+for example because our heap might become fragmented.</p>
 <p>The <em>explicit</em> measurement comes from Firefox itself. It has had bugs in the
 past, and the exact set of allocations it covers has changed over time.  It is
-therefore tricky to compare <em>explicit</em> measurements between two distant
-builds.  The <em>resident</em> numbers come from the operating system and should be
-comparable between all builds.</p>
+therefore tricky to compare <em>explicit</em> measurements between two distant builds.
+The <em>resident</em> numbers come from the operating system and should be comparable
+between all builds.</p>
 <h2 id="why-are-there-gaps-in-the-graphs">Why are there gaps in the graphs?</h2>
 <p>Gaps indicate areas where the relevant builds failed to be fully tested, or
 where the data being graphed was not available. The most notable is a gap from
@@ -138,8 +142,19 @@ fragmentation, by <a href="https://bugzilla.mozilla.org/show_bug.cgi?id=580408">
 trying to minimize the number of calls we make to <code>malloc</code>.</p>
 <p>Our data shows that the peak memory usage after the first run of TP5 is the same
 as our peak memory usage after the last run of TP5.  This means that, although
-Firefox remembers how much memory it used at its peak, its memory usage
-should not significantly increase over time.</p>
+Firefox remembers how much memory it used at its peak, its memory usage should
+not significantly increase over time.</p>
+<h2 id="how-can-i-request-additional-awsy-tests-on-specific-changesets-or-try-pushes">How can I request additional AWSY tests on specific changesets or try pushes?</h2>
+<p>Mozillians with access to the MoCo network can queue additional tests themselves
+at <a href="http://albus.mv.mozilla.com:8000/status/">albus's status page</a>. Tests take about ninety minutes, and will
+appear on the main AWSY page within five minutes of completing.</p>
+<p>The tester also allows you to queue builds on a custom series, which will be
+visible at http://areweslimyet.com/?series=foo rather than the main
+dataset. This is useful for try builds or other builds that aren't part of
+mozilla-inbound and don't make sense to include in the main plot.</p>
+<h4 id="but-i-dont-have-access-to-your-fancy-network">But... I don't have access to your fancy network!</h4>
+<p>Never fear! The valiant memory knights in <a href="https://wiki.mozilla.org/IRC">IRC</a> (irc.mozilla.org, #memshrink)
+can queue additional tests on your behalf.</p>
 <h2 id="this-is-all-well-and-good-but-my-firefox-still-leaks-like-a-sieve">This is all well and good, but my Firefox still leaks like a sieve.</h2>
 <p>We're sorry to hear that, and we'd like to help.  Here are some diagnostics you
 can try.</p>
@@ -166,16 +181,16 @@ gigabytes of memory.)</p>
 <p>Once you have figured out which add-on(s) is (are) leaking, you're almost done!
 Just <a href="https://bugzilla.mozilla.org/enter_bug.cgi?product=Core&amp;component=General&amp;status_whiteboard=[MemShrink]">file a bug</a>. Please check that "[MemShrink]" is in the "status
 whiteboard" field, but don't worry about the other metadata like the component;
-we'll fix it.  (You may have to click "show advanced fields" in order to see
-the status whiteboard field.)</p>
+we'll fix it.  (You may have to click "show advanced fields" in order to see the
+status whiteboard field.)</p>
 <p>If you file a bug, we'll take care of contacting the add-on developer and
 helping him or her fix the problem.</p>
 <p>If you have trouble with any of this, find us on <a href="https://wiki.mozilla.org/IRC">IRC</a> (irc.mozilla.org,
 #memshrink).  We're happy to help.</p>
 <h4 id="if-firefox-still-leaks-even-in-safe-mode-file-a-bug">If Firefox still leaks, even in safe mode, file a bug!</h4>
-<p>If the latest version of Firefox leaks for you, even in safe mode, we
-definitely want to hear about it.  Please, <em>please</em> <a href="https://bugzilla.mozilla.org/enter_bug.cgi?product=Core&amp;component=General&amp;status_whiteboard=[MemShrink]">file a bug</a> (and please
-check that [MemShrink] is in the status whiteboard).</p>
+<p>If the latest version of Firefox leaks for you, even in safe mode, we definitely
+want to hear about it.  Please, <em>please</em> <a href="https://bugzilla.mozilla.org/enter_bug.cgi?product=Core&amp;component=General&amp;status_whiteboard=[MemShrink]">file a bug</a> (and please check that
+[MemShrink] is in the status whiteboard).</p>
 <p>If you don't want to file a bug, find us on IRC (irc.mozilla.org, #memshrink),
 send smoke signals...do something!  We need your help, particularly in this
 case.</p>  <div id="footer"></div>
