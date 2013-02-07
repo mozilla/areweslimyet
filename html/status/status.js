@@ -235,7 +235,7 @@ $(function () {
     // Request form
     //
     $('#reqBuildType option:first').prop('selected', true);
-    $('.row,#submit,#reqNote').hide();
+    $('.row,#submit,#reqNote').attr('display', null).hide();
     $('#reqBuildType, #reqBuildMulti, #reqDoSeries').change(function() {
       var val = $('#reqBuildType').val();
 
