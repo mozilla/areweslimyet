@@ -128,6 +128,23 @@ as our peak memory usage after the last run of TP5.  This means that, although
 Firefox remembers how much memory it used at its peak, its memory usage
 should not significantly increase over time.
 
+## How can I request additional AWSY tests on specific changesets or try pushes?
+
+Mozillians with access to the MoCo network can queue additional tests themselves
+at [albus's status page][albus]. Select the type of build, fill in the requested
+information, and press Queue. Tests take about ninety minutes, and will appear
+on the main AWSY page within five minutes of completing.
+
+The tester also allows you to queue builds on a custom series, which will be
+visible at http://areweslimyet.com/?series=foo rather than the main
+dataset. This is useful for try builds or other builds that arn't part of
+mozilla-inbound and don't make sense to include in the main plot.
+
+#### But... I don't have access to your fancy network!
+
+Never fear! The valliant memory knights in [IRC][] (irc.mozilla.org,
+\#memshrink) can queue additional tests on your behalf, just ask.
+
 ## This is all well and good, but my Firefox still leaks like a sieve.
 
 We're sorry to hear that, and we'd like to help.  Here are some diagnostics you
@@ -196,3 +213,4 @@ case.
 [zombie compartments]: https://developer.mozilla.org/en/Zombie_compartments#Reactive_checking
 [file a bug]: https://bugzilla.mozilla.org/enter_bug.cgi?product=Core&component=General&status_whiteboard=[MemShrink]
 [awsy-armv6]: https://github.com/staktrace/awsy-armv6
+[albus]: http://albus.mv.mozilla.com:8000/status/
