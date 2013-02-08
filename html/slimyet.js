@@ -357,7 +357,7 @@ function dlProgress() {
           $('#dlProgress').empty();
         } else {
           $('#dlProgress').text("Downloading " + url + " - " +
-                                formatBytes(e.loaded);
+                                formatBytes(e.loaded));
         }
       }
     }, false);
