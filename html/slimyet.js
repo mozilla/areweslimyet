@@ -60,11 +60,27 @@ var gQueryVars = (function () {
  */
 var gAnnotations = [
   {
+    'date': 1357139813,
+    'desktop': false,
+    'msg': ' \
+      Updated android NDK from r5c to r8c. \
+      See <a href="https://bugzilla.mozilla.org/show_bug.cgi?id=828650">bug 828650</a>. \
+    '
+  },
+  {
+    'date': 1357743011,
+    'desktop': false,
+    'msg': ' \
+      Some crypto stuff is now being loaded on startup. \
+      See <a href="https://bugzilla.mozilla.org/show_bug.cgi?id=824023#c4">bug 824023 comment 4</a>. \
+    '
+  },
+  {
     'date': 1358920410,
     'desktop': false,
     'msg': ' \
       Some graphics code is loaded earlier, moving the Start memory usage up but leaving StartSettled as-is. \
-      See <a href="https://bugzilla.mozilla.org/show_bug.cgi?id=828126#c14">bug 8282126 comment 14</a>. \
+      See <a href="https://bugzilla.mozilla.org/show_bug.cgi?id=828126#c14">bug 828126 comment 14</a>. \
     '
   },
   {
