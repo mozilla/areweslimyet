@@ -337,6 +337,33 @@ function formatBytes(raw) {
   }
 }
 
+// Pass to progress on $.ajax to show the progress div for this request
+function dlProgress() {
+  var xhr = $.ajaxSettings.xhr();
+  var url;
+  if (xhr) {
+    xhr._open = xhr.open;
+    xhr.open = function() {
+      if (arguments.length >= 2)
+        url = arguments[1];
+      return this._open.apply(this, arguments);
+    };
+    xhr.addEventListener("progress", function(e) {
+      if (e.lengthComputable) {
+        if (e.loaded == e.total) {
+          $('#dlProgress').empty();
+        } else {
+          var sizeText = formatBytes(e.loaded) + " / " + formatBytes(e.total);
+          var pctText = (100 * e.loaded / e.total).toFixed(2) + "%";
+          $('#dlProgress').text("Downloading " + url + " - " + pctText +
+                                " [ " + sizeText + " ]");
+        }
+      }
+    }, false);
+  }
+  return xhr;
+}
+
 // Round unix timestamp to the nearest midnight UTC. (Not *that day*'s midnight)
 function roundDay(date) {
   return Math.round(date / (24 * 60 * 60)) * 24 * 60 * 60;
@@ -1054,6 +1081,7 @@ function getFullSeries(dataname, success, fail) {
     if (!(dataname in gPendingFullData)) {
       gPendingFullData[dataname] = { 'success': [], 'fail': [] };
       $.ajax({
+        xhr: dlProgress,
         url: '/data/' + dataname + '.json',
         success: function (data) {
           gFullData[dataname] = data;
@@ -1082,6 +1110,7 @@ function getPerBuildData(buildname, success, fail) {
     if (success instanceof Function) success.apply(null);
   } else {
     $.ajax({
+      xhr: dlProgress,
       url: '/data/' + buildname + '.json',
       success: function (data) {
         gPerBuildData[buildname] = data;
@@ -1737,6 +1766,7 @@ $(function () {
 
   $.ajax({
     url: url,
+    xhr: dlProgress,
     success: function (data) {
       gGraphData = data;
       function makePlots() {

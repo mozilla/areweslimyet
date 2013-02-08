@@ -23,6 +23,7 @@ html, body {
 }
 
 #navbar {
+  position: relative; /* for abs positioned #dlProgress */
   outline: none;
   border: none;
   border-bottom: 4px solid #EEE;
@@ -50,6 +51,15 @@ html, body {
   font-family: QuicksandLight;
   letter-spacing: -.10em;
   text-shadow: none;
+}
+
+#dlProgress {
+  position: absolute;
+  left: 0;
+  bottom: 5px;
+  font-size: 50%;
+  color: grey;
+  text-align: left;
 }
 
 h2 {
