@@ -349,14 +349,15 @@ function dlProgress() {
       return this._open.apply(this, arguments);
     };
     xhr.addEventListener("progress", function(e) {
-      if (e.lengthComputable) {
+      // We can't use e.total because it is bogus for gzip'd data: Firefox sets
+      // loaded to the decompressed data but total to compressed, and chromium
+      // doesn't set total.
+      if (e.loaded) {
         if (e.loaded == e.total) {
           $('#dlProgress').empty();
         } else {
-          var sizeText = formatBytes(e.loaded) + " / " + formatBytes(e.total);
-          var pctText = (100 * e.loaded / e.total).toFixed(2) + "%";
-          $('#dlProgress').text("Downloading " + url + " - " + pctText +
-                                " [ " + sizeText + " ]");
+          $('#dlProgress').text("Downloading " + url + " - " +
+                                formatBytes(e.loaded);
         }
       }
     }, false);
