@@ -1484,7 +1484,6 @@ Plot.prototype._buildSeries = function(start, stop) {
     return median;
   }
 
-  logMsg("Building series using full data");
   var buildinf;
   var series;
   var ctime = -1;
