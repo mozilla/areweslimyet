@@ -1404,13 +1404,16 @@ Plot.prototype._buildSeries = function(start, stop) {
     }
   }
 
-  var builds = [];
+  // Push a dummy null point at the beginning of the series to force the zoom to
+  // start exactly there
+
+  var builds = [ { time: start, timerange: [ start, start ] } ];
   var ranges = {};
   var data = {};
 
   for (var axis in this.axis) {
-    ranges[axis] = [];
-    data[axis] = [];
+    ranges[axis] = [ [ start, null ] ];
+    data[axis] = [ [ start, null ] ];
   }
 
   // Grouping distance
@@ -1542,9 +1545,14 @@ Plot.prototype._buildSeries = function(start, stop) {
   }
   pushdp(series, buildinf, ctime);
 
+  // Push a dummy null point at the end of the series to force the zoom to end
+  // exactly there
+  builds.push({ time: stop, timerange: [ stop, stop ] });
   var seriesData = [];
-  for (var axis in this.axis)
+  for (var axis in this.axis) {
+    data[axis].push([ stop, null ]);
     seriesData.push({ name: axis, range: ranges[axis], label: this.axis[axis], data: data[axis], buildinfo: builds });
+  }
 
   return seriesData;
 }
