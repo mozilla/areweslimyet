@@ -1297,6 +1297,15 @@ function Plot(name, appendto) {
     }
   );
 
+  // If our condensed data is not enough to satisfy gMaxPoints
+  // (e.g. ?maxpoints=9000) we'll need to fetch high resolution series and
+  // re-render.
+  var self = this;
+  _fetchInvolvedSeries(this.dataRange, function (fetched) {
+    if (fetched > 0)
+      self.setZoomRange(self.zoomRange, true);
+  });
+
   //
   // Background selector for zooming
   //
