@@ -1408,13 +1408,10 @@ Plot.prototype._buildSeries = function(start, stop) {
   // start exactly there
 
   var builds = [ { time: start, timerange: [ start, start ] } ];
-  var ranges = {};
   var data = {};
 
-  for (var axis in this.axis) {
-    ranges[axis] = [ [ start, null ] ];
+  for (var axis in this.axis)
     data[axis] = [ [ start, null ] ];
-  }
 
   // Grouping distance
   var groupdist = gMaxPoints < 1 ? 1 : (Math.round((stop - start) / gMaxPoints));
@@ -1427,14 +1424,14 @@ Plot.prototype._buildSeries = function(start, stop) {
   }
 
   function pushdp(series, buildinf, ctime) {
-    // Push a datapoint onto builds/ranges/data
+    // Push a datapoint onto builds/data
     if (ctime != -1) {
       // Flatten the axis first and determine if this is a null build
       var flat = {};
       var nullbuild = true;
       for (var axis in self.axis) {
         flat[axis] = flatten(series[axis]);
-        if (flat[axis][1] !== null)
+        if (flat[axis] !== null)
           nullbuild = false;
       }
       if (nullbuild) {
@@ -1449,8 +1446,7 @@ Plot.prototype._buildSeries = function(start, stop) {
       // Add to series
       builds.push(buildinf);
       for (axis in self.axis) {
-        data[axis].push([ +buildinf['time'], flat[axis][1] ]);
-        ranges[axis].push([flat[axis][0], flat[axis][2]]);
+        data[axis].push([ +buildinf['time'], flat[axis] ]);
       }
     }
   }
@@ -1479,7 +1475,7 @@ Plot.prototype._buildSeries = function(start, stop) {
       median = iseries[(iseries.length - 1)/ 2];
     else
       median = iseries[iseries.length / 2];
-    return [iseries[0], median, iseries[iseries.length - 1]];
+    return median;
   }
 
   logMsg("Building series using full data");
@@ -1551,7 +1547,7 @@ Plot.prototype._buildSeries = function(start, stop) {
   var seriesData = [];
   for (var axis in this.axis) {
     data[axis].push([ stop, null ]);
-    seriesData.push({ name: axis, range: ranges[axis], label: this.axis[axis], data: data[axis], buildinfo: builds });
+    seriesData.push({ name: axis, label: this.axis[axis], data: data[axis], buildinfo: builds });
   }
 
   return seriesData;
