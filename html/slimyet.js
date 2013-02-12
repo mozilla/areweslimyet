@@ -1747,8 +1747,8 @@ $(function () {
               val = val[1]; // [min, median, max] data
             if (val !== null) {
               var b = gGraphData['builds'][ind];
-              var buildstart = 'timerange' in b ? b[0] : b['time'];
-              var buildstop = 'timerange' in b ? b[1] : b['time'];
+              var buildstart = 'timerange' in b ? b['timerange'][0] : b['time'];
+              var buildstop = 'timerange' in b ? b['timerange'][1] : b['time'];
               if (gDataRange[0] === null || buildstart < gDataRange[0])
                 gDataRange[0] = buildstart;
               if (gDataRange[1] === null || buildstop > gDataRange[1])
