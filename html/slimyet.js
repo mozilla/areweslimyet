@@ -267,6 +267,9 @@ var gPerBuildData = {};
 // List of *top-level* plots that should be zoom-sync'd
 var gZoomSyncPlots = {};
 
+// Range of all non-null datapoints.
+var gDataRange;
+
 //
 // Utility
 //
@@ -394,6 +397,23 @@ function roundDayUp(date) {
 // Round a date (seconds since epoch) down to the previous day.
 function roundDayDown(date) {
   return Math.floor(date / (24 * 60 * 60)) * 24 * 60 * 60;
+}
+
+// Get the full time range covered by two (possibly condensed) build_info structs
+function getBuildTimeRange(firstbuild, lastbuild)
+{
+  var range = [];
+  if ('timerange' in firstbuild && firstbuild['timerange'][0] < firstbuild['time'])
+    range.push(firstbuild['timerange'][0]);
+  else
+    range.push(firstbuild['time']);
+
+  if ('timerange' in lastbuild && lastbuild['timerange'][1] > lastbuild['time'])
+    range.push(lastbuild['timerange'][1]);
+  else
+    range.push(lastbuild['time']);
+
+  return range;
 }
 
 //
@@ -1158,14 +1178,8 @@ function Plot(name, appendto) {
   this.name = name;
   this.axis = gSeries[name];
   this.zoomed = false;
-  var firstb = gGraphData['builds'][0];
-  var lastb = gGraphData['builds'][gGraphData['builds'].length - 1];
 
-  // If the builds specify a timerange that extends beyond the average time,
-  // use that. (Note that the average time does not need to be inside the
-  // timerange -- overview data groups it by day @ midnight)
-  this.dataRange = this._getBuildTimeRange(firstb, lastb);
-
+  this.dataRange = gDataRange;
   logMsg("Generating graph \""+name+"\", data range - " + JSON.stringify(this.dataRange));
   this.zoomRange = this.dataRange;
 
@@ -1317,23 +1331,6 @@ function Plot(name, appendto) {
   this.obj.bind("plotclick", function(event, pos, item) { self.onClick(item); });
   this.obj.bind("plothover", function(event, pos, item) { self.onHover(item, pos); });
   this.obj.bind("mouseout", function(event) { self.hideHighlight(); });
-}
-
-// Get the full time range covered by two (possibly condensed) build_info structs
-Plot.prototype._getBuildTimeRange = function(firstbuild, lastbuild)
-{
-  var range = [];
-  if ('timerange' in firstbuild && firstbuild['timerange'][0] < firstbuild['time'])
-    range.push(firstbuild['timerange'][0]);
-  else
-    range.push(firstbuild['time']);
-
-  if ('timerange' in lastbuild && lastbuild['timerange'][1] > lastbuild['time'])
-    range.push(lastbuild['timerange'][1]);
-  else
-    range.push(lastbuild['time']);
-
-  return range;
 }
 
 // Zoom this graph to given range. If called with no arguments, zoom all the way
@@ -1572,7 +1569,7 @@ Plot.prototype.onClick = function(item) {
       if (buildinfo[i]['time'] > this.highlightRange[1]) break;
       if (!firstbuild) firstbuild = i;
     }
-    var buildrange = this._getBuildTimeRange(buildinfo[firstbuild], buildinfo[Math.min(i, buildinfo.length - 1)]);
+    var buildrange = getBuildTimeRange(buildinfo[firstbuild], buildinfo[Math.min(i, buildinfo.length - 1)]);
     var zoomrange = [];
     zoomrange[0] = Math.min(this.highlightRange[0], buildrange[0]);
     zoomrange[1] = Math.max(this.highlightRange[1], buildrange[1]);
@@ -1737,6 +1734,30 @@ $(function () {
     xhr: dlProgress,
     success: function (data) {
       gGraphData = data;
+      // Calculate gDataRange.  The full range of gGraphData can have a number
+      // of superfluous builds that have null for all series values we care
+      // about. For instance, the mobile series all start Dec 2012, so all
+      // builds prior to that are not useful in mobile mode.
+      gDataRange = [ null, null ];
+      for (var graph in gSeries) {
+        for (var series in gSeries[graph]) {
+          for (var ind = 0; ind < gGraphData['builds'].length; ind++) {
+            var val = gGraphData['series'][series][ind];
+            if (val instanceof Array)
+              val = val[1]; // [min, median, max] data
+            if (val !== null) {
+              var b = gGraphData['builds'][ind];
+              var buildstart = 'timerange' in b ? b[0] : b['time'];
+              var buildstop = 'timerange' in b ? b[1] : b['time'];
+              if (gDataRange[0] === null || buildstart < gDataRange[0])
+                gDataRange[0] = buildstart;
+              if (gDataRange[1] === null || buildstop > gDataRange[1])
+                gDataRange[1] = buildstop;
+            }
+          }
+        }
+      }
+      logMsg("Useful data range is [ " + gDataRange + " ]");
       function makePlots() {
         $('#graphs h3').remove();
         for (var graphname in gSeries) {
