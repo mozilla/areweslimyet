@@ -1458,7 +1458,16 @@ Plot.prototype._buildSeries = function(start, stop) {
   function flatten(series) {
     var iseries = [];
     for (var x in series) {
-      if (series[x] !== null) iseries.push(+series[x]);
+      if (series[x] !== null) {
+        if (series[x] instanceof Array) {
+          // [ median, count ] pair, push it N times for weighting (this is not
+          // the most efficient way to do this)
+          for (var i = 0; i < series[x][1]; i++)
+            iseries.push(+series[x][0]);
+        } else {
+          iseries.push(+series[x]);
+        }
+      }
     }
     if (!iseries.length) return [null, null, null];
     iseries.sort();
@@ -1469,132 +1478,69 @@ Plot.prototype._buildSeries = function(start, stop) {
       median = iseries[iseries.length / 2];
     return [iseries[0], median, iseries[iseries.length - 1]];
   }
-  if (involvedseries && involvedseries.length) {
-    // Mode 1:
-    // Have full data, coalesce it to the desired density ourselves
-    logMsg("Building series using full data");
-    var buildinf;
-    var series;
-    var ctime = -1;
-    for (var seriesindex in involvedseries) {
-      var sourceData = gFullData[involvedseries[seriesindex]];
-      for (var ind in sourceData['builds']) {
-        var b = sourceData['builds'][ind];
-        if (start !== undefined && b['time'] < start) continue;
-        if (stop !== undefined && b['time'] > stop) break;
 
-        var time = groupin(b['time']);
-        if (time != ctime) {
-          pushdp(series, buildinf, ctime);
-          ctime = time;
-          series = {};
-          buildinf = { time: time };
-        }
+  logMsg("Building series using full data");
+  var buildinf;
+  var series;
+  var ctime = -1;
+  var count = 0;
 
-        var rev = b['revision'];
-        if (!buildinf['firstrev']) {
-          buildinf['firstrev'] = b['revision'];
-          buildinf['timerange'] = [ b['time'], b['time'] ];
-        } else {
-          buildinf['lastrev'] = b['revision'];
-          buildinf['timerange'][1] = b['time'];
-        }
-        for (var axis in this.axis) {
-          if (!series[axis]) series[axis] = [];
-          // Push all non-null datapoints onto list, pushdp() flattens
-          // this list, finding its midpoint/min/max.
-          var val = axis in sourceData['series'] ? sourceData['series'][axis][ind] : null;
-          if (val) series[axis].push(val);
-        }
-      }
-    }
-    pushdp(series, buildinf, ctime);
-
+  var seriesdata = [];
+  if (!involvedseries) {
+    // Only one series, the overview data
+    seriesdata.push(gGraphData);
   } else {
-    // Mode 2:
-    // Using overview data, which is already condensed.
-    // Merge every N points to get close to our desired density.
-    var merge = Math.max(Math.round(groupdist / gGraphData['condensed']), 1);
-    logMsg("Building series using overview data, merging every " + merge);
-    var nbuilds = gGraphData['builds'].length;
-    for (var i = 0; i < nbuilds; i += merge) {
-      var b = gGraphData['builds'][i];
-      var ilast = i + merge - 1 < nbuilds ? i + merge - 1 : nbuilds - 1;
-      var blast = gGraphData['builds'][ilast];
+    for (var i in involvedseries)
+      seriesdata.push(gFullData[involvedseries[i]]);
+  }
 
-      if (b['time'] < start) continue;
-      if (blast['time'] > stop) break;
+  for (var seriesindex in seriesdata) {
+    var sourceData = seriesdata[seriesindex];
+    for (var ind in sourceData['builds']) {
+      var b = sourceData['builds'][ind];
+      if (start !== undefined && b['time'] < start) continue;
+      if (stop !== undefined && b['time'] > stop) break;
 
-      var time;
-      if (ilast > i) {
-        var totalbuilds = 0;
-        time = 0;
-        // Average time, taking number of builds for each point into account
-        // for weighting. Count total builds.
-        for (var x = 0; x + i <= ilast; x++) {
-          var count = 'count' in gGraphData['builds'][x + i] ? +gGraphData['builds'][x + i]['count'] : 1;
-          time += +gGraphData['builds'][x + i]['time'] * count;
-          totalbuilds += count;
-        }
-        time = Math.round(time / totalbuilds);
-
-        // Merged build object
-        var newb = {
-          firstrev: b['firstrev'],
-          time: time,
-          lastrev: blast['lastrev'] ? blast['lastrev'] : blast['firstrev'],
-          timerange: [
-            'timerange' in b ? b['timerange'][0] : b['time'],
-            'timerange' in blast ? blast['timerange'][1] : blast['time']
-          ]
-        };
-
-        builds.push(newb);
-      } else {
-        builds.push(b);
-        time = b['time'];
+      var time = groupin(b['time']);
+      if (time != ctime) {
+        pushdp(series, buildinf, ctime);
+        count = 0;
+        ctime = time;
+        series = {};
+        buildinf = { time: time };
       }
 
+      // Full series uses non-merged syntax, which is just build['revision']
+      // but we might be using overview data and hence merged syntax
+      // (firstrev, lastrev)
+      var rev = 'revision' in b ? b['revision'] : b['firstrev'];
+      var lrev = 'revision' in b ? b['revision'] : b['lastrev'];
+      var starttime = 'timerange' in b ? b['timerange'][0] : b['time'];
+      var endtime = 'timerange' in b ? b['timerange'][1] : b['time'];
+      count += 'count' in b ? b['count'] : 1;
+      if (!buildinf['firstrev']) {
+        buildinf['firstrev'] = rev;
+        buildinf['timerange'] = [ starttime, endtime ];
+      } else {
+        buildinf['lastrev'] = lrev;
+        buildinf['timerange'][1] = endtime;
+      }
       for (var axis in this.axis) {
-        // Create list of non-null points, along with the number of builds they
-        // represent. Count total builds that have non-null points. Also
-        // find min/max while we're iterating
-        var iseries = [];
-        var innerbuilds = 0;
-        var min = null, max = null;
-        for (var x = 0; x + i <= ilast; x++) {
-          var val = pval(gGraphData['series'][axis][x + i], 1);
-          if (val) {
-            var pmin = pval(gGraphData['series'][axis][x + i], 0);
-            var pmax = pval(gGraphData['series'][axis][x + i], 2);
-            var count = 'count' in gGraphData['builds'][x + i] ? +gGraphData['builds'][x + i]['count'] : 1;
-            if (min === null || pmin < min) min = pmin;
-            if (min === null || pmax > max) max = pmax;
-            iseries.push([ val, count ]);
-            innerbuilds += count;
-          }
+        if (!series[axis]) series[axis] = [];
+        // Push all non-null datapoints onto list, pushdp() flattens
+        // this list, finding its midpoint/min/max.
+        var val = axis in sourceData['series'] ? sourceData['series'][axis][ind] : null;
+        if (val && typeof(val) == "number") {
+          series[axis].push(val);
+        } else if (val) {
+          // [ min, median, max ] formatted datapoint (already condensed). Push
+          // it to series as [ median, count ] for flatten()
+          series[axis].push([ val[1], count ]);
         }
-        // Sort by val
-        iseries.sort(function (a,b) {
-          return a[0] == b[0] ? 0 : (a[0] < b[0] ? -1 : 1);
-        });
-
-        // Find midpoint weighted by number-of-builds
-        var count = 0;
-        for (var x = 0; x < iseries.length; x++) {
-          var next = iseries[x][1];
-          if (count + next > innerbuilds / 2) break;
-          count += next;
-        }
-        if (x == iseries.length) x--;
-        // Might not have any valid points
-        var median = x >= 0 ? iseries[x][0] : null;
-
-        data[axis].push([ time, median ]);
-        ranges[axis].push([ min, max ]);
       }
     }
   }
+  pushdp(series, buildinf, ctime);
 
   var seriesData = [];
   for (var axis in this.axis)
