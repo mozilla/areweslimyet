@@ -1434,11 +1434,12 @@ Plot.prototype._buildSeries = function(start, stop) {
         if (flat[axis][1] !== null)
           nullbuild = false;
       }
-      if (nullbuild && builds.length) {
+      if (nullbuild) {
         // Null builds in the series cause the line to be disjointed. Only push
         // one if there is >= 24h of consecutive untested builds.
-        var diff = buildinf['timerange'][0] -
-                   builds[builds.length - 1]['timerange'][1];
+        var diff = builds.length ? buildinf['timerange'][0] -
+                                   builds[builds.length - 1]['timerange'][1]
+                                 : 0;
         if (diff < gDisjointTime)
           return;
       }
