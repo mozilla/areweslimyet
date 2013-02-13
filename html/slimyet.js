@@ -1353,10 +1353,10 @@ function Plot(name, appendto) {
 // points)
 Plot.prototype.setZoomRange = function(range, nosync) {
     var zoomOut = false;
-    if (range === undefined) {
-      zoomOut = true;
+    if (range === undefined)
       range = this.dataRange;
-    }
+    if (range[0] == this.dataRange[0] && range[1] == this.dataRange[1])
+      zoomOut = true;
 
     var self = this;
     if (this.zoomed && zoomOut) {
