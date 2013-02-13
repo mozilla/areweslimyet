@@ -80,9 +80,7 @@ vacuum="$(du -h $db)"
 echo ":: After vacuum: $vacuum"
 
 echo ":: Compressing"
-time xz -v9ec "$db" > "$db.xz.temp"
-mv -v "$db.xz.temp" "$db.xz"
-rm -v "$db"
+time xz -v9ef "$db"
 
 echo "Done"
 echo "Before:     $before"
