@@ -605,11 +605,12 @@ function memoryTreeNode(target, data, select, depth) {
 // of these that arn't downloaded.
 function _getInvolvedSeries(range) {
   var ret = [];
-  var groupdist = gMaxPoints < 1 ? 1 : (Math.round((range[1] - range[0]) / gMaxPoints));
+  var groupdist = Math.round((range[1] - range[0]) / gMaxPoints);
 
   // Unless the requested grouping distance is < 80% of the overview data's
   // distance, don't pull in more
-  if (!gQueryVars['nocondense'] && groupdist / gGraphData['condensed'] > 0.8)
+  if (!gQueryVars['nocondense'] && isFinite(groupdist) &&
+      groupdist / gGraphData['condensed'] > 0.8)
     return null;
 
   for (var x in gGraphData['allseries']) {
@@ -1420,7 +1421,7 @@ Plot.prototype._buildSeries = function(start, stop) {
     data[axis] = [ [ start, null ] ];
 
   // Grouping distance
-  var groupdist = gMaxPoints < 1 ? 0 : Math.round((stop - start) / gMaxPoints);
+  var groupdist = gMaxPoints == 0 ? 0 : Math.round((stop - start) / gMaxPoints);
 
   // Points might be [min, median, max], or just a number if it only
   // represents one datapoint.
@@ -1457,7 +1458,7 @@ Plot.prototype._buildSeries = function(start, stop) {
     }
   }
   function groupin(timestamp) {
-    return timestamp == 0 ? timestamp : timestamp - (timestamp % groupdist);
+    return groupdist > 0 ? timestamp - (timestamp % groupdist) : timestamp;
   }
   // Given a list of numbers, return [min, median, max]
   function flatten(series) {
