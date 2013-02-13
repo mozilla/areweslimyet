@@ -75,11 +75,16 @@ done
 echo ":: Vacuuming"
 time sqlite3 "$db" VACUUM
 
-echo "Compressing"
+vacuum="$(du -h $db)"
+
+echo ":: After vacuum: $vacuum"
+
+echo ":: Compressing"
 time xz -v9ec "$db" > "$db.xz.temp"
 mv -v "$db.xz.temp" "$db.xz"
 rm -v "$db"
 
 echo "Done"
-echo "Before: $before"
-echo "After: $(du -h "$db.xz")"
+echo "Before:     $before"
+echo "Vacuumed:   $vacuum"
+echo "Compressed: $(du -h "$db.xz")"
