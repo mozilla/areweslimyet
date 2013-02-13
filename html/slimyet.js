@@ -1742,6 +1742,9 @@ $(function () {
     url: url,
     xhr: dlProgress,
     success: function (data) {
+      //
+      // Graph data arrived, do additional processing and create plots
+      //
       gGraphData = data;
       // Calculate gDataRange.  The full range of gGraphData can have a number
       // of superfluous builds that have null for all series values we care
@@ -1775,25 +1778,9 @@ $(function () {
         }
       }
       logMsg("Useful data range is [ " + gDataRange + " ]");
-      function makePlots() {
-        $('#graphs h3').remove();
-        for (var graphname in gSeries) {
-          gZoomSyncPlots[graphname] = new Plot(graphname, $('#graphs'));
-        }
-      }
-      if (gQueryVars['nocondense']) {
-        // Load all graph data, all the time, not using the condensed 'overview'
-        // data
-        $('#graphs h3').text("Loading all the things [nocondense]...");
-        var pending = 0;
-        for (var x in gGraphData['allseries']) {
-          pending++;
-          getFullSeries(gGraphData['allseries'][x]['dataname'], function () {
-            if (--pending == 0) makePlots();
-          });
-        }
-      } else {
-        makePlots();
+      $('#graphs h3').remove();
+      for (var graphname in gSeries) {
+        gZoomSyncPlots[graphname] = new Plot(graphname, $('#graphs'));
       }
     },
     error: function(xhr, status, error) {
