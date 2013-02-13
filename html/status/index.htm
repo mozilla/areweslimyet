@@ -37,7 +37,8 @@
     </div>
     <div id="reqNote">
       <div class="modeTry note">
-        Test a try build. Has to be done on a custom series as we don't want these on the main graph.
+        <p>Test a try build. Requires the run have a linux64-opt build, i.e. <pre>try: -b o -p linux64 -u none -t none</pre></p>
+        <p>The tester does not currently wait for in-progress builds, so queuing a test prior to the build being available will fail.</p>
       </div>
       <div class="modeNightly note">
         Test one or more nightly builds. This is mainly used for getting/retesting historical data.
