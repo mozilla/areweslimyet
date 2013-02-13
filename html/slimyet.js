@@ -1420,7 +1420,7 @@ Plot.prototype._buildSeries = function(start, stop) {
     data[axis] = [ [ start, null ] ];
 
   // Grouping distance
-  var groupdist = gMaxPoints < 1 ? 1 : (Math.round((stop - start) / gMaxPoints));
+  var groupdist = gMaxPoints < 1 ? 0 : Math.round((stop - start) / gMaxPoints);
 
   // Points might be [min, median, max], or just a number if it only
   // represents one datapoint.
@@ -1457,7 +1457,7 @@ Plot.prototype._buildSeries = function(start, stop) {
     }
   }
   function groupin(timestamp) {
-    return timestamp - (timestamp % groupdist);
+    return timestamp == 0 ? timestamp : timestamp - (timestamp % groupdist);
   }
   // Given a list of numbers, return [min, median, max]
   function flatten(series) {
