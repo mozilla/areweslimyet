@@ -36,7 +36,8 @@ filename = sys.argv[2]
 
 keyvalues = dict()
 infile = open(filename)
-meta = [ 'buildname', 'buildtime', 'testname', 'testtime' ]
+meta = [ 'buildname', 'buildtime', 'testname', 'testtime', 'mode' ]
+
 metadata = dict()
 data = dict()
 for key in infile:
@@ -51,8 +52,16 @@ for key in infile:
         data[key] = int(val)
 
 for k in meta:
-    if k not in metadata:
+    if k != "mode" and k not in metadata:
         err("Required metadata %s missing :(" % (k,))
+# Mode is 'insert' or 'replace' to add a new test or blow away all other tests
+# for said build
+if 'mode' not in metadata:
+    metadata['mode'] = "insert"
+
+if metadata['mode'] not in [ 'insert', 'replace' ]:
+    err("Invalid mode: %s" % (metadata['mode'],))
+
 print("Got %u datavalues, inserting" % len(data))
 
 filedate = datetime.datetime.utcfromtimestamp(int(metadata['buildtime'])).date()
@@ -77,6 +86,11 @@ metadata['buildid'] = ret.fetchone()[0]
 print("Inserted build %s / %s -> %u" %
       (metadata['buildname'], metadata['buildtime'], metadata['buildid']))
 
+if metadata['mode'] == "replace":
+    print("Replace specified, blowing away old tests for this build...")
+    cur.execute("DELETE FROM `benchtester_tests` "
+                "WHERE `build_id` = ?", [ metadata['buildid'] ])
+    print("Deleted %u old tests" % (cur.rowcount))
 
 cur.execute("INSERT INTO `benchtester_tests` (`name`, `time`, `build_id`, `successful`) "
             "VALUES (?, ?, ?, 1)",
