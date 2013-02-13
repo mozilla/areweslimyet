@@ -26,12 +26,15 @@ util/queue_tinderbox_builds.py html/status/batch last_tinderbox.json integration
 flock -n ~/mobile.lck ./import.sh
 
 # Update all json exports
-for x in db/custom-*.sqlite db/areweslimyet-*.sqlite; do
-  ./create_graph_json.py "$x" "$(basename "${x%.sqlite}")" html/data
+for x in db/areweslimyet-*.sqlite db/custom-*.sqlite; do
+  s="$(basename "${x%.sqlite}")"
+  s="${s#custom-}"
+  ./create_graph_json.py "$x" "$s" html/data
 done
 
 for x in db/custom-*.sqlite; do
   s="$(basename "${x%.sqlite}")"
+  s="${s#custom-}"
   ./merge_graph_json.py "${s%-x}" html/data
 done
 
