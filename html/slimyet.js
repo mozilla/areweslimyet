@@ -1764,6 +1764,14 @@ $(function () {
             }
           }
         }
+        if (gDataRange[0] === null || gDataRange[1] === null) {
+          logError("No valid data in the full range!");
+        } else if (gDataRange[0] == gDataRange[1]) {
+          // Only one timestamp, bump the range out around it so flot does not
+          // have a heart attack
+          gDataRange[0] -= 60 * 60 * 24 * 7;
+          gDataRange[1] += 60 * 60 * 24 * 7;
+        }
       }
       logMsg("Useful data range is [ " + gDataRange + " ]");
       function makePlots() {
