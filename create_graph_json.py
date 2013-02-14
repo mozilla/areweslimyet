@@ -269,7 +269,7 @@ for build in builds:
         nodeize = False
 
       # Pull all data for latest run of this test on this build
-      allrows = cur.execute('''SELECT p.name AS datapoint, d.value
+      allrows = cur.execute('''SELECT p.name AS datapoint, d.value, d.meta
                                FROM benchtester_data d, benchtester_datapoints p
                                WHERE test_id = ? AND p.id = d.datapoint_id
                             ''', [testdata[testname]['id']])
@@ -287,6 +287,12 @@ for build in builds:
           (units, datapoint) = datapoint.split(':', 1)
         else:
           units = 'bytes'
+
+        # The 'meta' field in the db holds "CheckpointName:Iteration". Prefix
+        # these on to the reporter name, e.g. "Iteration 1/MaxMem/<reporter>" so
+        # they fit nicely into a tree.
+        meta = row['meta'].split(':')
+        datapoint = "Iteration %u/%s/%s" % (meta[1], meta[0], datapoint)
 
         if nodeize:
           # Note that we perserve null values as 'none', to differentiate missing data from values of 0

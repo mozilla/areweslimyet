@@ -66,6 +66,29 @@ cur.execute('SELECT COUNT(*) FROM old.benchtester_tests')
 totalrows = cur.fetchone()[0]
 print("%u total tests" % totalrows)
 
+#
+# Determine format of old DB
+#
+
+# Added benchtester_datapoints table
+has_datapoints = 1
+try:
+  cur.execute('SELECT * FROM old.benchtester_datapoints LIMIT 1')
+except sqlite3.OperationalError:
+  has_datapoints = 0
+
+# Added meta column to benchtester_data and stopped storing iteration # /
+# checkpoint name in the datapoint string
+has_meta = 1
+try:
+  cur.execute('SELECT meta FROM old.benchtester_data LIMIT 1')
+except sqlite3.OperationalError:
+  has_meta = 0
+
+if has_datapoints and has_meta:
+  print("Database is already the newest format!")
+  sys.exit(1)
+
 # Copy all non-excluded tests
 # (this was added so I could drop the obsolete Slimtest-TalosTP5 test from old DBs)
 
@@ -90,19 +113,49 @@ for build in cur.fetchall():
     cur.execute('SELECT last_insert_rowid()')
     newtestid = cur.fetchone()[0]
 
-    # Pain-full
-    # Make sure all datapoints exist
-    cur.execute('INSERT OR IGNORE INTO benchtester_datapoints(name) '
-                'SELECT datapoint FROM old.benchtester_data WHERE test_id = ?',
-                [ test['id'] ])
-    # Copy data
-    cur.execute('INSERT INTO benchtester_data(test_id, datapoint_id, value) '
-                'SELECT ?, p.id, dat.value '
-                'FROM old.benchtester_data dat, benchtester_datapoints p '
-                'WHERE p.name = dat.datapoint AND dat.test_id = ?',
-                [ newtestid, test['id'] ])
+    # This should probably be done outside the loop for all tests at once, but
+    # then we couldn't support the excluded-tests param. (or we'd have to do a
+    # delete-and-vacuum afterwords)
+    if not has_datapoints:
+      datapoints = cur.execute('SELECT datapoint FROM old.benchtester_data '
+                               'WHERE test_id = ?', [ test['id'] ])
+    else:
+      datapoints = cur.execute('SELECT p.name AS datapoint '
+                               'FROM old.benchtester_data d '
+                               'JOIN old.benchtester_datapoints p '
+                               'ON d.datapoint_id = p.id '
+                               'WHERE d.test_id = ?', [ test['id'] ])
+
+    # Insert all datapoint names
+    cur.executemany('INSERT OR IGNORE INTO benchtester_datapoints(name) '
+                    'VALUES (?)',
+                    ( [ row['datapoint'].split('/', 2)[2] ]
+                      for row in datapoints.fetchall() ))
+
+    # Hey look its the same query again
+    if not has_datapoints:
+      data = cur.execute('SELECT datapoint, value FROM old.benchtester_data '
+                         'WHERE test_id = ?', [ test['id'] ])
+    else:
+      data = cur.execute('SELECT p.name AS datapoint, d.value '
+                         'FROM old.benchtester_data d '
+                         'JOIN old.benchtester_datapoints p '
+                         'ON d.datapoint_id = p.id '
+                         'WHERE d.test_id = ?', [ test['id'] ])
+
+    def rowify(newid, row):
+      s = row['datapoint'].split('/', 2)
+      return [ newid,
+               row['value'],
+               '%s:%s' % (s[1], s[0].replace('Iteration ', '')),
+               s[2] ]
+    # Insert data
+    cur.executemany('INSERT INTO benchtester_data(test_id,datapoint_id,value,meta) '
+                    'SELECT ?, p.id, ?, ? '
+                    'FROM benchtester_datapoints p '
+                    'WHERE p.name = ?',
+                    (rowify(newtestid, row) for row in data.fetchall() ))
+    sql.commit()
     print("[%.02fs] %u/%u" % ((time.time() - starttime), updatedrows, totalrows))
 
-print("Updated %u rows, finishing commit (this could take a while)" % updatedrows)
-sql.commit()
-print("Done in %ds" % (time.time() - starttime,))
+print("Updated %u rows, in %ds" % (updatedrows, time.time() - starttime))
