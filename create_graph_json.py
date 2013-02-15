@@ -292,7 +292,7 @@ for build in builds:
         # these on to the reporter name, e.g. "Iteration 1/MaxMem/<reporter>" so
         # they fit nicely into a tree.
         meta = row['meta'].split(':')
-        datapoint = "Iteration %u/%s/%s" % (meta[1], meta[0], datapoint)
+        datapoint = "Iteration %u/%s/%s" % (int(meta[1]), meta[0], datapoint)
 
         if nodeize:
           # Note that we perserve null values as 'none', to differentiate missing data from values of 0
