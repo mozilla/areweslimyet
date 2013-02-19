@@ -59,6 +59,32 @@ var gQueryVars = (function () {
  * }
  */
 var gAnnotations = [
+  // *************************** Desktop Annotations ****************************************
+  {
+    'date': 'Jan 28 2013 GMT',
+    'desktop': true,
+    'msg': ' \
+      15--20 MiB regression in the red and purple lines on Jan 28, probably caused by 820602. \
+      See <a href="https://bugzilla.mozilla.org/show_bug.cgi?id=842756">bug 842756</a>. \
+    '
+  },
+  {
+    'date': 'Fri, 07 Dec 2012 GMT',
+    'desktop': true,
+    'msg': ' \
+      New HTMLElement bindings caused ~20MB regression in peak memory consumption on areweslimyet. \
+      See <a href="https://bugzilla.mozilla.org/show_bug.cgi?id=833518">bug 833518</a>. \
+    '
+  },
+  {
+    'date': 'Tue, 18 Dec 2012 04:34:31 GMT',
+    'desktop': true,
+    'msg': ' \
+      ~40MB regression (~11%) in leaked windows. \
+      See <a href="https://bugzilla.mozilla.org/show_bug.cgi?id=820602">bug 820602</a>. \
+    '
+  },
+  // *************************** Mobile Annotations ****************************************
   {
     'date': 1357139813,
     'desktop': false,
