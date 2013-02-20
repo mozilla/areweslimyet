@@ -126,10 +126,23 @@ for build in cur.fetchall():
                                'ON d.datapoint_id = p.id '
                                'WHERE d.test_id = ?', [ test['id'] ])
 
+    # Given an old datapoint name, returns [ newname, meta ]
+    def splitmeta(dp):
+      s = dp.split('/', 2)
+      iteration = s[0].split(':')
+      if len(iteration) > 1:
+        dp = '%s:%s' % (iteration[0], s[2])
+        iteration = iteration[1]
+      else:
+        dp = s[2]
+        iteration = iteration[0]
+      meta = "%s:%u" % (s[1], int(iteration.replace('Iteration ', '')))
+      return [ dp, meta ]
+
     # Insert all datapoint names
     cur.executemany('INSERT OR IGNORE INTO benchtester_datapoints(name) '
                     'VALUES (?)',
-                    ( [ row['datapoint'].split('/', 2)[2] ]
+                    ( [ splitmeta(row['datapoint'])[0] ]
                       for row in datapoints.fetchall() ))
 
     # Hey look its the same query again
@@ -144,11 +157,11 @@ for build in cur.fetchall():
                          'WHERE d.test_id = ?', [ test['id'] ])
 
     def rowify(newid, row):
-      s = row['datapoint'].split('/', 2)
+      split = splitmeta(row['datapoint'])
       return [ newid,
                row['value'],
-               '%s:%s' % (s[1], s[0].replace('Iteration ', '')),
-               s[2] ]
+               split[1],
+               split[0] ]
     # Insert data
     cur.executemany('INSERT INTO benchtester_data(test_id,datapoint_id,value,meta) '
                     'SELECT ?, p.id, ?, ? '
