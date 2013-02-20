@@ -40,36 +40,12 @@ before="$(du -h $db)"
 
 echo ":: Current DB size is $before"
 
-echo ":: Removing incomplete tests"
-time sqlite3 "$db" 'DELETE FROM benchtester_tests WHERE successful = 0; SELECT total_changes()'
+echo ":: Trimming db..."
+"$(dirname "$0")"/repack_db.sh "$db"
 
-echo ":: Removing orphaned data"
-time sqlite3 "$db" 'DELETE FROM benchtester_data WHERE test_id IN
-                    (
-                     SELECT DISTINCT d.test_id FROM benchtester_data d
-                     LEFT JOIN benchtester_tests t ON t.id = d.test_id
-                     WHERE t.id IS NULL
-                    ); SELECT total_changes()'
-
-echo ":: Removing unreferenced datapoints"
-time sqlite3 "$db" 'DELETE FROM benchtester_datapoints WHERE id IN (
-                      SELECT DISTINCT id FROM benchtester_datapoints p
-                      LEFT JOIN benchtester_data d ON d.datapoint_id = p.id
-                      WHERE d.datapoint_id IS NULL
-                    ); SELECT total_changes()'
-
-echo ":: Removing unused builds"
-time sqlite3 "$db" 'DELETE FROM benchtester_builds WHERE id IN (
-                      SELECT DISTINCT b.id FROM benchtester_builds b
-                      LEFT JOIN benchtester_tests t ON t.build_id = b.id
-                      WHERE t.build_id IS NULL
-                    ); SELECT total_changes()'
-
-for table in $(sqlite3 "$db" .tables); do
-  for index in $(sqlite3 "$db" ".indices $table"); do
-    echo ":: Dropping index $table -> $index"
-    sqlite3 "$db" "DROP INDEX '$index'" || true
-  done
+for index in $(sqlite3 "$db" ".indices"); do
+  echo ":: Dropping index $index"
+  sqlite3 "$db" "DROP INDEX '$index'"
 done
 
 echo ":: Vacuuming"
