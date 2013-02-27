@@ -78,7 +78,9 @@ sql = sqlite3.connect(dbpath)
 
 cur = sql.cursor()
 
-# FIXME, do we need to fetch push timestamps here?
+#
+# Insert build
+#
 cur.execute("INSERT OR IGNORE INTO `benchtester_builds` (`name`, `time`) VALUES (?, ?)",
             [ metadata['buildname'], metadata['buildtime'] ])
 ret = cur.execute("SELECT `id` FROM `benchtester_builds` WHERE `name` = ?", [ metadata['buildname'] ])
@@ -86,12 +88,18 @@ metadata['buildid'] = ret.fetchone()[0]
 print("Inserted build %s / %s -> %u" %
       (metadata['buildname'], metadata['buildtime'], metadata['buildid']))
 
+#
+# Nuke old tests if mode=replace
+#
 if metadata['mode'] == "replace":
     print("Replace specified, blowing away old tests for this build...")
     cur.execute("DELETE FROM `benchtester_tests` "
                 "WHERE `build_id` = ?", [ metadata['buildid'] ])
     print("Deleted %u old tests" % (cur.rowcount))
 
+#
+# Insert test
+#
 cur.execute("INSERT INTO `benchtester_tests` (`name`, `time`, `build_id`, `successful`) "
             "VALUES (?, ?, ?, 1)",
             [ metadata['testname'], metadata['testtime'], metadata['buildid'] ])
@@ -100,20 +108,47 @@ metadata['testid'] = ret.fetchone()[0]
 print("Inserted test %u, %s : %s" %
       (metadata['testid'], metadata['testname'], metadata['testtime']))
 
+#
+# Filter datapoint names into desktop AWSY's datapoint/value/meta format
+#
+
+# List of [ dp, val, meta ]
+filtered_data = list()
+
+for orgdp in data.keys():
+    s = orgdp.split('/', 2)
+    iteration = s[0].split(':')
+    if len(iteration) > 1:
+        dp = '%s:%s' % (iteration[0], s[2])
+        iteration = iteration[1]
+    else:
+        dp = s[2]
+        iteration = iteration[0]
+    meta = "%s:%u" % (s[1], int(iteration.replace('Iteration ', '')))
+    filtered_data.append([ dp, data[orgdp], meta ])
+
+unique_dp_names = set(dp[0] for dp in filtered_data)
+
+#
+# Insert datapoint names
+#
 start = time.time()
 cur.executemany("INSERT OR IGNORE INTO `benchtester_datapoints`(name) VALUES (?)",
-                ( [datapoint] for datapoint in data.keys() ))
+                ( [datapoint] for datapoint in unique_dp_names ))
 
 sql.commit()
 print("Inserted %u datapoint names in %.02fs" % (cur.rowcount, time.time() - start))
 
+#
+# Insert data
+#
 start = time.time()
 
 cur.executemany("INSERT INTO `benchtester_data` "
-                "SELECT ?, p.id, ? FROM `benchtester_datapoints` p "
+                "SELECT ?, p.id, ?, ? FROM `benchtester_datapoints` p "
                 "WHERE p.name = ?",
-                ( [ metadata['testid'], val, datapoint ]
-                  for datapoint, val in data.iteritems() ))
+                ( [ metadata['testid'], dp[1], dp[2], dp[0] ]
+                  for dp in filtered_data ))
 
 sql.commit()
 print("Inserted %u datapoints in %.02fs" % (cur.rowcount, time.time() - start))
