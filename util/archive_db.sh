@@ -41,7 +41,7 @@ before="$(du -h $db)"
 echo ":: Current DB size is $before"
 
 echo ":: Trimming db..."
-"$(dirname "$0")"/repack_db.sh "$db"
+"$(dirname "$0")"/trim_db.sh "$db"
 
 for index in $(sqlite3 "$db" ".indices"); do
   echo ":: Dropping index $index"
