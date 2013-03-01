@@ -27,6 +27,10 @@ flock -n ~/mobile.lck ./import.sh
 
 # Update all json exports
 for x in db/areweslimyet-*.sqlite db/custom-*.sqlite; do
+  if [ -f "$x".xz ]; then
+      echo ":: Skipping $x due to presence of .xz"
+      continue
+  fi
   s="$(basename "${x%.sqlite}")"
   s="${s#custom-}"
   ./create_graph_json.py "$x" "$s" html/data
