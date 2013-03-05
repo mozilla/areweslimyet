@@ -124,6 +124,14 @@ var gAnnotations = [
       Regression from <a href="https://bugzilla.mozilla.org/show_bug.cgi?id=828201">bug 828201</a>. \
       Backed out in 8728de36d4a8. \
     '
+  },
+  {
+    'date': 1361831517,
+    'desktop': false,
+    'msg': ' \
+      Giant drop-spike is likely a result of the low-memory \
+      <a href="https://staktrace.com/spout/entry.php?id=782">tab zombification</a> behaviour. \
+    '
   }
 ];
 
