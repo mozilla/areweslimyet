@@ -43,7 +43,7 @@ sqlite3 "$db" 'CREATE INDEX IF NOT EXISTS test_lookup ON benchtester_tests ( nam
 echo ":: Adding data_for_test"
 # If the first fails try the index for the older format
 sqlite3 "$db" 'CREATE INDEX IF NOT EXISTS data_for_test ON benchtester_data ( test_id DESC, datapoint_id )' \
- || sqlite3 "$db" 'CREATE INDEX IF NOT EXISTS data_for_test ON benchtester_data ( test_id DESC )' ||
+ || sqlite3 "$db" 'CREATE INDEX IF NOT EXISTS data_for_test ON benchtester_data ( test_id DESC )'
 
 # Now we can get rid of dummy .xz
 rm -v "$dbxz"
