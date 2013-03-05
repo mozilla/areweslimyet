@@ -94,7 +94,8 @@ print("Inserted build %s / %s -> %u" %
 if metadata['mode'] == "replace":
     print("Replace specified, blowing away old tests for this build...")
     cur.execute("DELETE FROM `benchtester_tests` "
-                "WHERE `build_id` = ?", [ metadata['buildid'] ])
+                "WHERE `build_id` = ? AND `name` = ?",
+                [ metadata['buildid'], metadata['testname'] ])
     print("Deleted %u old tests" % (cur.rowcount))
 
 #
