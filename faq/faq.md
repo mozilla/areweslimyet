@@ -132,7 +132,7 @@ not significantly increase over time.
 ## How can I request additional AWSY tests on specific changesets or try pushes?
 
 Mozillians with access to the MoCo network can queue additional tests themselves
-at [albus's status page][albus]. Tests take about ninety minutes, and will
+at [arcus's status page][arcus]. Tests take about ninety minutes, and will
 appear on the main AWSY page within five minutes of completing.
 
 The tester also allows you to queue builds on a custom series, which will be
@@ -213,4 +213,4 @@ case.
 [zombie compartments]: https://developer.mozilla.org/en/Zombie_compartments#Reactive_checking
 [file a bug]: https://bugzilla.mozilla.org/enter_bug.cgi?product=Core&component=General&status_whiteboard=[MemShrink]
 [awsy-armv6]: https://github.com/staktrace/awsy-armv6
-[albus]: http://albus.mv.mozilla.com:8000/status/
+[arcus]: http://arcus.mv.mozilla.com:8000/status/
