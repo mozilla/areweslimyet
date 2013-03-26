@@ -126,11 +126,34 @@ var gAnnotations = [
     '
   },
   {
+    'date': 1361788819,
+    'desktop': false,
+    'msg': ' \
+      Regression from <a href="https://bugzilla.mozilla.org/show_bug.cgi?id=700023">bug 700023</a>. \
+      Tracked in <a href="https://bugzilla.mozilla.org/show_bug.cgi?id=846832">bug 846832</a> and corrected in 6a0bcaa622f0. \
+    '
+  },
+  {
     'date': 1361831517,
     'desktop': false,
     'msg': ' \
-      Giant drop-spike is likely a result of the low-memory \
+      Giant drop-spike is a result of the low-memory \
       <a href="https://staktrace.com/spout/entry.php?id=782">tab zombification</a> behaviour. \
+    '
+  },
+  {
+    'date': 1361917561,
+    'desktop': false,
+    'msg': ' \
+      Giant drop-spike is a result of the low-memory \
+      <a href="https://staktrace.com/spout/entry.php?id=782">tab zombification</a> behaviour. \
+    '
+  },
+  {
+    'date': 1361918975,
+    'desktop': false,
+    'msg': ' \
+      Switched device running the test to a Galaxy Nexus; baseline values expected to change. \
     '
   }
 ];
