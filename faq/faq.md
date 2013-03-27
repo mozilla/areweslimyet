@@ -63,7 +63,8 @@ follows.
     **after TP5, tabs closed [+30s]**.
 
 For the mobile benchmark, we run the target build of Firefox (ARMv6 version) on
-a Samsung GT-B7510 device.  A script combined with an addon records Firefox's
+a Samsung Galaxy Nexus device. (Prior to March 2013, it ran on a Samsung GT-B7510 device,
+until it started experiencing intermittent lockups).  A script combined with an addon records Firefox's
 memory usage at various points.  The testing procedure for the mobile benchmark
 is identical to the desktop benchmark, except that instead of loading all 100
 pages from the TP5 pageset 5 times, we load only 15 pages from TP5.
