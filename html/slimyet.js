@@ -58,105 +58,110 @@ var gQueryVars = (function () {
  *   'whitelist': [ "Explicit Memory", "Resident Memory" ]
  * }
  */
-var gAnnotations = [
-  // *************************** Desktop Annotations ****************************************
-  {
-    'date': 'Jan 28 2013 GMT',
-    'desktop': true,
-    'msg': ' \
-      15--20 MiB regression in the red and purple lines on Jan 28, probably caused by 820602. \
-      See <a href="https://bugzilla.mozilla.org/show_bug.cgi?id=842756">bug 842756</a>. \
-    '
+
+var gAnnotations = (function() {
+  function annoFormat(msg, bugnum) {
+    if (bugnum)
+      msg += "<br><small>bug " + bugnum + "</small>";
+    // Twelve digit lowercase hex -> rev link
+    msg = msg.replace(/(\b)([a-f0-9]{12})(\b)/g,
+                      '$1<a href="https://hg.mozilla.org/integration/mozilla-inbound/rev/$2">' +
+                      '$2</a>$3');
+    // Bug 12345 -> Bug link
+    msg = msg.replace(/[bB]ug ([0-9]+)/g,
+                      '<a href="https://bugzilla.mozilla.org/show_bug.cgi?id=$1">' +
+                      '$&</a>');
+    return msg;
+  }
+  return [
+    {
+      'date': 1364362111,
+      'mobile': false,
+      'msg': annoFormat('Decommitted memory is now excluded from explicit',
+                        831588),
+      // No effect on resident
+      'whitelist': [ "Explicit Memory", "Miscellaneous Measurements" ]
+    },
+    // *************************** Desktop Annotations ***************************
+    {
+      'date': 1363993909,
+      'mobile': false,
+      'msg': annoFormat('Multithreaded image decoding leak fixed', 853390)
+    },
+    {
+      'date': 1363788676,
+      'mobile': false,
+      'msg': annoFormat('Multithreaded image decoding caused us ' +
+                        'to leak some documents', 716140)
+    },
+    {
+      'date': 'Jan 28 2013 GMT',
+      'mobile': false,
+      'msg': annoFormat('15-20 MiB regression in the after-test lines, ' +
+                        'likely caused by bug 820602.', 842756)
   },
   {
     'date': 'Fri, 07 Dec 2012 GMT',
-    'desktop': true,
-    'msg': ' \
-      New HTMLElement bindings caused ~20MB regression in peak memory consumption on areweslimyet. \
-      See <a href="https://bugzilla.mozilla.org/show_bug.cgi?id=833518">bug 833518</a>. \
-    '
+    'mobile': false,
+    'msg': annoFormat('New HTMLElement bindings caused ~20MB regression ' +
+                      'in peak memory consumption', 833518)
   },
   {
     'date': 'Tue, 18 Dec 2012 04:34:31 GMT',
-    'desktop': true,
-    'msg': ' \
-      ~40MB regression (~11%) in leaked windows. \
-      See <a href="https://bugzilla.mozilla.org/show_bug.cgi?id=820602">bug 820602</a>. \
-    '
+    'mobile': false,
+    'msg': annoFormat('~40MB regression (~11%) due to leaked windows.', 820602)
   },
-  // *************************** Mobile Annotations ****************************************
+  // *************************** Mobile Annotations ****************************
   {
     'date': 1357139813,
     'desktop': false,
-    'msg': ' \
-      Updated android NDK from r5c to r8c. \
-      See <a href="https://bugzilla.mozilla.org/show_bug.cgi?id=828650">bug 828650</a>. \
-    '
+    'msg': annoFormat('Updated android NDK from r5c to r8c.', 828650)
   },
   {
     'date': 1357743011,
     'desktop': false,
-    'msg': ' \
-      Some crypto stuff is now being loaded on startup. \
-      See <a href="https://bugzilla.mozilla.org/show_bug.cgi?id=824023#c4">bug 824023 comment 4</a>. \
-    '
+    'msg': annoFormat('Some crypto stuff is now being loaded on startup.',
+                      824023)
   },
   {
     'date': 1358920410,
     'desktop': false,
-    'msg': ' \
-      Some graphics code is loaded earlier, moving the Start memory usage up but leaving StartSettled as-is. \
-      See <a href="https://bugzilla.mozilla.org/show_bug.cgi?id=828126#c14">bug 828126 comment 14</a>. \
-    '
+    'msg': annoFormat('Some graphics code is loaded earlier, moving the ' +
+                      'Start memory usage up but leaving StartSettled as-is.',
+                      828126)
   },
   {
     'date': 1358593871,
     'desktop': false,
-    'msg': ' \
-      Regression from adding new fonts. Tradeoff accepted for increased readability. See \
-      <a href="https://bugzilla.mozilla.org/show_bug.cgi?id=831354">bug 831354</a>. \
-    '
+    'msg': annoFormat('Regression from adding new fonts. Tradeoff ' +
+                      'accepted for increased readability.', 831354)
   },
   {
     'date': 1359474609,
     'desktop': false,
-    'msg': ' \
-      Regression from <a href="https://bugzilla.mozilla.org/show_bug.cgi?id=828201">bug 828201</a>. \
-      Backed out in 8728de36d4a8. \
-    '
+    'msg': annoFormat('Regression from Bug 828201, backed out in 8728de36d4a8.')
   },
   {
     'date': 1361788819,
     'desktop': false,
-    'msg': ' \
-      Regression from <a href="https://bugzilla.mozilla.org/show_bug.cgi?id=700023">bug 700023</a>. \
-      Tracked in <a href="https://bugzilla.mozilla.org/show_bug.cgi?id=846832">bug 846832</a> and corrected in 6a0bcaa622f0. \
-    '
-  },
-  {
-    'date': 1361831517,
-    'desktop': false,
-    'msg': ' \
-      Giant drop-spike is a result of the low-memory \
-      <a href="https://staktrace.com/spout/entry.php?id=782">tab zombification</a> behaviour. \
-    '
+    'msg': annoFormat('Regression from bug 700023, tracked in bug 846832 and ' +
+                      'corrected in 6a0bcaa622f0.')
   },
   {
     'date': 1361917561,
     'desktop': false,
-    'msg': ' \
-      Giant drop-spike is a result of the low-memory \
-      <a href="https://staktrace.com/spout/entry.php?id=782">tab zombification</a> behaviour. \
-    '
+    'msg': annoFormat('Giant drop-spike is likely a result of the low-memory ' +
+                      '<a href="https://staktrace.com/spout/entry.php?id=782">'+
+                      'tab zombification</a> behaviour.')
   },
   {
     'date': 1361918975,
     'desktop': false,
-    'msg': ' \
-      Switched device running the test to a Galaxy Nexus; baseline values expected to change. \
-    '
+    'msg': annoFormat('Switched device running the test to a Galaxy Nexus; ' +
+                      'baseline values expected to change.')
   }
-];
+  ];
+})();
 
 // Width in pixels of highlight (zoom) selector
 var gHighlightWidth = gQueryVars['zoomwidth'] ? +gQueryVars['zoomwidth'] : 400;
