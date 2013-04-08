@@ -73,7 +73,7 @@ var gAnnotations = (function() {
                       '$&</a>');
     return msg;
   }
-  return [
+  var annotations = [
     {
       'date': 1364362111,
       'mobile': false,
@@ -161,6 +161,21 @@ var gAnnotations = (function() {
                       'baseline values expected to change.')
   }
   ];
+
+  // Turn dates into date objects, sort by date
+  for (var i = 0; i < annotations.length; i++) {
+    var anno = annotations[i];
+    var date = new Date(typeof(anno['date']) == "number"
+                        ? anno['date'] * 1000
+                        : anno['date']);
+    anno['date'] = date;
+  }
+  annotations.sort(function(a, b) {
+    a = a['date'].getTime();
+    b = b['date'].getTime();
+    return (a < b) ? -1 : (a == b) ? 0 : 1;
+  });
+  return annotations;
 })();
 
 // Width in pixels of highlight (zoom) selector
@@ -1650,6 +1665,7 @@ Plot.prototype.onClick = function(item) {
 
 Plot.prototype._drawAnnotations = function() {
   var self = this;
+  var lastleft;
   this.annotations.empty();
   for (var i = 0; i < gAnnotations.length; i++) {
     (function () {
@@ -1660,10 +1676,7 @@ Plot.prototype._drawAnnotations = function() {
         return;
       if (anno['whitelist'] && anno['whitelist'].indexOf(self.name) == -1)
         return;
-      var date = new Date(typeof(anno['date']) == "number"
-                          ? anno['date'] * 1000
-                          : anno['date']);
-
+      var date = anno['date'];
 
       var div = $.new('div').addClass('annotation').text('?');
       self.annotations.append(div);
@@ -1677,10 +1690,13 @@ Plot.prototype._drawAnnotations = function() {
       var left = self.flot.getAxes().xaxis.p2c(date.getTime() / 1000)
                - divwidth / 2;
 
-      if (left + divwidth + 5 > self.flot.width() || left - 5 < 0) {
+      if (left - lastleft < 30 || left + divwidth + 5 > self.flot.width() ||
+          left - 5 < 0) {
         div.remove();
         return;
       }
+
+      lastleft = left;
       div.css('left', left);
 
       div.mouseover(function() {
