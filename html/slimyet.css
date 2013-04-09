@@ -409,6 +409,16 @@ body.faqPage {
   z-index: 2;
 }
 
+.tooltip hr {
+  border: none;
+  border-bottom: 1px solid #444;
+}
+
+.tooltip .grey {
+  color: #777;
+  font-size: 0.8em;
+}
+
 .tooltip a:link { color: #E77; }
 .tooltip a:hover { color: #FCC; }
 .tooltip a:active { color: #FFF; }

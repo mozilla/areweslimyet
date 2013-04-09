@@ -192,6 +192,9 @@ var gMaxPoints = gQueryVars['maxpoints'] ? +gQueryVars['maxpoints'] : (gQueryVar
 // in a disjointed line. Default 24h
 var gDisjointTime = 'disjointtime' in gQueryVars ? +gQueryVars['disjointtime'] : (60 * 60 * 24);
 
+// Merge tooltips if their position is within this many pixels
+var gAnnoMergeDist = 'annotationmerge' in gQueryVars ? +gQueryVars['annotationmerge'] : 50;
+
 // 10-class paired qualitative color scheme from http://colorbrewer2.org/.
 // Ordered so that the important memory lines are given more prominent colors.
 var gDefaultColors = [
@@ -1665,17 +1668,52 @@ Plot.prototype.onClick = function(item) {
 
 Plot.prototype._drawAnnotations = function() {
   var self = this;
-  var lastleft;
   this.annotations.empty();
+
+  function includeAnno(anno) {
+    if (gQueryVars['mobile'] && anno['mobile'] === false)
+        return false;
+    if (!gQueryVars['mobile'] && anno['desktop'] === false)
+        return false;
+    if (anno['whitelist'] && anno['whitelist'].indexOf(self.name) == -1)
+        return false;
+    return true;
+  }
+
+  function dateStamp(msg, time) {
+    return '<div class="grey">' + prettyDate(time / 1000) + '</div>' + msg;
+  }
+
+  // Determine the pixels:time ratio for this zoom level
+  var xaxis = this.flot.getAxes().xaxis;
+  var secondsPerPixel = xaxis.c2p(1) - xaxis.c2p(0);
+  var mergeTime = gAnnoMergeDist * secondsPerPixel * 1000;
+  var mergedAnnotations = [];
   for (var i = 0; i < gAnnotations.length; i++) {
+    if (!includeAnno(gAnnotations[i]))
+      continue;
+    var starttime = gAnnotations[i]['date'].getTime();
+    var timesum = starttime;
+    var msg = dateStamp(gAnnotations[i]['msg'], starttime);
+    var elements = 1;
+    while (i + 1 < gAnnotations.length &&
+           gAnnotations[i + 1]['date'].getTime() - starttime < mergeTime) {
+      i++;
+      var merge = gAnnotations[i];
+      if (!includeAnno(merge))
+        continue;
+      elements++;
+      var mergetime = merge['date'].getTime();
+      timesum += mergetime;
+      msg += "<hr>" + dateStamp(merge['msg'], mergetime);
+    }
+    mergedAnnotations.push({ 'date': new Date(timesum / elements),
+                             'msg': msg });
+  }
+  for (var i = 0; i < mergedAnnotations.length; i++) {
     (function () {
-      var anno = gAnnotations[i];
-      if (gQueryVars['mobile'] && anno['mobile'] === false)
-        return;
-      if (!gQueryVars['mobile'] && anno['desktop'] === false)
-        return;
-      if (anno['whitelist'] && anno['whitelist'].indexOf(self.name) == -1)
-        return;
+      var anno = mergedAnnotations[i];
+
       var date = anno['date'];
 
       var div = $.new('div').addClass('annotation').text('?');
@@ -1687,16 +1725,14 @@ Plot.prototype._drawAnnotations = function() {
                      + self.obj.offset().top - self.container.offset().top;
       var divwidth = parseInt(div.css('padding-left'))
                    + parseInt(div.css('width'));
-      var left = self.flot.getAxes().xaxis.p2c(date.getTime() / 1000)
-               - divwidth / 2;
+      var left = xaxis.p2c(date.getTime() / 1000) - divwidth / 2;
 
-      if (left - lastleft < 30 || left + divwidth + 5 > self.flot.width() ||
+      if (left + divwidth + 5 > self.flot.width() ||
           left - 5 < 0) {
         div.remove();
         return;
       }
 
-      lastleft = left;
       div.css('left', left);
 
       div.mouseover(function() {
