@@ -99,67 +99,67 @@ var gAnnotations = (function() {
       'mobile': false,
       'msg': annoFormat('15-20 MiB regression in the after-test lines, ' +
                         'likely caused by bug 820602.', 842756)
-  },
-  {
-    'date': 'Fri, 07 Dec 2012 GMT',
-    'mobile': false,
-    'msg': annoFormat('New HTMLElement bindings caused ~20MB regression ' +
-                      'in peak memory consumption', 833518)
-  },
-  {
-    'date': 'Tue, 18 Dec 2012 04:34:31 GMT',
-    'mobile': false,
-    'msg': annoFormat('~40MB regression (~11%) due to leaked windows.', 820602)
-  },
-  // *************************** Mobile Annotations ****************************
-  {
-    'date': 1357139813,
-    'desktop': false,
-    'msg': annoFormat('Updated android NDK from r5c to r8c.', 828650)
-  },
-  {
-    'date': 1357743011,
-    'desktop': false,
-    'msg': annoFormat('Some crypto stuff is now being loaded on startup.',
-                      824023)
-  },
-  {
-    'date': 1358920410,
-    'desktop': false,
-    'msg': annoFormat('Some graphics code is loaded earlier, moving the ' +
-                      'Start memory usage up but leaving StartSettled as-is.',
-                      828126)
-  },
-  {
-    'date': 1358593871,
-    'desktop': false,
-    'msg': annoFormat('Regression from adding new fonts. Tradeoff ' +
-                      'accepted for increased readability.', 831354)
-  },
-  {
-    'date': 1359474609,
-    'desktop': false,
-    'msg': annoFormat('Regression from Bug 828201, backed out in 8728de36d4a8.')
-  },
-  {
-    'date': 1361788819,
-    'desktop': false,
-    'msg': annoFormat('Regression from bug 700023, tracked in bug 846832 and ' +
-                      'corrected in 6a0bcaa622f0.')
-  },
-  {
-    'date': 1361917561,
-    'desktop': false,
-    'msg': annoFormat('Giant drop-spike is likely a result of the low-memory ' +
-                      '<a href="https://staktrace.com/spout/entry.php?id=782">'+
-                      'tab zombification</a> behaviour.')
-  },
-  {
-    'date': 1361918975,
-    'desktop': false,
-    'msg': annoFormat('Switched device running the test to a Galaxy Nexus; ' +
-                      'baseline values expected to change.')
-  }
+    },
+    {
+      'date': 'Fri, 07 Dec 2012 GMT',
+      'mobile': false,
+      'msg': annoFormat('New HTMLElement bindings caused ~20MB regression ' +
+                        'in peak memory consumption', 833518)
+    },
+    {
+      'date': 'Tue, 18 Dec 2012 04:34:31 GMT',
+      'mobile': false,
+      'msg': annoFormat('~40MB regression (~11%) due to leaked windows.', 820602)
+    },
+    // *************************** Mobile Annotations ****************************
+    {
+      'date': 1357139813,
+      'desktop': false,
+      'msg': annoFormat('Updated android NDK from r5c to r8c.', 828650)
+    },
+    {
+      'date': 1357743011,
+      'desktop': false,
+      'msg': annoFormat('Some crypto stuff is now being loaded on startup.',
+                        824023)
+    },
+    {
+      'date': 1358920410,
+      'desktop': false,
+      'msg': annoFormat('Some graphics code is loaded earlier, moving the ' +
+                        'Start memory usage up but leaving StartSettled as-is.',
+                        828126)
+    },
+    {
+      'date': 1358593871,
+      'desktop': false,
+      'msg': annoFormat('Regression from adding new fonts. Tradeoff ' +
+                        'accepted for increased readability.', 831354)
+    },
+    {
+      'date': 1359474609,
+      'desktop': false,
+      'msg': annoFormat('Regression from Bug 828201, backed out in 8728de36d4a8.')
+    },
+    {
+      'date': 1361788819,
+      'desktop': false,
+      'msg': annoFormat('Regression from bug 700023, tracked in bug 846832 and ' +
+                        'corrected in 6a0bcaa622f0.')
+    },
+    {
+      'date': 1361917561,
+      'desktop': false,
+      'msg': annoFormat('Giant drop-spike is likely a result of the low-memory ' +
+                        '<a href="https://staktrace.com/spout/entry.php?id=782">'+
+                        'tab zombification</a> behaviour.')
+    },
+    {
+      'date': 1361918975,
+      'desktop': false,
+      'msg': annoFormat('Switched device running the test to a Galaxy Nexus; ' +
+                        'baseline values expected to change.')
+    }
   ];
 
   // Turn dates into date objects, sort by date
