@@ -134,23 +134,32 @@ var gAnnotations = (function() {
       'date': 1358593871,
       'desktop': false,
       'msg': annoFormat('Regression from adding new fonts. Tradeoff ' +
-                        'accepted for increased readability.', 831354)
+                        'accepted for increased readability. Some of this ' +
+                        'was later reduced in bug 844669.', 831354)
     },
     {
       'date': 1359474609,
       'desktop': false,
-      'msg': annoFormat('Regression from Bug 828201, backed out in 8728de36d4a8.')
+      'msg': annoFormat('Regression from OS.File debug code, backed out in ' +
+                        '8728de36d4a8.', 828201)
     },
     {
       'date': 1361788819,
       'desktop': false,
-      'msg': annoFormat('Regression from bug 700023, tracked in bug 846832 and ' +
-                        'corrected in 6a0bcaa622f0.')
+      'msg': annoFormat('Regression from graphite font shaping, tracked in ' +
+                        'bug 846832 and corrected in 6a0bcaa622f0.', 700023)
+    },
+    {
+      'date': 1361831517,
+      'desktop': false,
+      'msg': annoFormat('Giant drop-spike is a result of the low-memory ' +
+                        '<a href="https://staktrace.com/spout/entry.php?id=782">'+
+                        'tab zombification</a> behaviour.')
     },
     {
       'date': 1361917561,
       'desktop': false,
-      'msg': annoFormat('Giant drop-spike is likely a result of the low-memory ' +
+      'msg': annoFormat('Giant drop-spike is a result of the low-memory ' +
                         '<a href="https://staktrace.com/spout/entry.php?id=782">'+
                         'tab zombification</a> behaviour.')
     },
@@ -159,6 +168,34 @@ var gAnnotations = (function() {
       'desktop': false,
       'msg': annoFormat('Switched device running the test to a Galaxy Nexus; ' +
                         'baseline values expected to change.')
+    },
+    {
+      'date': 1362421422,
+      'desktop': false,
+      'msg': annoFormat('Improvement from turning off graphite in fonts.', 846832)
+    },
+    {
+      'date': 1362416958,
+      'desktop': false,
+      'msg': annoFormat('Improvement from analysis of font-related memory usage.',
+                        844669)
+    },
+    {
+      'date': 1363491479,
+      'desktop': false,
+      'msg': annoFormat('Improvement from zones landing', 759585)
+    },
+    {
+      'date': 1364566105,
+      'desktop': false,
+      'msg': annoFormat('Regression from Push service landing. Tracked in bug ' +
+                        '857135 and corrected in fc8267682725.', 822712)
+    },
+    {
+      'date': 1365454665,
+      'desktop': false,
+      'msg': annoFormat('Improvement from removing push-related components from ' +
+                        'Android build.', 857135)
     }
   ];
 
