@@ -192,10 +192,32 @@ var gAnnotations = (function() {
                         '857135 and corrected in fc8267682725.', 822712)
     },
     {
+      'date': 1364841472,
+      'desktop': false,
+      'msg': annoFormat('Regression being tracked in bug 862390.')
+    },
+    {
       'date': 1365454665,
       'desktop': false,
       'msg': annoFormat('Improvement from removing push-related components from ' +
                         'Android build.', 857135)
+    },
+    {
+      'date': 1364908990,
+      'desktop': false,
+      'msg': annoFormat('Small regression from turning on IonMonkey for ARMv6 ' +
+                        'Android builds.', 855839)
+    },
+    {
+      'date': 1365004235,
+      'desktop': false,
+      'msg': annoFormat('Small regression (resident-only) from baseline compiler ' +
+                        'landing and making libxul bigger.')
+    },
+    {
+      'date': 1366048480,
+      'desktop': false,
+      'msg': annoFormat('Regression being tracked in bug 862403.')
     }
   ];
 
