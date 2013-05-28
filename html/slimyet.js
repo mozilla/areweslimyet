@@ -462,7 +462,7 @@ function mkDelta(mem, lastmem) {
 }
 
 function mkHgLink(rev) {
-  return $.new('a', { 'class': 'buildlink' })
+  return $.new('a', { 'class': 'buildlink', 'target': '_blank' })
           .attr('href', gHgBaseUrl + "/rev/" + rev.slice(0,12))
           .text(rev);
 }
@@ -926,7 +926,7 @@ Tooltip.prototype.showBuild = function(label, series, buildset, buildindex, seri
       var pushrev = build['lastrev'] ? build['lastrev'].slice(0,12) : rev;
       var pushlog = gHgBaseUrl + "/pushloghtml?fromchange=" + prevrev + "&tochange=" + pushrev;
       ttinner.append(" (");
-      ttinner.append($.new('a', { 'href' : pushlog })
+      ttinner.append($.new('a', { 'href' : pushlog, 'target' : '_blank' })
                      .text("pushlog"));
       ttinner.append(")");
     }
