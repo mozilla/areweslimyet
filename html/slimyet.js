@@ -82,6 +82,15 @@ var gAnnotations = (function() {
       // No effect on resident
       'whitelist': [ "Explicit Memory", "Miscellaneous Measurements" ]
     },
+    {
+      'date': 'Thu May 30 18:33:47 2013 -0700',
+      'msg': annoFormat('Images layerization change caused ~40MB regression',
+                        867770),
+    },
+    {
+      'date': 'Mon Jun 03 07:57:31 2013 -0700',
+      'msg': annoFormat('Image layerization regression fixed', 878062),
+    },
     // *************************** Desktop Annotations ***************************
     {
       'date': 1363993909,
