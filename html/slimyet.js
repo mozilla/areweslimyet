@@ -227,6 +227,24 @@ var gAnnotations = (function() {
       'date': 1366048480,
       'desktop': false,
       'msg': annoFormat('Regression being tracked in bug 862403.')
+    },
+    {
+      'date': 1369031534,
+      'desktop': false,
+      'msg': annoFormat('On-demand decompression causes us to double-count things. ' +
+                        'The regression here is not actually a regression.', 848764)
+    },
+    {
+      'date': 1369763440,
+      'desktop': false,
+      'msg': annoFormat('Enabling 24-bit colour on Android causes a memory regression. ' +
+                        'It was backed out in 495b385ae811 for test failures.', 803299)
+    },
+    {
+      'date': 1369838059,
+      'desktop': false,
+      'msg': annoFormat('Enabling 24-bit colour on Android causes a memory regression. ' +
+                        'It was backed out in 281dc9793a73 for Tch and Tpan regressions.', 803299)
     }
   ];
 
