@@ -245,6 +245,12 @@ var gAnnotations = (function() {
       'desktop': false,
       'msg': annoFormat('Enabling 24-bit colour on Android causes a memory regression. ' +
                         'It was backed out in 281dc9793a73 for Tch and Tpan regressions.', 803299)
+    },
+    {
+      'date': 1372195899,
+      'desktop': false,
+      'msg': annoFormat('Fonts are now loaded directly from the omnijar and decompressed ' +
+                        'in memory. This has an acceptable non-startup memory regression.', 878674)
     }
   ];
 
