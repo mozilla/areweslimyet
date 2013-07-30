@@ -120,6 +120,12 @@ var gAnnotations = (function() {
       'mobile': false,
       'msg': annoFormat('~40MB regression (~11%) due to leaked windows.', 820602)
     },
+    {
+      'date': 'Mon Jul 29 17:08:01 2013 GMT',
+      'mobile': false,
+      'msg': annoFormat('Added heap overhead to explicit; this increased ' +
+                        'explicit without increasing our memory usage.', 898558)
+    },
     // *************************** Mobile Annotations ****************************
     {
       'date': 1357139813,
