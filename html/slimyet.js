@@ -91,6 +91,11 @@ var gAnnotations = (function() {
       'date': 'Mon Jun 03 07:57:31 2013 -0700',
       'msg': annoFormat('Image layerization regression fixed', 878062),
     },
+    {
+      'date': 'Mon Jul 29 17:08:01 2013 GMT',
+      'msg': annoFormat('Added heap overhead to explicit; this increased ' +
+                        'explicit without increasing our memory usage.', 898558)
+    },
     // *************************** Desktop Annotations ***************************
     {
       'date': 1363993909,
@@ -119,12 +124,6 @@ var gAnnotations = (function() {
       'date': 'Tue, 18 Dec 2012 04:34:31 GMT',
       'mobile': false,
       'msg': annoFormat('~40MB regression (~11%) due to leaked windows.', 820602)
-    },
-    {
-      'date': 'Mon Jul 29 17:08:01 2013 GMT',
-      'mobile': false,
-      'msg': annoFormat('Added heap overhead to explicit; this increased ' +
-                        'explicit without increasing our memory usage.', 898558)
     },
     // *************************** Mobile Annotations ****************************
     {
