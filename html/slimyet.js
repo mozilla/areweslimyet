@@ -257,6 +257,36 @@ var gAnnotations = (function() {
       'desktop': false,
       'msg': annoFormat('Fonts are now loaded directly from the omnijar and decompressed ' +
                         'in memory. This has an acceptable non-startup memory regression.', 878674)
+    },
+    {
+      'date': 1373588395,
+      'desktop': false,
+      'msg': annoFormat('Elfhack enabled, memory gained.', 892355)
+    },
+    {
+      'date': 1374146101,
+      'desktop': false,
+      'msg': annoFormat('Elfhack disabled, memory lost.', 894885)
+    },
+    {
+      'date': 1374669205,
+      'desktop': false,
+      'msg': annoFormat('Elfhack re-enabled, memory re-gained.', 894885)
+    },
+    {
+      'date': 1374806525,
+      'desktop': false,
+      'msg': annoFormat('Static initializers added in bug 894448, fixed in bug 899368', 899134)
+    },
+    {
+      'date': 1375117971,
+      'desktop': false,
+      'msg': annoFormat('Increase in GC heap memory, marked WONTFIX', 899584)
+    },
+    {
+      'date': 1375142305,
+      'desktop': false,
+      'msg': annoFormat('Static initializer fixup', 899368)
     }
   ];
 
