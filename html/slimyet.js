@@ -286,6 +286,21 @@ var gAnnotations = (function() {
       'date': 1375142305,
       'desktop': false,
       'msg': annoFormat('Static initializer fixup', 899368)
+    },
+    {
+      'date': 1376300292,
+      'desktop': false,
+      'msg': annoFormat('Addon manager change', 906747)
+    },
+    {
+      'date': 1377312199,
+      'desktop': false,
+      'msg': annoFormat('More static constructors added', 909338)
+    },
+    {
+      'date': 1377545370,
+      'desktop': false,
+      'msg': annoFormat('Static constructors removed', 909328)
     }
   ];
 
