@@ -301,6 +301,11 @@ var gAnnotations = (function() {
       'date': 1377545370,
       'desktop': false,
       'msg': annoFormat('Static constructors removed', 909328)
+    },
+    {
+      'date': 1377877508,
+      'desktop': false,
+      'msg': annoFormat('Updated Fennec profile used in AWSY harness')
     }
   ];
 
