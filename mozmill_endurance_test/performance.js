@@ -172,10 +172,17 @@ PerfTracer.prototype = {
     }
 
     // Normal reporters
+    var normal_is_multi = false;
     var reporters = memMgr.enumerateReporters();
     while (reporters.hasMoreElements()) {
       var r = reporters.getNext();
       r instanceof Ci.nsIMemoryReporter;
+      if (r.collectReports) {
+        // Bug 910517 removed old-style reporters and renamed
+        // nsIMemoryMultiReporter to nsIMemoryReporter.
+        normal_is_multi = true;
+        break;
+      }
       if (r.path.length) {
         // memoryUsed was renamed to amount in gecko7
         var amount = (r.amount !== undefined) ? r.amount : r.memoryUsed;
@@ -184,12 +191,13 @@ PerfTracer.prototype = {
     }
 
     // Multireporters
-    if (memMgr.enumerateMultiReporters) {
-      var multireporters = memMgr.enumerateMultiReporters();
+    if (normal_is_multi || memMgr.enumerateMultiReporters) {
+      var multireporters = normal_is_multi ? memMgr.enumerateReporters()
+                                           : memMgr.enumerateMultiReporters();
 
       while (multireporters.hasMoreElements()) {
         var mr = multireporters.getNext();
-        mr instanceof Ci.nsIMemoryMultiReporter;
+        mr instanceof (normal_is_multi ? Ci.nsIMemoryReporter : Ci.nsIMemoryMultiReporter);
         mr.collectReports(function (proc, path, kind, units, amount, description, closure) {
           addReport(path, amount, kind, units);
         }, null);
