@@ -154,14 +154,21 @@ var enduranceManager;
 var tabBrowser;
 var md;
 var perTabPause;
+var settleWaitTime;
 
 function setupModule() {
   controller = mozmill.getBrowserController();
   enduranceManager = new endurance.EnduranceManager(controller);
 
   if ("endurance" in persisted) {
-    perTabPause = persisted.endurance.perTabPause;
+    perTabPause = persisted.endurance.perTabPause * 1000;
+    settleWaitTime = persisted.endurance.settleWaitTime * 1000;
   }
+
+  if (perTabPause === undefined)
+    perTabPause = 10000;
+  if (settleWaitTime === undefined)
+    settleWaitTime = 30000;
 
   // XXX: Bug 673399
   //      Tab modal dialogs are not yet supported so we switch back to browser modal dialogss
@@ -203,7 +210,7 @@ function testMemoryUsage() {
     if (initial) {
       initial = false;
       enduranceManager.addCheckpoint("Start");
-      controller.sleep(30000);
+      controller.sleep(settleWaitTime);
       enduranceManager.addCheckpoint("StartSettled");
     }
     enduranceManager.loop(function () {
@@ -223,18 +230,18 @@ function testMemoryUsage() {
       controller.open(site);
       controller.waitForPageLoad(controller.tabs.activeTab, 60000, 500);
       controller.assert(function () { return controller.tabs.activeTab.readyState == "complete"; });
-      if (perTabPause) controller.sleep(perTabPause * 1000)
+      controller.sleep(perTabPause);
     });
 
     enduranceManager.addCheckpoint("TabsOpen");
-    controller.sleep(30000);
+    controller.sleep(settleWaitTime);
     enduranceManager.addCheckpoint("TabsOpenSettled");
     waitGC();
     enduranceManager.addCheckpoint("TabsOpenForceGC");
     tabBrowser.closeAllTabs();
     controller.waitForPageLoad(controller.tabs.activeTab);
     enduranceManager.addCheckpoint("TabsClosed");
-    controller.sleep(30000);
+    controller.sleep(settleWaitTime);
     enduranceManager.addCheckpoint("TabsClosedSettled");
     waitGC();
     enduranceManager.addCheckpoint("TabsClosedForceGC");

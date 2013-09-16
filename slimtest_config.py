@@ -19,7 +19,8 @@ AreWeSlimYetTests = {
         'entities': 100,
         'iterations': 5,
         'delay': 0,
-        'perTabPause': 10
+        'perTabPause': 10,
+        'settleWaitTime': 30
       }
   },
   ## We also ran tests without a delay for a while, but they produce fairly
