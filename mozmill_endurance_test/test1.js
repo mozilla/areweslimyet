@@ -35,7 +35,9 @@
  * ***** END LICENSE BLOCK ***** */
 
 "use strict";
+
 var endurance = require("endurance");
+var modalDialog = require("modal-dialog");
 var prefs = require("prefs");
 var tabs = require("tabs");
 
@@ -150,6 +152,7 @@ const MAX_TABS = 30;
 var controller;
 var enduranceManager;
 var tabBrowser;
+var md;
 var perTabPause;
 
 function setupModule() {
@@ -163,6 +166,9 @@ function setupModule() {
   // XXX: Bug 673399
   //      Tab modal dialogs are not yet supported so we switch back to browser modal dialogss
   prefs.preferences.setPref(TAB_MODAL, false);
+
+  md = new modalDialog.modalDialog(controller.window);
+  md.start(closeModalDialog);
 
   tabBrowser = new tabs.tabBrowser(controller);
   tabBrowser.closeAllTabs();
@@ -241,5 +247,6 @@ function closeModalDialog(controller) {
 }
 
 function teardownModule() {
+  md.stop();
   tabBrowser.closeAllTabs();
 }
