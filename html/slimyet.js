@@ -394,7 +394,14 @@ var gReleases = [
   {dateStr: "2013-02-18", name: "FF 21"},
   {dateStr: "2013-04-01", name: "FF 22"},
   {dateStr: "2013-05-13", name: "FF 23"},
-  {dateStr: "2013-06-24", name: "FF 24"}
+  {dateStr: "2013-06-24", name: "FF 24"},
+  {dateStr: "2013-08-05", name: "FF 25"},
+  {dateStr: "2013-09-16", name: "FF 26"},
+  {dateStr: "2013-10-28", name: "FF 27"},
+  {dateStr: "2013-12-09", name: "FF 28"},
+  {dateStr: "2014-01-20", name: "FF 29"},
+  {dateStr: "2014-03-03", name: "FF 30"},
+  {dateStr: "2014-04-14", name: "FF 31"}
 ];
 
 // Create gReleases[x].date objects
