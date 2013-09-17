@@ -342,8 +342,8 @@ var gDisjointTime = 'disjointtime' in gQueryVars ? +gQueryVars['disjointtime'] :
 // Merge tooltips if their position is within this many pixels
 var gAnnoMergeDist = 'annotationmerge' in gQueryVars ? +gQueryVars['annotationmerge'] : 50;
 
-// How close ticks on the graph can be before they are culled
-var gMinTickDist = 'mintickdist' in gQueryVars ? +gQueryVars['mintickdist'] : 100;
+// How many xaxis ticks there should be, ticks will be averaged to this density
+var gTickDensity = 'tickdensity' in gQueryVars ? +gQueryVars['tickdensity'] : 25;
 
 // 10-class paired qualitative color scheme from http://colorbrewer2.org/.
 // Ordered so that the important memory lines are given more prominent colors.
@@ -1452,15 +1452,14 @@ function Plot(name, appendto) {
       },
       xaxis: {
         ticks: function(axis) {
-          var secondsPerPixel = axis.c2p(1) - axis.c2p(0);
-
           var points = [];
+          var range = axis.max - axis.min;
           var prevdate = 0;
           for (var i = 0; i < gReleases.length; i++) {
             var date = gReleases[i].date;
-            // Skip ticks that would be within mintickdistance of the previous
-            var dist = (date - prevdate)/secondsPerPixel;
-            if (axis.min <= date && date <= axis.max && dist > gMinTickDist) {
+            var dist = date - prevdate;
+            if (axis.min <= date && date <= axis.max &&
+                dist >= range / gTickDensity) {
               points.push(date);
               prevdate = date;
             }
