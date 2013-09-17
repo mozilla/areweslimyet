@@ -343,7 +343,7 @@ var gDisjointTime = 'disjointtime' in gQueryVars ? +gQueryVars['disjointtime'] :
 var gAnnoMergeDist = 'annotationmerge' in gQueryVars ? +gQueryVars['annotationmerge'] : 50;
 
 // How many xaxis ticks there should be, ticks will be averaged to this density
-var gTickDensity = 'tickdensity' in gQueryVars ? +gQueryVars['tickdensity'] : 25;
+var gTickDensity = 'tickdensity' in gQueryVars ? +gQueryVars['tickdensity'] : 20;
 
 // 10-class paired qualitative color scheme from http://colorbrewer2.org/.
 // Ordered so that the important memory lines are given more prominent colors.
