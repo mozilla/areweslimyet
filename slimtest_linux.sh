@@ -1,17 +1,21 @@
 #!/bin/bash
 
-# Copyright © 2012 Mozilla Corporation
+# Copyright © 2014 Mozilla Corporation
 
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
+# This is just a run_slimtest.py wrapper:
+# - Starts vncserver on :9
+# - Starts the nginx instance in ./nginx/
+# - Selects python2 binary if necessary
+# - Runs ./run_slimtest.py "$@"
+# - Cleans up VNC/nginx
+
 set -e
 cd "$(dirname "$0")"
 startdir="$PWD"
-
-[ ! -z "$timestamp" ] && timestamp="--buildtime $timestamp"
-[ -z "$commit" ] && commit="tip"
 
 [ -d "logs" ] || mkdir -v logs
 
@@ -36,16 +40,13 @@ trap cleanup EXIT
 
 cleanup
 
+# Assumes ./nginx/ has a nginx prefix with TP5 setup
 echo ":: Starting nginx"
-./nginx/nginx -p $PWD/nginx/
+nginx -p $PWD/nginx/ -c $PWD/nginx/conf/nginx.conf
+
 echo ":: Starting VNC"
 vncserver :9
 export DISPLAY=:9
-
-echo ":: Nuking objdir"
-# We use ccache so the extra time it saves us to keep this
-# isn't worth the probability of random build fails
-rm -rf ./slimtest-build
 
 echo ":: Running test"
 # Use py2 binary on systems that have python -> python 3.x
