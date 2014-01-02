@@ -171,36 +171,50 @@ PerfTracer.prototype = {
         knownHeap += amount;
     }
 
-    // Normal reporters
-    var normal_is_multi = false;
-    var reporters = memMgr.enumerateReporters();
-    while (reporters.hasMoreElements()) {
-      var r = reporters.getNext();
-      r instanceof Ci.nsIMemoryReporter;
-      if (r.collectReports) {
-        // Bug 910517 removed old-style reporters and renamed
-        // nsIMemoryMultiReporter to nsIMemoryReporter.
-        normal_is_multi = true;
-        break;
-      }
-      if (r.path.length) {
-        // memoryUsed was renamed to amount in gecko7
-        var amount = (r.amount !== undefined) ? r.amount : r.memoryUsed;
-        addReport(r.path, amount, r.kind, r.units);
-      }
+    // Callback for new-style multireporters
+    function reportCallback(proc, path, kind, units, amount, description,
+                            closure) {
+      addReport(path, amount, kind, units);
     }
 
-    // Multireporters
-    if (normal_is_multi || memMgr.enumerateMultiReporters) {
-      var multireporters = normal_is_multi ? memMgr.enumerateReporters()
-                                           : memMgr.enumerateMultiReporters();
+    // Normal reporters
+    var normal_is_multi = false;
+    if (memMgr.getReportsForThisProcess) {
+      // After bug 947802, this call gets all the reports we need
+      memMgr.getReportsForThisProcess(reportCallback, null);
+    } else {
+      // Prior to bug 947802, we had to get all reporters and call getreports on
+      // each one
+      var reporters = memMgr.enumerateReporters();
+      while (reporters.hasMoreElements()) {
+        var r = reporters.getNext();
+        r instanceof Ci.nsIMemoryReporter;
+        if (r.collectReports) {
+          // Bug 910517 removed old-style reporters and renamed
+          // nsIMemoryMultiReporter to nsIMemoryReporter.
+          // Fall through to handle all reporters as multi-reporters.
+          normal_is_multi = true;
+          break;
+        }
+        // Old style reporters simply had values to query, pass those
+        // to addReport
+        if (r.path.length) {
+          // memoryUsed was renamed to amount in gecko7
+          var amount = (r.amount !== undefined) ? r.amount : r.memoryUsed;
+          addReport(r.path, amount, r.kind, r.units);
+        }
+      }
 
-      while (multireporters.hasMoreElements()) {
-        var mr = multireporters.getNext();
-        mr instanceof (normal_is_multi ? Ci.nsIMemoryReporter : Ci.nsIMemoryMultiReporter);
-        mr.collectReports(function (proc, path, kind, units, amount, description, closure) {
-          addReport(path, amount, kind, units);
-        }, null);
+      // Multi-reporters, which take a callback.
+      if (normal_is_multi || memMgr.enumerateMultiReporters) {
+        var multireporters = normal_is_multi ? memMgr.enumerateReporters()
+          : memMgr.enumerateMultiReporters();
+
+        while (multireporters.hasMoreElements()) {
+          var mr = multireporters.getNext();
+          mr instanceof (normal_is_multi ? Ci.nsIMemoryReporter : Ci.nsIMemoryMultiReporter);
+          mr.collectReports(reportCallback, null);
+        }
       }
     }
 
