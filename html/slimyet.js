@@ -306,7 +306,25 @@ var gAnnotations = (function() {
       'date': 1377877508,
       'desktop': false,
       'msg': annoFormat('Updated Fennec profile used in AWSY harness')
+    },
+    {
+      'date': 1391544327,
+      'desktop': false,
+      'msg': annoFormat('Bug 625383 caused AWSY runs to frequently hit timeout and fail', 971001)
+    },
+    {
+      'date': 1392122504,
+      'desktop': false,
+      'msg': annoFormat('Updated Fennec profile used in AWSY harness')
+    },
+    {
+      'date': 1392153656,
+      'desktop': false,
+      'msg': annoFormat('Backed out bug 625383', 971001)
     }
+    // The 'date' timestamps in the list above can be obtained from the page at
+    // http://hg.mozilla.org/integration/mozilla-inbound/json-pushes?changeset=<cset>
+    // where <cset> is the appropriate inbound change.
   ];
 
   // Turn dates into date objects, sort by date
