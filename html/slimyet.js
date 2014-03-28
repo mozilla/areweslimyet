@@ -123,7 +123,12 @@ var gAnnotations = (function() {
     {
       'date': 'Tue, 18 Dec 2012 04:34:31 GMT',
       'mobile': false,
-      'msg': annoFormat('~40MB regression (~11%) due to leaked windows.', 820602)
+      'msg': annoFormat('~40MB regression (~11%) due to leaked windows', 820602)
+    },
+    {
+      'date': 1395887394,
+      'mobile': false,
+      'msg': annoFormat('Generational GC enabled on desktop', 619558);
     },
     // *************************** Mobile Annotations ****************************
     {
