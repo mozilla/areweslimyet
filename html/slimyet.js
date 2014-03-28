@@ -128,7 +128,7 @@ var gAnnotations = (function() {
     {
       'date': 1395887394,
       'mobile': false,
-      'msg': annoFormat('Generational GC enabled on desktop', 619558);
+      'msg': annoFormat('Generational GC enabled on desktop', 619558)
     },
     // *************************** Mobile Annotations ****************************
     {
