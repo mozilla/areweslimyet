@@ -326,6 +326,21 @@ var gAnnotations = (function() {
       'date': 1392153656,
       'desktop': false,
       'msg': annoFormat('Backed out bug 625383', 971001)
+    },
+    {
+      'date': 1394684478,
+      'desktop': false,
+      'msg': annoFormat('Bug 979101 caused devtools to load on startup', 983129)
+    },
+    {
+      'date': 1394765950,
+      'desktop': false,
+      'msg': annoFormat('Backed out bug 979101', 983129)
+    },
+    {
+      'date': 1397539462,
+      'desktop': false,
+      'msg': annoFormat('Fix incorrect memory report for images', 995880)
     }
     // The 'date' timestamps in the list above can be obtained from the page at
     // http://hg.mozilla.org/integration/mozilla-inbound/json-pushes?changeset=<cset>
