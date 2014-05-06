@@ -214,4 +214,4 @@ case.
 [zombie compartments]: https://developer.mozilla.org/en/Zombie_compartments#Reactive_checking
 [file a bug]: https://bugzilla.mozilla.org/enter_bug.cgi?product=Core&component=General&status_whiteboard=[MemShrink]
 [awsy-armv6]: https://github.com/staktrace/awsy-armv6
-[arcus]: http://arcus.mv.mozilla.com:8000/status/
+[arcus]: http://arcus.corp.mtv2.mozilla.com:8000/status/
