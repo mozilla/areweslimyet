@@ -341,6 +341,16 @@ var gAnnotations = (function() {
       'date': 1397539462,
       'desktop': false,
       'msg': annoFormat('Fix incorrect memory report for images', 995880)
+    },
+    {
+      'date': 1400197141,
+      'desktop': false,
+      'msg': annoFormat('New cache turned on', 1013333)
+    },
+    {
+      'date': 1400602677,
+      'desktop': false,
+      'msg': annoFormat('Update Fennec profile used in AWSY harness')
     }
     // The 'date' timestamps in the list above can be obtained from the page at
     // http://hg.mozilla.org/integration/mozilla-inbound/json-pushes?changeset=<cset>
