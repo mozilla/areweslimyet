@@ -880,7 +880,8 @@ function memoryTreeNode(target, data, select, path, depth) {
     // Add an export element to each checkpoint.
     if (depth == 1) {
       var memoryReportName = path.join('_') + '_memory_report.gz';
-      var exportClick = $.new('a').text(' [export]');
+      var exportClick = $.new('a', { 'href': '#', 'class': 'button' })
+                         .text(' [export]');
       exportClick.data('checkpoint', data[node]);
       exportClick.data('reportName', memoryReportName);
       nodeTitle.append(exportClick);
