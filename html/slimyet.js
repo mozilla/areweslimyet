@@ -555,6 +555,9 @@ var gZoomSyncPlots = {};
 // Range of all non-null datapoints.
 var gDataRange;
 
+// ObjectURLs that have been allocated and need to be cleared.
+var gObjectURLs = [];
+
 //
 // Utility
 //
@@ -714,6 +717,7 @@ function treeExpandNode(node, noanimate) {
     var subtree = $.new('div').addClass('subtree').hide();
     memoryTreeNode(subtree, node.data('nodeData'),
                               node.data('select'),
+                              node.data('path'),
                               node.data('depth'));
     subtree.appendTo(node);
   }
@@ -741,7 +745,7 @@ function treeToggleNode(node) {
 // Create a about:memory-esque tree of values from a list of nodes.
 // The 'datapoint' value is the name of the point to highlight within the tree.
 // This is a wrapper for memoryTreeNode()
-function makeMemoryTree(title, nodes, datapoint) {
+function makeMemoryTree(title, path, nodes, datapoint) {
   var memoryTree = $.new('div', { class: 'memoryTree' }, { display: 'none' });
   // memoryTree title
   var treeTitle = $.new('div', { class: 'treeTitle' }).appendTo(memoryTree);
@@ -751,15 +755,16 @@ function makeMemoryTree(title, nodes, datapoint) {
   $.new('div').addClass('highlight')
               .text(datapoint.replace(/\//g, ' -> '))
               .appendTo(treeTitle);
-  memoryTreeNode(memoryTree, nodes, datapoint);
+  memoryTreeNode(memoryTree, nodes, datapoint, path);
 
   return memoryTree;
 }
 
-// render a memory tree into <target>, with node data <data>. The node specified
-// by <select> should be highlighted. <depth> represents how many levels deep
-// this branch is in the overall tree.
-function memoryTreeNode(target, data, select, depth) {
+// Render a memory tree into <target>, with node data <data>. The node specified
+// by <select> should be highlighted. <path> is an array of strings indicating
+// path of this branch in the overall tree. <depth> represents how many levels
+// deep this branch is in the overall tree.
+function memoryTreeNode(target, data, select, path, depth) {
   if (depth === undefined)
     depth = 0;
 
@@ -803,6 +808,8 @@ function memoryTreeNode(target, data, select, depth) {
   var parentval = defval(data);
   var node;
   while (node = rows.shift()) {
+    path.push(node);
+
     var leaf = true;
     if (typeof(data[node]) != 'number') {
       for (var key in data[node])
@@ -812,7 +819,8 @@ function memoryTreeNode(target, data, select, depth) {
     var treeNode = $.new('div')
                     .addClass('treeNode')
                     .data('nodeData', data[node])
-                    .data('depth', depth + 1);
+                    .data('depth', depth + 1)
+                    .data('path', path);
     var nodeTitle = $.new('div')
                      .addClass('treeNodeTitle')
                      .appendTo(treeNode);
@@ -869,6 +877,36 @@ function memoryTreeNode(target, data, select, depth) {
       treeNode.addClass('hasChildren');
     }
 
+    // Add an export element to each checkpoint.
+    if (depth == 1) {
+      var memoryReportName = path.join('_') + '_memory_report.gz';
+      var exportClick = $.new('a').text(' [export]');
+      exportClick.data('checkpoint', data[node]);
+      exportClick.data('reportName', memoryReportName);
+      nodeTitle.append(exportClick);
+      exportClick.click(function() {
+        var worker = new Worker("about_memory_worker.js");
+        worker.onmessage = function(aEvent) {
+          var url = window.URL.createObjectURL(aEvent.data);
+          this.downloadLink.text(' [download]');
+          this.downloadLink.attr('href', url);
+          this.downloadLink.attr('download', this.downloadLink.data('reportName'));
+          this.downloadLink.unbind('click');
+
+          gObjectURLs.push(url);
+        }
+
+        worker.downloadLink = $(this);
+
+        worker.postMessage({
+          filename: memoryReportName,
+          checkpoint: $(this).data('checkpoint'),
+        });
+
+        return false;
+      });
+    }
+
     // Handle selecting a start node
     if (select && node == select[0]) {
       if (select.length == 1) {
@@ -879,6 +917,7 @@ function memoryTreeNode(target, data, select, depth) {
       treeExpandNode(treeNode, true);
     }
 
+    path.pop();
     target.append(treeNode);
   }
 }
@@ -1320,7 +1359,8 @@ Tooltip.prototype._memoryView = function(revision) {
   }
 
   var title = series_info['test'] + ' :: ' + revision.slice(0,12);
-  return makeMemoryTree(title, nodes, datapoint);
+  var path = [revision, series_info['test']];
+  return makeMemoryTree(title, path, nodes, datapoint);
 }
 
 Tooltip.prototype.zoom = function(callback) {
@@ -1386,6 +1426,11 @@ Tooltip.prototype.unzoom = function() {
     var callback;
     while (callback = this.onUnzoomFuncs.pop())
       callback.apply(this);
+
+    var url;
+    while (url = gObjectURLs.pop()) {
+      window.URL.revokeObjectURL(url);
+    }
   }
 }
 
