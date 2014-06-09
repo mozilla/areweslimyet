@@ -880,12 +880,15 @@ function memoryTreeNode(target, data, select, path, depth) {
     // Add an export element to each checkpoint.
     if (depth == 1) {
       var memoryReportName = path.join('_') + '_memory_report.gz';
-      var exportClick = $.new('a').text(' [export]');
+      var exportClick = $.new('a', { 'href': '#', 'class': 'button' })
+                         .text(' [export]');
       exportClick.data('checkpoint', data[node]);
       exportClick.data('reportName', memoryReportName);
       nodeTitle.append(exportClick);
       exportClick.click(function() {
         var worker = new Worker("about_memory_worker.js");
+        $(this).text(' [exporting...]');
+        $(this).attr('href', null);
         worker.onmessage = function(aEvent) {
           var url = window.URL.createObjectURL(aEvent.data);
           this.downloadLink.text(' [download]');
