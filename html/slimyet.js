@@ -886,7 +886,7 @@ function memoryTreeNode(target, data, select, path, depth) {
       exportClick.data('reportName', memoryReportName);
       nodeTitle.append(exportClick);
       exportClick.click(function() {
-        var worker = new Worker("about_memory_worker.js");
+        var worker = new Worker("/about_memory_worker.js");
         $(this).text(' [exporting...]');
         $(this).attr('href', null);
         worker.onmessage = function(aEvent) {
