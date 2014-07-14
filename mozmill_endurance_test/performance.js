@@ -181,7 +181,10 @@ PerfTracer.prototype = {
     var normal_is_multi = false;
     if (memMgr.getReportsForThisProcess) {
       // After bug 947802, this call gets all the reports we need
-      memMgr.getReportsForThisProcess(reportCallback, null);
+      // Bug 1010064 added anonymize as a necessary argument, but extra
+      // arguments are ignored in builds before this
+      memMgr.getReportsForThisProcess(reportCallback, null,
+                                      /* anonymize */ false);
     } else {
       // Prior to bug 947802, we had to get all reporters and call getreports on
       // each one
