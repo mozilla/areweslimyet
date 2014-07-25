@@ -207,7 +207,7 @@ case.
 [awsy-github]: https://github.com/Nephyrin/MozAreWeSlimYet
 [MemShrink]: https://wiki.mozilla.org/Performance/MemShrink
 [TP5]: https://wiki.mozilla.org/Buildbot/Talos#tp5
-[mozmill]: https://github.com/mozautomation/mozmill
+[mozmill]: https://github.com/mozilla/mozmill
 [match-startup-mem]: https://bugzilla.mozilla.org/show_bug.cgi?id=668809
 [jemalloc2]: https://bugzilla.mozilla.org/show_bug.cgi?id=580408
 [safe mode]: http://support.mozilla.org/en-US/kb/Safe%20Mode
