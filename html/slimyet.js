@@ -1815,7 +1815,7 @@ Plot.prototype._buildSeries = function(start, stop) {
         }
       }
     }
-    if (!iseries.length) return [null, null, null];
+    if (!iseries.length) return null;
     iseries.sort();
     var median;
     if (iseries.length % 2)
@@ -1846,7 +1846,13 @@ Plot.prototype._buildSeries = function(start, stop) {
       if (start !== undefined && b['time'] < start) continue;
       if (stop !== undefined && b['time'] > stop) break;
 
-      var time = groupin(b['time']);
+      var time;
+      if (gQueryVars['evenspacing']) {
+        time = start + ind * (stop - start) / sourceData['builds'].length;
+      } else {
+        time = groupin(b['time']);
+      }
+
       if (time != ctime) {
         pushdp(series, buildinf, ctime);
         count = 0;
