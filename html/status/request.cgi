@@ -26,11 +26,12 @@ def main():
   note = val('note')
   series = val('series')
 
-  invalid = re.compile("[^a-zA-Z0-9\-]")
+  invalidBuild = re.compile("[^a-zA-Z0-9\-]")
+  invalidSeries = re.compile("[^a-z0-9_]")
   if not mode or not start \
-        or (series and invalid.match(series)) \
-        or (mode != "ftp" and start and invalid.match(start)) \
-        or (end and invalid.match(end)):
+        or (series and invalidSeries.match(series)) \
+        or (mode != "ftp" and start and invalidBuild.match(start)) \
+        or (end and invalidBuild.match(end)):
     error("Invalid input")
 
   if mode not in [ 'nightly', 'tinderbox', 'compile', 'ftp' ]:

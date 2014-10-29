@@ -308,8 +308,8 @@ $(function () {
         alert("Missing fields");
         return false;
       }
-      if (doseries && !series.match('^[a-z0-9\-]+$')) {
-        alert("Series name can only contain lowercase, numbers, and dash");
+      if (doseries && !series.match('^[a-z0-9_]+$')) {
+        alert("Series name may only contain a-z, 0-9, and _");
         return false;
       }
       if (mode == "tinderbox" && multi) {
