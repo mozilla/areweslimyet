@@ -29,9 +29,9 @@ def main():
   invalidBuild = re.compile("[^a-zA-Z0-9\-]")
   invalidSeries = re.compile("[^a-z0-9_]")
   if not mode or not start \
-        or (series and invalidSeries.match(series)) \
-        or (mode != "ftp" and start and invalidBuild.match(start)) \
-        or (end and invalidBuild.match(end)):
+        or (series and invalidSeries.search(series)) \
+        or (mode != "ftp" and start and invalidBuild.search(start)) \
+        or (end and invalidBuild.search(end)):
     error("Invalid input")
 
   if mode not in [ 'nightly', 'tinderbox', 'compile', 'ftp' ]:
