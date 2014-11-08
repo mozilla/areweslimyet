@@ -12,8 +12,8 @@ killall thttpd nginx || true
 thttpd/thttpd -C thttpd/thttpd.cfg
 
 # This is the TP5 pageset listening on ports 8001-8100
-nginx -p nginx/ -c conf/nginx.conf
+/sbin/nginx -p nginx/ -c conf/nginx.conf
 
 # This is just nginx serving the root of the html/ directory, with
 # html/status/request.cgi going to thttpd since nginx can't do native cgi
-nginx -p nginx_local/ -c conf/nginx.conf
+/sbin/nginx -p nginx_local/ -c conf/nginx.conf
