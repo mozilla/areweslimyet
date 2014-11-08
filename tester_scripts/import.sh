@@ -1,6 +1,8 @@
 #!/bin/bash
 set -e
-cd "$(dirname "$0")"
+
+cd "$(dirname "$0")"/..
+
 if [ -z "$(ls ./mobile)" ]; then
   echo ":: No new builds to import"
   exit
