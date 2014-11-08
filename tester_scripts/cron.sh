@@ -26,7 +26,7 @@ util/queue_tinderbox_builds.py html/status/batch last_tinderbox.json integration
 )
 
 # Import any new mobile data
-flock -n ~/mobile.lck ./import.sh
+flock -n ~/mobile.lck tester_scripts/import.sh
 
 # Update all json exports
 for x in db/areweslimyet-*.sqlite db/custom-*.sqlite; do
