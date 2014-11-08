@@ -4,6 +4,9 @@
 set -e
 cd "$(dirname "$0")"
 
+# This is a virtualenv with mozmill 1.5
+source py2env/bin/activate
+
 # Update git
 git pull && git submodule update
 
@@ -46,4 +49,4 @@ done
 
 # Sync with mirror
 # To turn off data sync add: --exclude=data
-# rsync <censored ...>
+rsync --timeout=60 -ve "ssh -i ./slimuploader_rsa_key" -a --delete-after --delay-updates html/ slimyet@nemu.pointysoftware.net:/www/areweslimyet.com/html/

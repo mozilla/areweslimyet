@@ -3,6 +3,11 @@
 set -e
 cd "$(dirname "$0")"
 
+# This is a virtualenv with mozmill 1.5
+source py2env/bin/activate
+
+echo ":: Activated py2env"
+
 # Setup a dbus-session, as without one firefox seems
 # to auto-spawn them, then never clean them up
 #eval 'dbus-launch --sh-syntax'
@@ -14,7 +19,7 @@ cd "$(dirname "$0")"
 clean() {
   echo >&2 ":: Cleaning house"
   rm -rf /tmp/*BuildGetter* /tmp/*slimtest_profile*
-  killall gconfd-2 dbus-launch firefox Xtightvnc dbus-daemon || true
+  killall gconfd-2 dbus-launch firefox Xvnc dbus-daemon || true
 }
 run() {
   echo >&2 ":: Launching tester"
