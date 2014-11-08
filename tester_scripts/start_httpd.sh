@@ -9,7 +9,7 @@ source py2env/bin/activate
 killall thttpd nginx || true
 
 # we use a small thttpd compile to handle cgi requests to /status/request.cgi
-thttpd -C thttpd/thttpd.cfg
+thttpd/thttpd -C thttpd/thttpd.cfg
 
 # This is the TP5 pageset listening on ports 8001-8100
 nginx -p nginx/ -c conf/nginx.conf
