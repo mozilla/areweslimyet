@@ -31,7 +31,8 @@ cron.sh for an example.
 The test box is an Ubuntu 64 LTS system. Aside from just cloning this repo, it
 has the following setup.
 
-- The tester and cron jobs run as user 'awsy'.
+- The tester and cron jobs run as user 'awsy'. The tester runs in a tmux session
+  named areweslimyet
 - `~/.ssh/authorized_keys` has a ssh key used by :kats' mobile-awsy test daemon
   (separate from this repo), with forced command set to
   tester_scripts/mobile_scp_only.sh so it can only write to /media/awsy/mobile/
@@ -51,7 +52,7 @@ e.g. 'vncserver :9' successfully, required for tests to run
 - `/media/awsy/db` created, per above.
 - `/media/awsy/tester_scripts/cron.sh` run on a five-minute cron job.
 - `/media/awsy/tester_scripts/start_tester_tmux.sh` is run @reboot, to launch
-  the tester in an attachable tmux session.
+the tester in an attachable tmux session.
 
 ## These files
 
@@ -60,6 +61,7 @@ e.g. 'vncserver :9' successfully, required for tests to run
   old log files from the tester. It then pushes, via rsync, to
   nemu.pointysoftware.net, which is run by :johns, and hosts the public
   areweslimyet.com mirror.
+  - `*/5 * * * * flock -n /media/awsy/cron.lck /media/awsy/tester_scripts/cron.sh`
 - `./import.sh` runs util/import_flatfile.py on all files in /media/awsy/mobile.
 - `./start_tester_tmux.sh` is run in a cron @reboot job to make a tmux session and
   stuff ./launch_tester.sh into it.
