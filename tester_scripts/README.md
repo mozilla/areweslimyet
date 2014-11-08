@@ -11,10 +11,11 @@ at best.
 - Obtain a copy of the TP5 pageset
 - Setup a webserver to host TP5 at localhost:8001 through localhost:8100. See
 e.g. tp5.nginx.conf
-- Setup a server to host areweslimyet, e.g. the html/ directory
+- Setup a server to host areweslimyet, i.e. the html/ directory
 - Setup a cron job to run create_graph_json.py and merge_graph_json.py, see
 cron.sh for an example.
 - mkdir $AWSY/db/, used by the default slimtest config as the database path.
+- Ensure vncserver is setup, and can create sessions without interaction.
 - Run the test daemon. See launch_tester.sh as an example.
 - [Optional] Setup a cron job to run util/queue_tinderbox_builds.py, which
   auto-queues all tinderbox builds from mozilla-inbound with the tester as they
