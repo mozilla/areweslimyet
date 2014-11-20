@@ -78,7 +78,30 @@ class EnduranceTest(BenchTester.BenchTest):
                                        # Don't open the first-run dialog, it loads a video
                                        # and other things that can screw with benchmarks
                                        preferences={'startup.homepage_welcome_url' : '',
-                                                    'startup.homepage_override_url' :''})
+                                                    'startup.homepage_override_url' :'',
+                                                    'browser.tabs.remote.autostart': False,
+                                                    'browser.displayedE10SPrompt': 5,
+                                                    'browser.tabs.remote.autostart.1': False,
+                                                    'browser.displayedE10SPrompt.1': 5,
+                                                    'browser.tabs.remote.autostart.2': False,
+                                                    'browser.displayedE10SPrompt.2': 5,
+                                                    'browser.tabs.remote.autostart.3': False,
+                                                    'browser.displayedE10SPrompt.3': 5,
+                                                    'browser.tabs.remote.autostart.4': False,
+                                                    'browser.displayedE10SPrompt.4': 5,
+                                                    'browser.tabs.remote.autostart.5': False,
+                                                    'browser.displayedE10SPrompt.5': 5,
+                                                    'browser.tabs.remote.autostart.6': False,
+                                                    'browser.displayedE10SPrompt.6': 5,
+                                                    'browser.tabs.remote.autostart.7': False,
+                                                    'browser.displayedE10SPrompt.7': 5,
+                                                    'browser.tabs.remote.autostart.8': False,
+                                                    'browser.displayedE10SPrompt.8': 5,
+                                                    'browser.tabs.remote.autostart.9': False,
+                                                    'browser.displayedE10SPrompt.9': 5,
+                                                    'browser.tabs.remote.autostart.10': False,
+                                                    'browser.displayedE10SPrompt.10': 5 })
+
     # HACK to work around mozrunner's broken stop/wait methods, which nuke all
     # pids matching 'firefox' >= the child pid. This fixes concurrent tests.
     # Bug735501 - fixed in mozmill 2.0+
