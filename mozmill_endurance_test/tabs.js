@@ -234,7 +234,8 @@ tabBrowser.prototype = {
         this._controller.click(button);
         break;
       case "menu":
-        this._controller.mainMenu.click("#menu_close");
+        var menuitem = new elementslib.Elem(this._controller.menus['file-menu'].menu_close);
+        this._controller.click(menuitem);
         break;
       case "middleClick":
         var tab = this.getTab(index);
@@ -249,7 +250,8 @@ tabBrowser.prototype = {
     }
 
     try {
-      mozmill.utils.waitFor(() => self.closed, "Tab is closed", TIMEOUT, 100, self);
+      this._controller.waitForEval("subject.tab.closed == true", TIMEOUT, 100,
+                                   {tab: self});
     } finally {
       this._controller.window.removeEventListener("TabClose", checkTabClosed, false);
       prefs.preferences.clearUserPref(PREF_TABS_ANIMATE);
@@ -473,7 +475,8 @@ tabBrowser.prototype = {
 
     switch (type) {
       case "menu":
-        this._controller.mainMenu.click("#menu_newNavigatorTab");
+        var menuitem = new elementslib.Elem(this._controller.menus['file-menu'].menu_newNavigatorTab);
+        this._controller.click(menuitem);
         break;
       case "shortcut":
         var cmdKey = utils.getEntity(this.getDtds(), "tabCmd.commandkey");
@@ -504,7 +507,8 @@ tabBrowser.prototype = {
     }
 
     try {
-      mozmill.utils.waitFor(() => self.opened, "Tab is opened", TIMEOUT, 100, self);
+      this._controller.waitForEval("subject.tab.opened == true", TIMEOUT, 100,
+                                   {tab: self});
     } finally {
       this._controller.window.removeEventListener("TabOpen", checkTabOpened, false);
       prefs.preferences.clearUserPref(PREF_TABS_ANIMATE);

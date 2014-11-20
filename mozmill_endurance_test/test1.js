@@ -229,7 +229,7 @@ function testMemoryUsage() {
 
       controller.open(site);
       controller.waitForPageLoad(controller.tabs.activeTab, 60000, 500);
-      mozmill.utils.assert.equal(controller.tabs.activeTab.readyState, "complete", "Tab is ready");
+      controller.assert(function () { return controller.tabs.activeTab.readyState == "complete"; });
       controller.sleep(perTabPause);
     });
 
@@ -238,11 +238,8 @@ function testMemoryUsage() {
     enduranceManager.addCheckpoint("TabsOpenSettled");
     waitGC();
     enduranceManager.addCheckpoint("TabsOpenForceGC");
-
-    // |closeAllTabs| will close all opened tabs except 1, loads 'about:blank'
-    // in the remaining tab and waits for it to load.
     tabBrowser.closeAllTabs();
-
+    controller.waitForPageLoad(controller.tabs.activeTab);
     enduranceManager.addCheckpoint("TabsClosed");
     controller.sleep(settleWaitTime);
     enduranceManager.addCheckpoint("TabsClosedSettled");

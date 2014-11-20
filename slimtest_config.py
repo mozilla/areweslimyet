@@ -11,12 +11,12 @@
 
 AreWeSlimYetTests = {
   ## A very quick test-run, for testing purposes - doesn't give very useful data
-  #"Slimtest-TalosTP5-Quick":
+  ## "Slimtest-TalosTP5-Quick":
   # {
   #   'type': "EnduranceTest",
   #   'vars':
   #     {
-  #       'test': [ 'mozmill_endurance_test', 'test1.js' ],
+  #       'test': [ 'mozmill_endurance_test' ],
   #       'entities': 5,
   #       'iterations': 1,
   #       'delay': 0,
@@ -30,7 +30,7 @@ AreWeSlimYetTests = {
     'type': "EnduranceTest",
     'vars':
       {
-        'test': [ 'mozmill_endurance_test', 'test1.js' ],
+        'test': [ 'mozmill_endurance_test' ],
         'entities': 100,
         'iterations': 5,
         'delay': 0,
