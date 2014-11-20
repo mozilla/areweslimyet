@@ -583,6 +583,15 @@ class BatchTest(object):
 
     try:
       mod = _get_hook(globalargs.get('hook'))
+      # TODO BenchTester should actually dynamically pick a free port, rather than
+      # taking it as a parameter.
+      s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+      try:
+        s.bind(('', 24242 + build.num))
+      except Exception, e:
+        raise Exception("Test error: jsbridge port %u unavailable" % (24242 + build.num,))
+      s.close()
+
       mod.run_tests(build, globalargs)
     except (Exception, KeyboardInterrupt) as e:
       err = "%s :: %s" % (type(e), e)
