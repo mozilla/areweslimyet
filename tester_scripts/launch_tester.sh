@@ -5,9 +5,9 @@ set -e
 cd "$(dirname "$0")"/..
 
 # This is a virtualenv with mozmill 1.5
-source py2env/bin/activate
+source mozmill-1.5-env/bin/activate
 
-echo ":: Activated py2env"
+echo ":: Activated mozmill-1.5-env"
 
 clean() {
   echo >&2 ":: Cleaning house"
