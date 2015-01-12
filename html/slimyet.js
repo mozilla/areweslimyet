@@ -351,6 +351,14 @@ var gAnnotations = (function() {
       'date': 1400602677,
       'desktop': false,
       'msg': annoFormat('Update Fennec profile used in AWSY harness')
+    },
+    {
+      'date': 1418534275,
+      'msg': annoFormat('Doing more compartmental GCs breaks decommitting of arenas', 1052793)
+    },
+    {
+      'date': 1420739696,
+      'msg': annoFormat('Backed out bug 1052793 to fix regression', 1052793)
     }
     // The 'date' timestamps in the list above can be obtained from the page at
     // http://hg.mozilla.org/integration/mozilla-inbound/json-pushes?changeset=<cset>
