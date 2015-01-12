@@ -353,6 +353,10 @@ var gAnnotations = (function() {
       'msg': annoFormat('Update Fennec profile used in AWSY harness')
     },
     {
+      'date': 1415326632,
+      'msg': annoFormat('imgStatusTracker simplification caused BF cache to retain pages for longer', 1084136)
+    },
+    {
       'date': 1418534275,
       'msg': annoFormat('Doing more compartmental GCs breaks decommitting of arenas', 1052793)
     },
