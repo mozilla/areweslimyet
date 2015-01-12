@@ -353,6 +353,14 @@ var gAnnotations = (function() {
       'msg': annoFormat('Update Fennec profile used in AWSY harness')
     },
     {
+      'date': 1411541780,
+      'msg': annoFormat('45MB memory regression from suggestions for ReferenceError', 947044)
+    },
+    {
+      'date': 1411669939,
+      'msg': annoFormat('Bug 947044 backed out for regressions', 947044)
+    },
+    {
       'date': 1415326632,
       'msg': annoFormat('imgStatusTracker simplification caused BF cache to retain pages for longer', 1084136)
     },
