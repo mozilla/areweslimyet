@@ -3,6 +3,11 @@ MozAreWeSlimYet
 
 Code behind areweslimyet.com
 
+## Regression tracking
+
+Regressions seen on areweslimyet.com should be filed on Mozilla's
+Bugzilla instance, blocking [bug 1120576](https://bugzilla.mozilla.org/show_bug.cgi?id=1120576).
+
 ## How It works
 
 ### BenchTester
