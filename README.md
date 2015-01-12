@@ -3,6 +3,11 @@ MozAreWeSlimYet
 
 Code behind areweslimyet.com
 
+## Regression tracking
+
+Regressions seen on areweslimyet.com should be filed on Mozilla's
+Bugzilla instance, blocking [bug 1120576](https://bugzilla.mozilla.org/show_bug.cgi?id=1120576).
+
 ## How It works
 
 ### BenchTester
@@ -96,7 +101,8 @@ reasons.
 
 `html/status/slimyet.js` holds most of the magic. Note that the configuration in
 this file for what graphs to show must match the datapoints configured for
-export in create_graph_json.py.
+export in create_graph_json.py. The annotations that appear on the graph with
+question marks are defined in this file.
 
 ### Running a SlimTest
 

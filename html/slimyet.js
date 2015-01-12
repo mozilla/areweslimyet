@@ -351,6 +351,34 @@ var gAnnotations = (function() {
       'date': 1400602677,
       'desktop': false,
       'msg': annoFormat('Update Fennec profile used in AWSY harness')
+    },
+    {
+      'date': 1411541780,
+      'msg': annoFormat('45MB memory regression from suggestions for ReferenceError', 947044)
+    },
+    {
+      'date': 1411669939,
+      'msg': annoFormat('Bug 947044 backed out for regressions', 947044)
+    },
+    {
+      'date': 1412132897,
+      'msg': annoFormat('Resource timing was causing leaks', 1002855)
+    },
+    {
+      'date': 1413895805,
+      'msg': annoFormat('Resource timing leak fixed', 1064706)
+    },
+    {
+      'date': 1415326632,
+      'msg': annoFormat('imgStatusTracker simplification caused BF cache to retain pages for longer', 1084136)
+    },
+    {
+      'date': 1418534275,
+      'msg': annoFormat('Doing more compartmental GCs breaks decommitting of arenas', 1052793)
+    },
+    {
+      'date': 1420739696,
+      'msg': annoFormat('Backed out bug 1052793 to fix regression', 1052793)
     }
     // The 'date' timestamps in the list above can be obtained from the page at
     // http://hg.mozilla.org/integration/mozilla-inbound/json-pushes?changeset=<cset>
