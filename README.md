@@ -96,7 +96,8 @@ reasons.
 
 `html/status/slimyet.js` holds most of the magic. Note that the configuration in
 this file for what graphs to show must match the datapoints configured for
-export in create_graph_json.py.
+export in create_graph_json.py. The annotations that appear on the graph with
+question marks are defined in this file.
 
 ### Running a SlimTest
 
