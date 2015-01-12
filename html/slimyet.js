@@ -361,6 +361,14 @@ var gAnnotations = (function() {
       'msg': annoFormat('Bug 947044 backed out for regressions', 947044)
     },
     {
+      'date': 1412132897,
+      'msg': annoFormat('Resource timing was causing leaks', 1002855)
+    },
+    {
+      'date': 1413895805,
+      'msg': annoFormat('Resource timing leak fixed', 1064706)
+    },
+    {
       'date': 1415326632,
       'msg': annoFormat('imgStatusTracker simplification caused BF cache to retain pages for longer', 1084136)
     },
