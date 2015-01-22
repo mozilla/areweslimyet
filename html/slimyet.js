@@ -379,6 +379,10 @@ var gAnnotations = (function() {
     {
       'date': 1420739696,
       'msg': annoFormat('Backed out bug 1052793 to fix regression', 1052793)
+    },
+    {
+      'date': 1421897779,
+      'msg': annoFormat('Workaround for bug 1084136 landed on central', 1084136)
     }
     // The 'date' timestamps in the list above can be obtained from the page at
     // http://hg.mozilla.org/integration/mozilla-inbound/json-pushes?changeset=<cset>
