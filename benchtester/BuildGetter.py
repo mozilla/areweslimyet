@@ -12,22 +12,29 @@
 
 import os
 import sys
-import ftplib
 import time
 import re
-import socket
-import cStringIO
 import shutil
 import tarfile
 import tempfile
 import datetime
-import subprocess
 import json
-import urllib
 import urllib2
 
-gDefaultBranch = 'integration/mozilla-inbound'
-gPushlog = 'https://hg.mozilla.org/%s/json-pushes'
+import mozdownload
+
+PUSHLOG_BRANCH_MAP = {
+  'mozilla-inbound': 'integration/mozilla-inbound',
+  'b2g-inbound': 'integration/b2g-inbound',
+  'fx-team': 'integration/fx-team'
+}
+
+BASE_FTP_URL = 'https://ftp.mozilla.org/pub/mozilla.org'
+BASE_HG_URL = 'https://hg.mozilla.org'
+
+gDefaultBranch = 'mozilla-inbound'
+gPushlogUrl = '%s/%s/json-pushes'
+gTinderboxUrl = '%s/firefox/tinderbox-builds/%s-linux64/'
 output = sys.stdout
 
 # TODO
@@ -37,49 +44,41 @@ output = sys.stdout
 def _stat(msg):
   output.write("[BuildGetter] %s\n" % msg);
 
-##
-## Utility
-##
 
-def _subprocess(environment, command, cwd, logfile):
-  newenv = os.environ.copy()
-  newenv.update(environment)
-  _stat("Running command \"%s\" in \"%s\" with env \"%s\"" % (command, cwd, environment))
+def get_build_info(url):
+  """Retrieves the build info file and parses out relevant information"""
+  # cross-platform FIXME, this is hardcoded to linux
+  # trim off the extension, replace w/ .txt
+  info_url = url[:-len(".tar.bz2")] + ".txt"
 
-  proc = subprocess.Popen(command,
-                          env=newenv,
-                          cwd=cwd,
-                          stderr=subprocess.STDOUT,
-                          stdout=subprocess.PIPE)
-
-  # Wait for EOF, logging if desired
-  while True:
-    data = proc.stdout.read(1024)
-    if not data: break
-    if logfile:
-      logfile.write(data)
-
-  return proc.wait()
-
-# Given a firefox build file handle, extract it to a temp directory, return that
-def _extract_build(fileobject):
-  # cross-platform FIXME, this is hardcoded to .tar.bz2 at the moment
-  ret = tempfile.mkdtemp("BuildGetter_firefox")
-  tar = tarfile.open(fileobj=fileobject, mode='r:bz2')
-  tar.extractall(path=ret)
-  tar.close()
-  return ret
-
-##
-## hg.m.o pushlog query
-##
-
-def pushlog_lookup(rev, branch = gDefaultBranch):
-  pushlog = gPushlog % (branch,)
   try:
-    raw = urllib2.urlopen("%s?changeset=%s" % (pushlog, rev), timeout=30).read()
+    raw = urllib2.urlopen(info_url, timeout=30).read()
   except (IOError, urllib2.URLError) as e:
-    _stat("ERR: Failed to query pushlog for changeset %s on %s: %s - %s" % (rev, branch, type(e), e))
+    _stat("ERR: Failed to query server for %s %s %s" % (url, type(e), e))
+    return None
+
+  _stat("Got build info: %s" % raw)
+
+  # This file has had lines changed in the past, just find a numeric line
+  # and a url-of-revision-lookin' line
+  m = re.search('^[0-9]{14}$', raw, re.MULTILINE)
+  timestamp = int(time.mktime(time.strptime(m.group(0), '%Y%m%d%H%M%S')))
+  m = re.search('^https?://hg.mozilla.org/(.+)/rev/([0-9a-z]{12})$', raw, re.MULTILINE)
+  rev = m.group(2)
+  branch = m.group(1)
+
+  return (timestamp, rev, branch)
+
+
+def pushlog_lookup(rev, branch=gDefaultBranch, base_url=BASE_HG_URL):
+  """hg.m.o pushlog query"""
+  pushlog_branch = PUSHLOG_BRANCH_MAP.get(branch, branch)
+  pushlog = gPushlogUrl % (base_url, pushlog_branch)
+  url = "%s?changeset=%s" % (pushlog, rev)
+  try:
+    raw = urllib2.urlopen(url, timeout=30).read()
+  except (IOError, urllib2.URLError) as e:
+    _stat("ERR: Failed to query pushlog for changeset %s on %s at %s: %s - %s" % (rev, branch, url, type(e), e))
     return False
   try:
     pushlog = json.loads(raw)
@@ -99,210 +98,154 @@ def pushlog_lookup(rev, branch = gDefaultBranch):
   _stat("For rev %s on branch %s got push by %s at %u with %u changesets" % (cset, branch, push['user'], push['date'], len(push['changesets'])))
   return cset, push['date']
 
-##
-## Working with ftp.m.o
-##
 
-ftp = None
-def ftp_open():
-  global ftp
-  try:
-    ftp.voidcmd('CWD /')
-  except:
-    if ftp: ftp.close()
-    _stat("Opening new FTP connection")
-    ftp = ftplib.FTP('ftp.mozilla.org')
-    ftp.login()
+def list_tinderbox_builds(starttime=0, endtime=int(time.time()),
+                          branch=gDefaultBranch, base_url=BASE_FTP_URL):
+  """
+  Gets a list of TinderboxBuild objects for all builds on ftp.m.o within
+  specified date range.
+  """
+  parser = mozdownload.parser.DirectoryParser(gTinderboxUrl % (base_url, branch))
+  entries = parser.filter(r'^\d+$') # only entries that are all digits
+  return sorted([int(x) for x in entries if int(x) >= starttime and int(x) <= endtime])
 
-  return ftp
 
-def ftp_find_try_rev(rev):
-  ftp = ftp_open()
-
-  try:
-    ftp.voidcmd('CWD /pub/mozilla.org/firefox/try-builds')
-  except:
-    _stat("Could not find try directory")
-    return None
-
-  found = []
-  def findrev(line):
-    if line.endswith(rev[0:12]):
-      found.append(line)
-
-  try:
-    ftp.retrlines('NLST', findrev)
-  except:
-    _stat("Failed to list try directory")
-    return
-
-  if not len(found):
-    _stat("Could not find a try folder matching %s" % (rev,))
-    return None
-
-  try:
-    ftp.voidcmd('CWD %s/try-linux64' % found[0])
-  except:
-    _stat("Folder %s does not contain a linux64 build")
-    return None
-
-  return "/pub/mozilla.org/firefox/try-builds/%s/try-linux64" % found[0]
-
-# Reads a file, returns the blob
-def _ftp_get(ftp, filename):
-  # (We use readfile.filedat temporarily because of py2's lack of proper scoping
-  #  for nested functions)
-  def readfile(line):
-      readfile.filedat.write(line)
-
-  # Python2 didn't have any design flaws. None, I say!
-  readfile.filedat = cStringIO.StringIO()
-
-  try:
-    ftp.retrbinary('RETR %s' % filename, readfile)
-  except:
-    return False
-
-  readfile.filedat.seek(0)
-  return readfile.filedat
-
-# Returns false if there's no linux-64 build here,
-# otherwise returns a tuple of (timestamp, revision, filename)
-def _ftp_check_build_dir(ftp, dirname):
-  global infofile
-  _stat("Checking directory %s" % dirname)
-  infofile = False
-  def findinfofile(line):
-    global infofile
-    if line.startswith('firefox') and line.endswith('linux-x86_64.txt'):
-      infofile = line
-
-  try:
-    ftp.voidcmd('CWD %s' % dirname)
-  except:
-    return False
-
-  ftp.retrlines('NLST', findinfofile)
-  if not infofile:
-    ftp.voidcmd('CwD ..')
-    return False
-
-  #
-  # read and parse info file
-  #
-
-  fileio = _ftp_get(ftp, infofile)
-  if not fileio:
-    return False
-  filedat = fileio.getvalue()
-  fileio.close()
-
-  _stat("Got build info: %s" % filedat)
-
-  # This file has had lines changed in the past, just find a numeric line
-  # and a url-of-revision-lookin' line
-  m = re.search('^[0-9]{14}$', filedat, re.MULTILINE)
-  timestamp = int(time.mktime(time.strptime(m.group(0), '%Y%m%d%H%M%S')))
-  m = re.search('^https?://hg.mozilla.org/(.+)/rev/([0-9a-z]{12})$', filedat, re.MULTILINE)
-  rev = m.group(2)
-  branch = m.group(1)
-  nightlyfile = infofile[:-4] + ".tar.bz2"
-
-  return (timestamp, rev, branch, nightlyfile)
-
-# Returns a list of commit IDs between two revisions, inclusive. If pullfirst is
-# set, pull before checking
-def get_hg_range(repodir, firstcommit, lastcommit, pullfirst=False):
-    # Setup Hg
-    import mercurial, mercurial.ui, mercurial.hg, mercurial.commands
-    hg_ui = mercurial.ui.ui()
-    repo = mercurial.hg.repository(hg_ui, repodir)
-    hg_ui.readconfig(os.path.join(repodir, ".hg", "hgrc"))
-
-    # Pull
-    if pullfirst:
-      hg_ui.pushbuffer()
-      mercurial.commands.pull(hg_ui, repo, update=True, check=True)
-      result = hg_ui.popbuffer()
-
-    # Get revisions
-    hg_ui.pushbuffer()
-    try:
-      mercurial.commands.log(hg_ui, repo, rev=[ "%s:%s" % (firstcommit, lastcommit) ], template="{node} ", date="", user=None, follow=None)
-      return hg_ui.popbuffer().split(' ')[:-1]
-    except:
-      # mercurial throws all kinds of fun exceptions for bad input
-      return False
-
-# Gets a list of TinderboxBuild objects for all builds on ftp.m.o within
-# specified date range
-def list_tinderbox_builds(starttime = 0, endtime = int(time.time()), branch = gDefaultBranch):
-  ftp = ftp_open()
-  ftp.voidcmd('CWD /pub/firefox/tinderbox-builds/%s-linux64/' % (branch.split('/')[-1],))
-
-  def get(line):
-    try:
-      x = int(line)
-      if x >= starttime and x <= endtime:
-        get.ret.append(x)
-    except: pass
-  get.ret = []
-  ftp.retrlines('NLST', get)
-
-  get.ret.sort()
-
-  return get.ret
-
-#
-# Build classes
-#
-
-# Abstract base class
 class Build():
-  # Downloads or builds and extracts the build to a temporary directory
-  def prepare(self):
-    raise Exception("Attempt to call method on abstract base class")
-  def cleanup(self):
-    raise Exception("Attempt to call method on abstract base class")
-  def get_revision(self):
-    raise Exception("Attempt to call method on abstract base class")
-  def get_buildtime(self):
-    raise Exception("Attempt to call method on abstract base class")
-  def get_valid(self):
-    raise Exception("Attempt to call method on abstract base class")
-  # Requires prepare()'d
-  def get_binary(self):
-    raise Exception("Attempt to call method on abstract base class")
+  """Abstract base class for builds."""
 
-# Abstract class with shared helpers for TinderboxBuild/NightlyBuild
-class BaseFTPBuild(Build):
   def prepare(self):
+    """Downloads or builds and extracts the build to a temporary directory"""
+    raise NotImplementedError()
+
+  def cleanup(self):
+    raise NotImplementedError()
+
+  def get_revision(self):
+    raise NotImplementedError()
+
+  def get_buildtime(self):
+    raise NotImplementedError()
+
+  def get_valid(self):
+    raise NotImplementedError()
+
+  def get_binary(self):
+    """Requires prepare()'d"""
+    raise NotImplementedError()
+
+
+class DownloadedBuild(Build):
+  """Base class with shared helpers for Tinderbox, Nightly, and Try builds"""
+
+  def __init__(self, scraper_args, directory=None,
+               base_ftp_url=BASE_FTP_URL, base_hg_url=BASE_HG_URL):
+    """
+    Sets up the build for downloading.
+
+    Creates a mozdownloader.scraper instance and then queries the server for
+    more build details such as revision, branch, and timestamp.
+
+    :param scraper_args: Specifies the |mozdownload.scraper| type to use and
+      arguments that should be passed to it. Format:
+      { 'type': <class_type>, 'args': { ... } }
+    """
+
+    self._branch = None
+    self._extracted = directory
+    self._cleanup_dir = False
+    self._prepared = False
+    self._revision = None
+    self._scraper = None
+    self._timestamp = None
+    self._valid = False
+    self._base_ftp_url = base_ftp_url
+    self._base_hg_url = base_hg_url
+
+    if not directory:
+      self._extracted = tempfile.mkdtemp("BuildGetter_firefox")
+      self._cleanup_dir = True
+
+    # FIXME: platform hard coded to linux64
+    default_args = {
+        'version': "",
+        'directory': self._extracted,
+        'platform': 'linux64',
+        'base_url': base_ftp_url,
+    }
+
+    default_args.update(scraper_args['args'])
+
+    try:
+      self._scraper = scraper_args['type'](**default_args)
+    except mozdownload.scraper.NotFoundError:
+      _stat("ERR: Build not found")
+      return
+
+    ret = get_build_info(self._scraper.final_url)
+    if not ret:
+      _stat("ERR: Failed to lookup information about the build")
+      return
+
+    (self._timestamp, self._revision, self._branch) = ret
+
+    ret = pushlog_lookup(self._revision, self._branch, self._base_hg_url)
+    if not ret:
+      _stat("ERR: Failed to lookup the build in the pushlog")
+      return
+
+    (self._revision, self._timestamp) = ret
+    
+    self._valid = True
+
+  @staticmethod
+  def extract_build(src, dstdir):
+    """Extracts the given build to the given directory."""
+
+    # cross-platform FIXME, this is hardcoded to tar at the moment
+    with tarfile.open(src, mode='r:*') as tar:
+      tar.extractall(path=dstdir)
+ 
+  def prepare(self):
+    """
+    Prepares the build for testing.
+
+    Downloads the build and extracts it to a temporary directory.
+    """
+
+    if not self._scraper:
+      raise Exception("Scraper not defined")
+
     if not self._valid:
       raise Exception("Attempted to prepare() invalid build")
-    if not self._revision or not self._timestamp:
-      raise Exception("Valid build lacks revision/timestamp?")
 
-    ftp = ftp_open()
-
-    ftpfile = _ftp_get(ftp, self._filename)
-    if not ftpfile:
-      _stat("Failed to download build from FTP")
-      return False
+    self._scraper.download()
 
     _stat("Extracting build")
-    self._extracted = _extract_build(ftpfile)
-    ftpfile.close()
+    self.extract_build(self._scraper.target, self._extracted)
+
     self._prepared = True
     return True
 
   def cleanup(self):
     if self._prepared:
       self._prepared = False
+
+      # remove the downloaded archive
+      os.remove(self._scraper.target)
+      # remove the extracted archive
+      shutil.rmtree(os.path.join(self._extracted, "firefox"))
+
+    # remove the temp directory that was created
+    if self._cleanup_dir:
       shutil.rmtree(self._extracted)
+
     return True
 
   def get_revision(self):
     return self._revision
+
+  def get_valid(self):
+    return self._valid
 
   def get_binary(self):
     if not self._prepared:
@@ -313,138 +256,72 @@ class BaseFTPBuild(Build):
   def get_buildtime(self):
     return self._timestamp
 
-  def get_valid(self):
-    return self._valid
 
-# A build that needs to be compiled
-# This is currently unsupported, see:
-# https://github.com/mozilla/areweslimyet/issues/47
 class CompileBuild(Build):
+  """
+  A build that needs to be compiled
+
+  This is currently unsupported, see:
+    https://github.com/mozilla/areweslimyet/issues/47
+  """
   pass
 
-# A build that simply points to a FTP directory on ftp.m.o
-# TODO currently we just hard-code 64bit-linux builds...
-class FTPBuild(BaseFTPBuild):
-  def __init__(self, path):
-    self._prepared = False
+
+class FTPBuild(DownloadedBuild):
+  """A build that simply points to a full path on ftp.m.o"""
+
+  def __init__(self, path, *args, **kwargs):
     self._path = path
-    self._valid = False
-    self._timestamp = None
+    scraper_info = {
+      'type': mozdownload.DirectScraper,
+      'args': { 'url': path }
+    }
 
-    if path.startswith("try:"):
-      self._path = ftp_find_try_rev(path[4:])
-      if not self._path:
-        _stat("Failed to find try revision %s" % path[4:])
-        return
+    DownloadedBuild.__init__(self, scraper_info, *args, **kwargs)
 
-    _stat("Checking for linux-64 build at %s" % (self._path,))
 
-    ftp = ftp_open()
-    try:
-      ftp.voidcmd('CWD %s' % self._path)
-    except:
-      _stat("Could not change to directory %s" % self._path)
-      return
+class TryBuild(DownloadedBuild):
+  """A try build from ftp.m.o. Initialized with a 12-digit try changeset."""
 
-    ret = _ftp_check_build_dir(ftp, self._path)
-    if not ret:
-      _stat("No linux64 build found")
-      return
+  def __init__(self, changeset, *args, **kwargs):
+    self._changeset = changeset
+    scraper_info = {
+      'type': mozdownload.scraper.TryScraper,
+      'args': { 'changeset': changeset }
+    }
 
-    (timestamp, self._revision, branch, filename) = ret
-    ret = pushlog_lookup(self._revision, branch)
-    if not ret:
-      _stat("ERR: Pushlog lookup failed for %s on %s" % (self._revision, branch))
-      return
-    (self._revision, self._timestamp) = ret
-    self._filename = "%s/%s" % (self._path, filename)
-    self._valid = True
+    DownloadedBuild.__init__(self, scraper_info, *args, **kwargs)
 
-# a nightly build. Initialized with a date() object or a YYYY-MM-DD string
-class NightlyBuild(BaseFTPBuild):
-  def __init__(self, date):
-    self._prepared = False
-    self._date = date
-    self._timestamp = None
-    self._revision = None
-    self._valid = False
-    month = self._date.month
-    day = self._date.day
-    year = self._date.year
-    _stat("Looking up nightly for %s/%s, %s" % (month, day, year))
 
-    # Connect, CD to this month's dir
-    ftp = ftp_open()
-    nightlydir = 'pub/firefox/nightly/%i/%02i' % (year, month)
-    try:
-      ftp.voidcmd('CWD %s' % nightlydir)
-    except Exception, e:
-      _stat("Failed to enter the directory for this nightly")
-      return;
+class NightlyBuild(DownloadedBuild):
+  """A nightly build. Initialized with a date() object or a YYYY-MM-DD string"""
 
-    # Find the appropriate YYYY-MM-DD-??-mozilla-central directory. There may be
-    # multiple if the builds took over an hour
-    nightlydirs = []
-    def findnightlydir(line):
-      x = line.split('-')
-      if x[-2:] == [ 'mozilla', 'central' ] and int(x[0]) == year and int(x[1]) == month and int(x[2]) == day:
-        nightlydirs.append(line)
+  def __init__(self, date, *args, **kwargs):
+    self._date = date if isinstance(date, datetime.datetime) else datetime.datetime.strptime(date, "%Y-%m-%d")
+    scraper_info = { 
+      'type': mozdownload.scraper.DailyScraper,
+      'args': { 'date': self._date.strftime("%Y-%m-%d") }
+    }
 
-    rawlist = ftp.retrlines('NLST', findnightlydir)
+    DownloadedBuild.__init__(self, scraper_info, *args, **kwargs)
 
-    if not len(nightlydirs):
-      return;
 
-    _stat("Nightly directories are: %s" % ', '.join(nightlydirs))
+class TinderboxBuild(DownloadedBuild):
+  """A tinderbox build from ftp.m.o. Initialized with a timestamp to build"""
 
-    for x in nightlydirs:
-      ret = _ftp_check_build_dir(ftp, x)
-      if ret:
-        (self._timestamp, self._revision, _, filename) = ret
-        self._filename = "%s/%s/%s" % (nightlydir, x, filename)
-        break
+  def __init__(self, timestamp, branch = "mozilla-inbound", *args, **kwargs):
+    self._branch = branch
+    self._tinderbox_timestamp = int(timestamp)
 
-    if not ret:
-      _stat("ERR: Failed to find directory containing this nightly")
-      return
-
-    ret = pushlog_lookup(self._revision)
-    if not ret:
-      _stat("ERR: Failed to lookup this nightly in the pushlog")
-      return
-
-    (self._revision, self._timestamp) = ret
-    self._valid = True
-
-# A tinderbox build from ftp.m.o. Initialized with a timestamp to build
-class TinderboxBuild(BaseFTPBuild):
-  def __init__(self, timestamp, branch = gDefaultBranch):
-    timestamp = int(timestamp)
-    self._tinderbox_timestamp = timestamp
-    self._prepared = False
-    self._revision = None
     # Use this as the timestamp if finding the build fails
     self._timestamp = self._tinderbox_timestamp
-    self._branch = branch
-    self._valid = False
 
-    # FIXME hardcoded linux stuff
-    basedir = "/pub/firefox/tinderbox-builds/%s-linux64" % (branch.split('/')[-1],)
-    ftp = ftp_open()
-    ftp.voidcmd('CWD %s' % (basedir,))
-    ret = _ftp_check_build_dir(ftp, timestamp)
-    if not ret:
-      _stat("WARN: Tinderbox build %s was not found" % (timestamp,))
-      return
-    (timestamp, self._revision, _, filename) = ret
+    scraper_info = { 
+      'type': mozdownload.scraper.TinderboxScraper,
+      'args': { 'branch': branch, 'date': timestamp }
+    }
 
-    self._filename = "%s/%s/%s" % (basedir, self._tinderbox_timestamp, filename)
-    ret = pushlog_lookup(self._revision)
-    if not ret:
-      _stat("Failed to lookup this tinderbox build in the pushlog")
-      return
-    (self._revision, self._timestamp) = ret
-    self._valid = True
+    DownloadedBuild.__init__(self, scraper_info, *args, **kwargs)
 
   def get_tinderbox_timestamp(self):
     return self._tinderbox_timestamp
