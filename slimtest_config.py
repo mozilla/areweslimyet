@@ -13,45 +13,26 @@ AreWeSlimYetTests = {
   ## A very quick test-run, for testing purposes - doesn't give very useful data
   ## "Slimtest-TalosTP5-Quick":
   # {
-  #   'type': "EnduranceTest",
+  #   'type': "MarionetteTest",
   #   'vars':
   #     {
-  #       'test': [ 'mozmill_endurance_test' ],
+  #       'test': [ 'benchtester', 'test_memory_usage.py' ],
   #       'entities': 5,
   #       'iterations': 1,
-  #       'delay': 0,
   #       'perTabPause': 1,
-  #       'settleWaitTime': 3
+  #       'settleWaitTime': 3,
+  #       'maxTabs': 3,
+  #       'debug': True,
+  #       'e10s': True
   #     }
   # },
   ## The current test used for areweslimyet.com. Takes about 90 minutes.
   "Slimtest-TalosTP5-Slow":
   {
-    'type': "EnduranceTest",
+    'type': "MarionetteTest",
     'vars':
       {
-        'test': [ 'mozmill_endurance_test' ],
-        'entities': 100,
-        'iterations': 5,
-        'delay': 0,
-        'perTabPause': 10,
-        'settleWaitTime': 30
+        'test': [ 'benchtester', 'test_memory_usage.py' ],
       }
   },
-  ## We also ran tests without a delay for a while, but they produce fairly
-  ## useless data
-  ##
-  # "Slimtest-TalosTP5":
-  # {
-  #   'type': "EnduranceTest",
-  #   'vars':
-  #     {
-  #       'test': [ 'mozmill_endurance_test' ],
-  #       'entities': 100,
-  #       'iterations': 5,
-  #       'delay': 0,
-  #       'perTabPause': 0,
-  #       'settleWaitTime': 30
-  #     }
-  # },
 };
