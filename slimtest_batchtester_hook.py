@@ -91,10 +91,8 @@ def run_tests(build, args):
 
   if args.get('logdir'):
     logfile = os.path.join(args.get('logdir'), "%s.test.log" % (build.revision,))
-    gecko_logfile = os.path.join(args.get('logdir'), "%s.gecko.log" % (build.revision,))
   else:
     logfile = None
-    gecko_logfile = None
 
   tester.setup({
     'buildname': build.revision,
@@ -102,8 +100,7 @@ def run_tests(build, args):
     'buildtime': build.build.get_buildtime(),
     'sqlitedb': database_for_build(build),
     'logfile': logfile,
-    'gecko_log': gecko_logfile,
-    'marionette_port': 24242 + build.num # Use different marionette ports so as not to collide
+    'jsbridge_port': 24242 + build.num # Use different jsbridge ports so as not to collide
   })
 
   display = ":%u" % (build.num + 9,)
