@@ -200,21 +200,21 @@ class TestMemoryUsage(MarionetteTestCase):
 
         return result is not None
 
-    def do_memory_report(self, checkpoint):
+    def do_memory_report(self, checkpointName):
         """Creates a memory report for all processes and and returns the
         checkpoint.
 
         This will block until all reports are retrieved or a timeout occurs.
         Returns the checkpoint or None on error.
 
-        :param checkpoint: The name of the checkpoint.
+        :param checkpointName: The name of the checkpoint.
         """
-        self.logger.info("starting checkpoint %s..." % checkpoint)
+        self.logger.info("starting checkpoint %s..." % checkpointName)
         js = os.path.abspath(os.path.join(__file__, os.path.pardir, "checkpoint.js"))
         self.marionette.import_script(js)
         checkpoint = None
         try:
-          checkpoint = self.marionette.execute_async_script("createCheckpoint(\"%s\")" % checkpoint, script_timeout=60000)
+          checkpoint = self.marionette.execute_async_script("createCheckpoint(\"%s\")" % checkpointName, script_timeout=60000)
         except JavascriptException, e:
           self.logger.error("Checkpoint JavaScript error: %s" % e)
         except ScriptTimeoutException:
