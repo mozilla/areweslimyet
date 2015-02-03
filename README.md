@@ -12,16 +12,12 @@ Bugzilla instance, blocking [bug 1120576](https://bugzilla.mozilla.org/show_bug.
 
 ### BenchTester
 
-Is a sub-repo because of some theory that it would be useful outside of
-AreWeSlimYet at some point, but could probably just be merged here.
-
 This provides BenchTester.py, a framework for running a bench test module, and
 providing it a add_test_results callback that inserts tests into sqlite
 databases it manages.
 
-The EnduranceTest.py file is such a module, which launches a mozmill endurance
-test, waits for a specific callback, and feeds the data returned by that
-callback into add_test_results.
+The EnduranceTest.py file is such a module, which launches a marionette
+test, waits for the test to finish.
 
 BuildGetter.py is a helper that has functions for scanning ftp.mozilla.org for
 available builds, and fetching them. It also has a deprecated feature to compile
@@ -38,8 +34,7 @@ queue and monitor running tests.
 
 ### The AreWeSlimYet test
 
-The `mozmill_endurance_test` folder has a mozmill test, forked from the mozilla
-endurance tests, that is fairly simple:
+The `benchtester` folder has a marionette test that is fairly simple:
 - Open all 100 pages of TP5, into 30 tabs (re-using tabs round-robin style), on a timer.
 - Close all the tabs.
 - Repeat.
@@ -108,14 +103,15 @@ question marks are defined in this file.
 
  - Obtain the TP5 pageset, or a similar set of pages to use (though you'll need
  TP5 for results comparable to the official areweslimyet.com test)
- - Install mozmill 1.5 from pip (pip install 'mozmill<1.999')
+ - Install marionette-client from pip (pip install 'marionette-client')
+ - Install mercurial from pip (pip install 'mercurial')
  - The test takes almost two hours by default, so lets stuff it in a vnc session
    - `vncserver :9`
  - Start a local webserver for the TP5 pageset, which AWSY expects to be on
    localhost:8001 through localhost:8100
    - `nginx -C my_tp5_thing/nginx.conf`
    - To use a different (more public) pageset, edit
-     `mozmill_endurance_test/test1.js`'s TEST_SITES array to target the desired
+     `benchtester/test_memory_usage.py`'s TEST_SITES array to target the desired
      pages
  - Get a Firefox build to test, let's say it's ./firefox/
  - Pick a database to put this data in, lets say mytests.sqlite (it doesn't have

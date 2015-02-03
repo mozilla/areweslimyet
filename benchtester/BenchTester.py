@@ -54,7 +54,7 @@ gTableSchemas = [
 #
 # - Test and fix if necessary on OS X / Win
 
-# Runs the mozmill memory tests and generates/updates a json data object with
+# Runs the marionette memory tests and generates/updates a json data object with
 # results
 # - Currently used to graph the data on areweslimyet.com. The areweslimyet repo
 #   is a good example of using this, given the lack of docs
@@ -147,7 +147,7 @@ class BenchTester():
     if not self._open_db():
       return self.error("Failed to open sqlite database")
 
-    if not testname or not len(datapoints):
+    if not testname:
       return self.error("Invalid use of addDataPoint()")
 
     timestamp = time.time()
@@ -162,26 +162,28 @@ class BenchTester():
                     "VALUES (?, ?, ?, ?)",
                     (testname, int(timestamp), self.build_id, succeeded))
         cur.execute("SELECT last_insert_rowid()")
-        testid = cur.fetchone()[0]
-        insertbegin = time.time()
-        self.info("Inserting %u datapoints into DB" % len(datapoints))
-        cur.executemany("INSERT OR IGNORE INTO `benchtester_datapoints`(name) "
-                        "VALUES (?)",
-                        ([ datapoint[0] ] for datapoint in datapoints))
-        self.sqlite.commit()
-        self.info("Filled datapoint names in %.02fs" % (time.time() - insertbegin))
-        insertbegin = time.time()
-        # If val is a list, it is interpreted as [ value, meta ]
-        cur.executemany("INSERT INTO `benchtester_data` "
-                        "SELECT ?, p.id, ?, ? FROM `benchtester_datapoints` p "
-                        "WHERE p.name = ?",
-                        ( [ testid,
-                            dp[1],
-                            dp[2] if len(dp) > 2 else None,
-                            dp[0] ]
-                          for dp in datapoints ))
-        self.sqlite.commit()
-        self.info("Filled datapoint values in %.02fs" % (time.time() - insertbegin))
+
+        if datapoints:
+          testid = cur.fetchone()[0]
+          insertbegin = time.time()
+          self.info("Inserting %u datapoints into DB" % len(datapoints))
+          cur.executemany("INSERT OR IGNORE INTO `benchtester_datapoints`(name) "
+                          "VALUES (?)",
+                          ([ datapoint[0] ] for datapoint in datapoints))
+          self.sqlite.commit()
+          self.info("Filled datapoint names in %.02fs" % (time.time() - insertbegin))
+          insertbegin = time.time()
+          # If val is a list, it is interpreted as [ value, meta ]
+          cur.executemany("INSERT INTO `benchtester_data` "
+                          "SELECT ?, p.id, ?, ? FROM `benchtester_datapoints` p "
+                          "WHERE p.name = ?",
+                          ( [ testid,
+                              dp[1],
+                              dp[2] if len(dp) > 2 else None,
+                              dp[0] ]
+                            for dp in datapoints ))
+          self.sqlite.commit()
+          self.info("Filled datapoint values in %.02fs" % (time.time() - insertbegin))
       except Exception, e:
         self.error("Failed to insert data into sqlite, got '%s': %s" % (type(e), e))
         self.sqlite.rollback()
