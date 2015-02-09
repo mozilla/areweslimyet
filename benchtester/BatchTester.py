@@ -103,17 +103,16 @@ class BatchBuild():
   @staticmethod
   def deserialize(buildobj, args):
     if buildobj['type'] == 'compile':
-      if args.get('logdir'):
-        logfile = os.path.join(args.get('logdir'), "%s.build.log" % (buildobj['revision'],))
-      else:
-        logfile = None
-      build = BuildGetter.CompileBuild(args.get('repo'), args.get('mozconfig'), args.get('objdir'), pull=True, commit=buildobj['revision'], log=logfile)
+      # See https://github.com/mozilla/areweslimyet/issues/47
+      raise Exception("Build type 'compile' is not currently supported")
     elif buildobj['type'] == 'tinderbox':
       build = BuildGetter.TinderboxBuild(buildobj['timestamp'], buildobj['branch'])
     elif buildobj['type'] == 'nightly':
       build = BuildGetter.NightlyBuild(parse_nightly_time(buildobj['for']))
     elif buildobj['type'] == 'ftp':
       build = BuildGetter.FTPBuild(buildobj['path'])
+    else buildobj['type'] == 'try':
+      build = BuildGetter.TryBuild(buildobj['changeset'])
     else:
       raise Exception("Unkown build type %s" % buildobj['type'])
 
@@ -142,6 +141,9 @@ class BatchBuild():
 
     if isinstance(self.build, BuildGetter.CompileBuild):
       ret['type'] = 'compile'
+    else isinstance(self.build, BuildGetter.TryBuild):
+      ret['type'] = 'try'
+      ret['changeset'] = self.build._changeset
     elif isinstance(self.build, BuildGetter.FTPBuild):
       ret['type'] = 'ftp'
       ret['path'] = self.build._path
@@ -499,10 +501,6 @@ class BatchTest(object):
     if not batchargs['firstbuild']:
       raise Exception("--firstbuild is required")
 
-    if not globalargs.get('no_pull'):
-      # Do a tip lookup to pull the repo so get_full_revision is up to date
-      BuildGetter.get_hg_range(globalargs.get('repo'), '.', '.', True)
-
     mode = batchargs['mode']
     dorange = 'lastbuild' in batchargs and batchargs['lastbuild']
     builds = []
@@ -526,23 +524,14 @@ class BatchTest(object):
       else:
         builds.append(BuildGetter.TinderboxBuild(startdate))
     elif mode == 'ftp':
-      builds.append(BuildGetter.FTPBuild(batchargs['firstbuild']))
+      path = batchargs['firstbuild']
+      if path.startswith('try:'):
+        builds.append(BuildGetter.TryBuild(path[4:]))
+      else
+        builds.append(BuildGetter.FTPBuild(path))
     elif mode == 'compile':
-      repo = batchargs.get('repo') if batchargs.get('repo') else globalargs.get('repo')
-      objdir = batchargs.get('objdir') if batchargs.get('objdir') else globalargs.get('objdir')
-      mozconfig = batchargs.get('mozconfig') if batchargs.get('mozconfig') else globalargs.get('mozconfig')
-      if not repo or not mozconfig or not objdir:
-        raise Exception("Build mode requires --repo, --mozconfig, and --objdir to be set")
-      if dorange:
-        lastbuild = batchargs['lastbuild']
-      else:
-        lastbuild = batchargs['firstbuild']
-      for commit in BuildGetter.get_hg_range(repo, batchargs['firstbuild'], lastbuild, not globalargs.get("no_pull")):
-        if globalargs.get('logdir'):
-          logfile = os.path.join(globalargs.get('logdir'), "%s.build.log" % (commit,))
-        else:
-          logfile = None
-        builds.append(BuildGetter.CompileBuild(repo, mozconfig, objdir, pull=False, commit=commit, log=logfile))
+      # See https://github.com/mozilla/areweslimyet/issues/47
+      raise Exception("Build type 'compile' is not currently supported")
     else:
       raise Exception("Unknown mode %s" % mode)
 
