@@ -332,6 +332,10 @@ $(function () {
           alert("The try changeset ID should only contain a-f, 0-9");
           return false;
         }
+        if (start.length != 12) {
+          alert("The try changeset ID must be exactly 12 characters");
+          return false;
+        }
         // try is just a ftp build with a path of try:changeset
         start = "try:" + start;
         mode = "ftp";
