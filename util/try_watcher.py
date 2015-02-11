@@ -119,8 +119,8 @@ def queue_try_job(rev, series):
     :param series: Name for the series to graph the try push in.
     """
     params = {
-        'mode': 'ftp',
-        'startbuild': 'try:' + rev[:12],
+        'mode': 'try',
+        'startbuild': rev[:12],
         'series': series,
         'prioritize': True
     }
@@ -138,8 +138,8 @@ def queue_try_job(rev, series):
 def write_try_job(rev, series, batch_dir):
     """Writes the try job to the given directory"""
     params = {
-        'mode': 'ftp',
-        'firstbuild': 'try:' + rev[:12],
+        'mode': 'try',
+        'firstbuild': rev[:12],
         'series': series,
         'prioritize': True
     }
