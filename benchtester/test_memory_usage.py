@@ -150,6 +150,11 @@ class TestMemoryUsage(MarionetteTestCase):
         self._settleWaitTime = self.testvars.get("settleWaitTime", SETTLE_WAIT_TIME)
         self._maxTabs = self.testvars.get("maxTabs", MAX_TABS)
 
+        # workaround for https://bugzilla.mozilla.org/show_bug.cgi?id=1128773
+        js = os.path.abspath(os.path.join(__file__, os.path.pardir, "checkpoint.js"))
+        with open(js) as f:
+          self._checkpoint_script = f.read()
+
         self.reset_state()
 
     def tearDown(self):
@@ -210,11 +215,14 @@ class TestMemoryUsage(MarionetteTestCase):
         :param checkpointName: The name of the checkpoint.
         """
         self.logger.info("starting checkpoint %s..." % checkpointName)
-        js = os.path.abspath(os.path.join(__file__, os.path.pardir, "checkpoint.js"))
-        self.marionette.import_script(js)
+
+        script = self._checkpoint_script + """
+          createCheckpoint("%s");
+          """ % checkpointName
+
         checkpoint = None
         try:
-          checkpoint = self.marionette.execute_async_script("createCheckpoint(\"%s\")" % checkpointName, script_timeout=60000)
+          checkpoint = self.marionette.execute_async_script(script, script_timeout=60000)
         except JavascriptException, e:
           self.logger.error("Checkpoint JavaScript error: %s" % e)
         except ScriptTimeoutException:
