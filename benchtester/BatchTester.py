@@ -525,10 +525,10 @@ class BatchTest(object):
         builds.append(BuildGetter.TinderboxBuild(startdate))
     elif mode == 'ftp':
       path = batchargs['firstbuild']
-      if path.startswith('try:'):
-        builds.append(BuildGetter.TryBuild(path[4:]))
-      else
-        builds.append(BuildGetter.FTPBuild(path))
+      builds.append(BuildGetter.FTPBuild(path))
+    elif mode == 'try':
+      path = batchargs['firstbuild']
+      builds.append(BuildGetter.TryBuild(path))
     elif mode == 'compile':
       # See https://github.com/mozilla/areweslimyet/issues/47
       raise Exception("Build type 'compile' is not currently supported")

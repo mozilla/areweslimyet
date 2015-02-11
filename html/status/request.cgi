@@ -34,17 +34,17 @@ def main():
         or (end and invalidBuild.search(end)):
     error("Invalid input")
 
-  if mode not in [ 'nightly', 'tinderbox', 'compile', 'ftp' ]:
+  if mode not in [ 'nightly', 'tinderbox', 'compile', 'ftp', 'try' ]:
     error("Unknown mode")
 
 
   if series and series.startswith("areweslimyet"):
     error("Series names may not start with areweslimyet")
 
-  if mode == "ftp" and not series:
-    error("FTP builds must use a custom series")
+  if mode in ("ftp", "try") and not series:
+    error("FTP and try builds must use a custom series")
 
-  if mode == "ftp" and not (start.startswith('/pub') or start.startswith('try:')):
+  if mode == "ftp" and not start.startswith('/pub'):
     error("Invalid ftp path");
 
   ret = { "mode": mode, "firstbuild": start }
