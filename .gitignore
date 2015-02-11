@@ -1,0 +1,21 @@
+*.pyc
+
+# local awsy config
+awsy.cfg
+
+# server generated data
+db/
+logs/
+
+# local webserver
+nginx/
+nginx_local/
+
+# virtual envs
+marionette-env/
+mozmill-1.5/
+
+# generated website data
+html/data/
+html/status/status.json
+html/status/batch/
