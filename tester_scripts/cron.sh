@@ -11,7 +11,7 @@ source py2env/bin/activate
 git pull && git submodule update
 
 # Queue any new tinderbox builds
-util/queue_tinderbox_builds.py html/status/batch last_tinderbox.json integration/mozilla-inbound
+util/queue_tinderbox_builds.py html/status/batch last_tinderbox.json mozilla-inbound
 
 # Compress logs from >7days ago
 (
