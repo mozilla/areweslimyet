@@ -111,7 +111,7 @@ class BatchBuild():
       build = BuildGetter.NightlyBuild(parse_nightly_time(buildobj['for']))
     elif buildobj['type'] == 'ftp':
       build = BuildGetter.FTPBuild(buildobj['path'])
-    else buildobj['type'] == 'try':
+    elif buildobj['type'] == 'try':
       build = BuildGetter.TryBuild(buildobj['changeset'])
     else:
       raise Exception("Unkown build type %s" % buildobj['type'])
@@ -141,7 +141,7 @@ class BatchBuild():
 
     if isinstance(self.build, BuildGetter.CompileBuild):
       ret['type'] = 'compile'
-    else isinstance(self.build, BuildGetter.TryBuild):
+    elif isinstance(self.build, BuildGetter.TryBuild):
       ret['type'] = 'try'
       ret['changeset'] = self.build._changeset
     elif isinstance(self.build, BuildGetter.FTPBuild):
@@ -540,6 +540,8 @@ class BatchTest(object):
     force = batchargs.get('force') if batchargs.get('force') else globalargs.get('force')
     for build in builds:
       rev = build.get_revision()
+      #HACKITY HACK HACK HACK
+      build._scraper = None
 
       build = BatchBuild(build, rev)
       build.force = force

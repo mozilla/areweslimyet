@@ -156,6 +156,7 @@ class DownloadedBuild(Build):
     self._prepared = False
     self._revision = None
     self._scraper = None
+    self._scraperTarget = None
     self._timestamp = None
     self._valid = False
     self._base_ftp_url = base_ftp_url
@@ -174,6 +175,10 @@ class DownloadedBuild(Build):
     }
 
     default_args.update(scraper_args['args'])
+
+    # cache scraper details to support serialization
+    self._scraper_type = scraper_args['type']
+    self._scraper_args = default_args
 
     try:
       self._scraper = scraper_args['type'](**default_args)
@@ -213,17 +218,20 @@ class DownloadedBuild(Build):
     """
 
     if not self._scraper:
-      raise Exception("Scraper not defined")
+      # recreate it
+      self._scraper = self._scraper_type(**self._scraper_args)
 
     if not self._valid:
       raise Exception("Attempted to prepare() invalid build")
 
     self._scraper.download()
+    self._scraperTarget = self._scraper.target
 
     _stat("Extracting build")
     self.extract_build(self._scraper.target, self._extracted)
 
     self._prepared = True
+    self._scraper = None
     return True
 
   def cleanup(self):
@@ -231,7 +239,8 @@ class DownloadedBuild(Build):
       self._prepared = False
 
       # remove the downloaded archive
-      os.remove(self._scraper.target)
+      os.remove(self._scraperTarget)
+
       # remove the extracted archive
       shutil.rmtree(os.path.join(self._extracted, "firefox"))
 
@@ -318,7 +327,7 @@ class TinderboxBuild(DownloadedBuild):
 
     scraper_info = { 
       'type': mozdownload.scraper.TinderboxScraper,
-      'args': { 'branch': branch, 'date': timestamp }
+      'args': { 'branch': branch, 'date': str(self._tinderbox_timestamp) }
     }
 
     DownloadedBuild.__init__(self, scraper_info, *args, **kwargs)
