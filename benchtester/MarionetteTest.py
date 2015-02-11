@@ -67,6 +67,9 @@ class MarionetteTest(BenchTester.BenchTest):
 
       # Specify a communications port
       "marionette.defaultPrefs.port": self.port,
+
+      # override image expiration in hopes of getting less volatile numbers
+      "image.mem.surfacecache.min_expiration_ms": 10000
     }
 
     # Setup a test runner with our prefs and a default logger.
