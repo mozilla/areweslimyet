@@ -383,7 +383,11 @@ var gAnnotations = (function() {
     {
       'date': 1421897779,
       'msg': annoFormat('Workaround for bug 1084136 landed on central', 1084136)
-    }
+    },
+    {
+      'date': 'Wed Feb 11 22:09:25 2015 GMT',
+      'msg': 'Switching AWSY to marionette reenabled bfcache, this caused memory usage to go up.'
+    } 
     // The 'date' timestamps in the list above can be obtained from the page at
     // http://hg.mozilla.org/integration/mozilla-inbound/json-pushes?changeset=<cset>
     // where <cset> is the appropriate inbound change.
