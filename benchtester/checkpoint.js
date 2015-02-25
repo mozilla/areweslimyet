@@ -26,40 +26,18 @@ function createCheckpoint(aLabel) {
       aProcess = "Main"
     }
 
-    var unitname;
-    switch (aUnits) {
-      // Old builds had no units field and assumed bytes
-      case undefined:
-      case Ci.nsIMemoryReporter.UNITS_BYTES:
-        break;
-      case Ci.nsIMemoryReporter.UNITS_COUNT:
-        unitname = "cnt";
-        break;
-      case Ci.nsIMemoryReporter.UNITS_PERCENTAGE:
-        unitname = "pct";
-        break;
-      default:
-        // Unhandled
-        return;
-    }
-
-    // For types with non-bytes units the value is
-    //   { 'unit': 'percent', 'val': 1234 }
-    // For bytes it is just a number, so as not to bloat output (we end up
-    // exporting 11k+ reporters on newer builds)
     if (!result['memory'][aProcess]) {
       result['memory'][aProcess] = {}
     }
 
     if (result['memory'][aProcess][aPath]) {
-      if (unitname)
-        result['memory'][aProcess][aPath]['val'] += aAmount;
-      else
-        result['memory'][aProcess][aPath] += aAmount;
-    } else if (unitname) {
-      result['memory'][aProcess][aPath] = { 'unit': unitname, 'val': aAmount };
+      result['memory'][aProcess][aPath]['val'] += aAmount;
     } else {
-      result['memory'][aProcess][aPath] = aAmount;
+      result['memory'][aProcess][aPath] = {
+        'unit': aUnits,
+        'val': aAmount,
+        'kind': aKind
+      };
     }
 
     if (aKind !== undefined && aKind == Ci.nsIMemoryReporter.KIND_HEAP
