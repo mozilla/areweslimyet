@@ -7,12 +7,13 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
-import sys
-import os
 import argparse
+import mercurial, mercurial.ui, mercurial.hg, mercurial.commands
+import os
+import re
 import sqlite3
 import subprocess
-import mercurial, mercurial.ui, mercurial.hg, mercurial.commands
+import sys
 import time
 
 # Database version, bump this when incompatible DB changes are made
@@ -160,6 +161,69 @@ class BenchTester():
 
     return True
 
+  def insert_results(self, test_id, results):
+    # - results is an array of iterations
+    # - iterations is an array of checkpoints
+    # - checkpoint is a dict with: label, memory
+    # - memory is a dict of processes
+    cur = self.sqlite.cursor()
+
+    for x, iteration in enumerate(results):
+      iternum = x + 1
+      for checkpoint in iteration:
+        label = checkpoint['label']
+
+        # insert checkpoint name, get checkpoint_id
+        cur.execute("SELECT id FROM benchtester_checkpoints WHERE name = ?", (label, ))
+        row = cur.fetchone()
+        checkpoint_id = row[0] if row else None
+        if checkpoint_id is None:
+          cur.execute("INSERT INTO benchtester_checkpoints(name) VALUES (?)", (label, ))
+          checkpoint_id = cur.lastrowid
+
+        for process_name, memory in checkpoint['memory'].iteritems():
+          # memory is a dictionary of datapoint_name: { val, unit, kind }
+
+          # Strip pid portion of process name
+          process_re = r'(.*)\s+\(.*\)'
+          m = re.match(process_re, process_name)
+          if m:
+            process_name = m.group(1)
+
+          # insert process name, get process_id
+          cur.execute("SELECT id FROM benchtester_procs WHERE name = ?", (process_name, ))
+          row = cur.fetchone()
+          process_id = row[0] if row else None
+          if process_id is None:
+            cur.execute("INSERT INTO benchtester_procs(name) VALUES (?)", (process_name, ))
+            process_id = cur.lastrowid
+
+          # insert datapoint names
+          insertbegin = time.time()
+          self.info("Inserting %u datapoints into DB" % len(memory))
+          cur.executemany("INSERT OR IGNORE INTO `benchtester_datapoints`(name) "
+                          "VALUES (?)",
+                          ( [ k ] for k in memory.iterkeys() ))
+          self.sqlite.commit()
+          self.info("Filled datapoint names in %.02fs" % (time.time() - insertbegin))
+
+          # insert datapoint values
+          insertbegin = time.time()
+          cur.executemany("INSERT INTO `benchtester_data` "
+                          "SELECT ?, p.id, ?, ?, ?, ?, ?, ? FROM `benchtester_datapoints` p "
+                          "WHERE p.name = ?",
+                          ( [ test_id,
+                              checkpoint_id,
+                              process_id,
+                              iternum,
+                              dp['val'],
+                              dp['unit'],
+                              dp['kind'],
+                              name ]
+                            for name, dp in memory.iteritems() if dp ))
+          self.sqlite.commit()
+          self.info("Filled datapoint values in %.02fs" % (time.time() - insertbegin))
+
   # datapoints a list of the format [ [ "key", value, "meta"], ... ].
   # Duplicate keys are allowed. Value is numeric and required, meta is an
   # optional string (see db format)
@@ -186,27 +250,11 @@ class BenchTester():
 
         if datapoints:
           testid = cur.fetchone()[0]
-          insertbegin = time.time()
-          self.info("Inserting %u datapoints into DB" % len(datapoints))
-          cur.executemany("INSERT OR IGNORE INTO `benchtester_datapoints`(name) "
-                          "VALUES (?)",
-                          ([ datapoint[0] ] for datapoint in datapoints))
-          self.sqlite.commit()
-          self.info("Filled datapoint names in %.02fs" % (time.time() - insertbegin))
-          insertbegin = time.time()
-          # If val is a list, it is interpreted as [ value, meta ]
-          cur.executemany("INSERT INTO `benchtester_data` "
-                          "SELECT ?, p.id, ?, ? FROM `benchtester_datapoints` p "
-                          "WHERE p.name = ?",
-                          ( [ testid,
-                              dp[1],
-                              dp[2] if len(dp) > 2 else None,
-                              dp[0] ]
-                            for dp in datapoints ))
-          self.sqlite.commit()
-          self.info("Filled datapoint values in %.02fs" % (time.time() - insertbegin))
+          self.insert_results(testid, datapoints)
       except Exception, e:
         self.error("Failed to insert data into sqlite, got '%s': %s" % (type(e), e))
+        import traceback
+        traceback.print_exc()
         self.sqlite.rollback()
         return False
     return True
