@@ -86,6 +86,14 @@ gTests = {
   }
 }
 
+# Mapping of unit values to names
+unit_map = {
+    0: 'bytes',
+    1: 'cnt',
+    #2 => UNITS_COUNT_CUMULATIVE, currently this isn't handled
+    3: 'pct'
+}
+
 # Reuse default tests for android, but s/Iteration 5/Iteration 1/
 for k, v in gTests['Slimtest-TalosTP5-Slow']['series'].iteritems():
   if type(v['datapoint']) is list:
@@ -269,30 +277,38 @@ for build in builds:
         nodeize = False
 
       # Pull all data for latest run of this test on this build
-      allrows = cur.execute('''SELECT p.name AS datapoint, d.value, d.meta
-                               FROM benchtester_data d, benchtester_datapoints p
-                               WHERE test_id = ? AND p.id = d.datapoint_id
+      allrows = cur.execute('''SELECT dp.name AS datapoint,
+                                      c.name AS checkpoint,
+                                      p.name AS process,
+                                      d.iteration, d.value, d.units, d.kind
+                               FROM benchtester_data d,
+                                    benchtester_datapoints dp,
+                                    benchtester_procs p,
+                                    benchtester_checkpoints c
+                               WHERE test_id = ? AND dp.id = d.datapoint_id
+                                                 AND c.id = d.checkpoint_id
+                                                 AND p.id = d.proc_id
                             ''', [testdata[testname]['id']])
+
+      # NB: For now kind is ignored, anything but the Main process is ignored
 
       # Sort data, splitting it up into nodes if requested. Calculate the value
       # of each node - either a sum of its childnodes, or its explicit value if
       # given. The idea is to reduce the amount of data juggling the frontend
       # needs to do.
       for row in allrows:
-        # If the datapoint begins with "AAA:..." then the datapoint has
-        # non-bytes units, and we include _units and strip the prefix
-        datapoint = row['datapoint']
-        units = datapoint.find(':', 0, 4)
-        if units != -1:
-          (units, datapoint) = datapoint.split(':', 1)
-        else:
-          units = 'bytes'
+        if row['process'] != 'Main':
+          continue
 
-        # The 'meta' field in the db holds "CheckpointName:Iteration". Prefix
-        # these on to the reporter name, e.g. "Iteration 1/MaxMem/<reporter>" so
-        # they fit nicely into a tree.
-        meta = row['meta'].split(':')
-        datapoint = "Iteration %u/%s/%s" % (int(meta[1]), meta[0], datapoint)
+        datapoint = row['datapoint']
+        units = unit_map.get(row['units'])
+        if not units:
+          print("skipping unhandled unit %s for %s" % (row['units'], datapoint))
+          continue
+
+        # Prefix the reporter name, e.g. "Iteration 1/MaxMem/<reporter>" so
+        # that it fits nicely into a tree.
+        datapoint = "Iteration %u/%s/%s" % (row['iteration'], row['checkpoint'], datapoint)
 
         if nodeize:
           # Note that we perserve null values as 'none', to differentiate missing data from values of 0
