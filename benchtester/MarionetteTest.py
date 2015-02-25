@@ -123,23 +123,7 @@ class MarionetteTest(BenchTester.BenchTest):
 
     self.endurance_results = runner.testvars.get("results", [])
 
-    results = list()
-    for x in range(len(self.endurance_results)):
-      iteration = self.endurance_results[x]
-      for checkpoint in iteration:
-        iternum = x + 1
-        label = checkpoint['label']
-        # TODO(ER): Handle all process entries
-        for memtype,memval in checkpoint['memory']['Main'].items():
-          if type(memval) is dict:
-            prefix = memval['unit'] + ":"
-            memval = memval['val']
-          else:
-            prefix = ""
-          datapoint = [ "%s%s" % (prefix, memtype), memval, "%s:%u" % (label, iternum) ]
-          results.append(datapoint)
-
-    if not self.tester.add_test_results(testname, results, not failures):
+    if not self.tester.add_test_results(testname, self.endurance_results, not failures):
       return self.error("Failed to save test results")
     if failures:
       return self.error("%u failures occured during test run" % failures)
