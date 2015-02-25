@@ -15,7 +15,14 @@ import subprocess
 import mercurial, mercurial.ui, mercurial.hg, mercurial.commands
 import time
 
+# Database version, bump this when incompatible DB changes are made
+gVersion = 1
+
 gTableSchemas = [
+  # benchtester_version - the database version, can be used for upgrade scripts
+  '''CREATE TABLE IF NOT EXISTS
+      "benchtester_version" ("version" INTEGER NOT NULL UNIQUE)''',
+
   # Builds - info on builds we have tests for
   '''CREATE TABLE IF NOT EXISTS
       "benchtester_builds" ("id" INTEGER PRIMARY KEY NOT NULL,
@@ -35,12 +42,26 @@ gTableSchemas = [
       "benchtester_datapoints" ("id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
                                 "name" VARCHAR NOT NULL UNIQUE)''',
 
+  # Procs - names of processes
+  '''CREATE TABLE IF NOT EXISTS
+      "benchtester_procs" ("id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                           "name" VARCHAR NOT NULL UNIQUE)''',
+
+  # Checkpoints - names of checkpoints
+  '''CREATE TABLE IF NOT EXISTS
+      "benchtester_checkpoints" ("id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                                 "name" VARCHAR NOT NULL UNIQUE)''',
+
   # Data - datapoints from tests
   '''CREATE TABLE IF NOT EXISTS
       "benchtester_data" ("test_id" INTEGER NOT NULL,
                           "datapoint_id" INTEGER NOT NULL,
+                          "checkpoint_id" INTEGER NOT NULL,
+                          "proc_id" INTEGER NOT NULL,
+                          "iteration" INTEGER NOT NULL,
                           "value" INTEGER NOT NULL,
-                          "meta" VARCHAR)''',
+                          "units" INTEGER NOT NULL,
+                          "kind" INTEGER NOT NULL)''',
 
   # Some default indexes
   '''CREATE INDEX IF NOT EXISTS test_lookup ON benchtester_tests ( name, build_id DESC )''',
@@ -264,11 +285,28 @@ class BenchTester():
       self.sqlitedb = self.args['sqlitedb'] = None
       return False
     try:
+      db_exists = os.path.exists(self.args['sqlitedb'])
+
       sql_path = os.path.abspath(self.args['sqlitedb'])
       self.sqlite = sqlite3.connect(sql_path, timeout=900)
       cur = self.sqlite.cursor()
+
+      if db_exists:
+        # make sure the version matches
+        cur.execute("SELECT `version` FROM `benchtester_version` WHERE `version` = ?", [ gVersion ])
+        row = cur.fetchone()
+        version = row[0] if row else None
+        if version != gVersion:
+          self.error("Incompatible versions: %s is version %s, current version is %s" % (self.args['sqlitedb'], version, gVersion))
+          self.sqlitedb = self.args['sqlitedb'] = None
+          return False
+
       for schema in gTableSchemas:
         cur.execute(schema)
+
+      if not db_exists:
+        cur.execute("INSERT INTO `benchtester_version` (`version`) VALUES (?)", [ gVersion ])
+
       # Create/update build ID
       cur.execute("SELECT `time`, `id` FROM `benchtester_builds` WHERE `name` = ?", [ self.buildname ])
       buildrow = cur.fetchone()
