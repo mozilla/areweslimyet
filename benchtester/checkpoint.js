@@ -13,7 +13,7 @@ function createCheckpoint(aLabel) {
   var result = {
     label: aLabel,
     timestamp: new Date(),
-    memory: {},
+    reports: {},
   };
 
   var knownHeap = {};
@@ -26,14 +26,14 @@ function createCheckpoint(aLabel) {
       aProcess = "Main"
     }
 
-    if (!result['memory'][aProcess]) {
-      result['memory'][aProcess] = {}
+    if (!result['reports'][aProcess]) {
+      result['reports'][aProcess] = {}
     }
 
-    if (result['memory'][aProcess][aPath]) {
-      result['memory'][aProcess][aPath]['val'] += aAmount;
+    if (result['reports'][aProcess][aPath]) {
+      result['reports'][aProcess][aPath]['val'] += aAmount;
     } else {
-      result['memory'][aProcess][aPath] = {
+      result['reports'][aProcess][aPath] = {
         'unit': aUnits,
         'val': aAmount,
         'kind': aKind
@@ -56,11 +56,11 @@ function createCheckpoint(aLabel) {
    */
   function onFinish(aClosure) {
     // Calculate heap-unclassified for each process
-    var keys = Object.keys(result['memory']);
+    var keys = Object.keys(result['reports']);
     for (var idx = 0; idx < keys.length; idx++) {
       let proc = keys[idx];
-      result['memory'][proc]['explicit/heap-unclassified'] = 
-          result['memory'][proc]['heap-allocated'] - knownHeap[proc];
+      result['reports'][proc]['explicit/heap-unclassified'] =
+          result['reports'][proc]['heap-allocated'] - knownHeap[proc];
     }
 
     marionetteScriptFinished(result);

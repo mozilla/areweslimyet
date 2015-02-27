@@ -164,8 +164,8 @@ class BenchTester():
   def insert_results(self, test_id, results):
     # - results is an array of iterations
     # - iterations is an array of checkpoints
-    # - checkpoint is a dict with: label, memory
-    # - memory is a dict of processes
+    # - checkpoint is a dict with: label, reports
+    # - reports is a dict of processes
     cur = self.sqlite.cursor()
 
     for x, iteration in enumerate(results):
@@ -181,8 +181,8 @@ class BenchTester():
           cur.execute("INSERT INTO benchtester_checkpoints(name) VALUES (?)", (label, ))
           checkpoint_id = cur.lastrowid
 
-        for process_name, memory in checkpoint['memory'].iteritems():
-          # memory is a dictionary of datapoint_name: { val, unit, kind }
+        for process_name, reports in checkpoint['reports'].iteritems():
+          # reports is a dictionary of datapoint_name: { val, unit, kind }
 
           # Strip pid portion of process name
           process_re = r'(.*)\s+\(.*\)'
@@ -200,10 +200,10 @@ class BenchTester():
 
           # insert datapoint names
           insertbegin = time.time()
-          self.info("Inserting %u datapoints into DB" % len(memory))
+          self.info("Inserting %u datapoints into DB" % len(reports))
           cur.executemany("INSERT OR IGNORE INTO `benchtester_datapoints`(name) "
                           "VALUES (?)",
-                          ( [ k ] for k in memory.iterkeys() ))
+                          ( [ k ] for k in reports.iterkeys() ))
           self.sqlite.commit()
           self.info("Filled datapoint names in %.02fs" % (time.time() - insertbegin))
 
@@ -220,7 +220,7 @@ class BenchTester():
                               dp['unit'],
                               dp['kind'],
                               name ]
-                            for name, dp in memory.iteritems() if dp ))
+                            for name, dp in reports.iteritems() if dp ))
           self.sqlite.commit()
           self.info("Filled datapoint values in %.02fs" % (time.time() - insertbegin))
 
