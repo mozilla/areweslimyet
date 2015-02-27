@@ -70,6 +70,8 @@ function createCheckpoint(aLabel) {
   var memMgr = Cc["@mozilla.org/memory-reporter-manager;1"].
       getService(Ci.nsIMemoryReporterManager);
 
+  // NB: |memMgr.getReports| was added in Fx28, we do not support releases
+  //     prior to that.
   memMgr.getReports(addReport, null, onFinish, null, /* anonymize */ false);
 }
 
