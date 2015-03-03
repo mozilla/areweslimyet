@@ -1,0 +1,6 @@
+boto
+marionette-client
+mercurial
+mozdownload
+MozillaPulse
+treeherder-client
