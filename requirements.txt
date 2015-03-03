@@ -1,0 +1,3 @@
+marionette-client<0.9
+mozdownload
+mercurial
