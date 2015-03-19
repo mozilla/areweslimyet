@@ -89,6 +89,9 @@ if has_datapoints and has_meta:
   print("Database is already the newest format!")
   sys.exit(1)
 
+# Explicitly set the new version to 0.
+cur.execute("INSERT INTO `benchtester_version` (`version`) VALUES (?)", [ 0 ])
+
 # Copy all non-excluded tests
 # (this was added so I could drop the obsolete Slimtest-TalosTP5 test from old DBs)
 
