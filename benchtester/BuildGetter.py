@@ -169,7 +169,7 @@ class DownloadedBuild(Build):
     # FIXME: platform hard coded to linux64
     default_args = {
         'version': "",
-        'directory': self._extracted,
+        'destination': self._extracted,
         'platform': 'linux64',
         'base_url': base_ftp_url,
     }
