@@ -7,7 +7,7 @@ import os
 import sys
 
 from marionette import MarionetteTestCase
-from marionette.errors import JavascriptException, ScriptTimeoutException
+from marionette_driver.errors import JavascriptException, ScriptTimeoutException
 import mozlog.structured
 
 # Talos TP5
