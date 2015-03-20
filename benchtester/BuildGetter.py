@@ -182,11 +182,12 @@ class DownloadedBuild(Build):
 
     try:
       self._scraper = scraper_args['type'](**default_args)
+      url = self._scraper.final_url
     except mozdownload.scraper.NotFoundError:
       _stat("ERR: Build not found")
       return
 
-    ret = get_build_info(self._scraper.final_url)
+    ret = get_build_info(url)
     if not ret:
       _stat("ERR: Failed to lookup information about the build")
       return
