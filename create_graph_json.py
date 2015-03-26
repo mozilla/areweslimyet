@@ -93,7 +93,7 @@ gTests = {
 unit_map = {
     0: 'bytes',
     1: 'cnt',
-    #2 => UNITS_COUNT_CUMULATIVE, currently this isn't handled
+    # 2 => UNITS_COUNT_CUMULATIVE, currently this isn't handled
     3: 'pct'
 }
 
@@ -290,7 +290,7 @@ for build in builds:
                 nodeize = False
 
             # Pull all data for latest run of this test on this build
-        allrows = cur.execute('''SELECT dp.name AS datapoint,
+            allrows = cur.execute('''SELECT dp.name AS datapoint,
                                       c.name AS checkpoint,
                                       p.name AS process,
                                       d.iteration, d.value, d.units, d.kind
@@ -303,7 +303,7 @@ for build in builds:
                                                  AND p.id = d.proc_id
                             ''', [testdata[testname]['id']])
 
-      # NB: For now kind is ignored, anything but the Main process is ignored
+            # NB: For now kind is ignored, anything but the Main process is ignored
 
             # Sort data, splitting it up into nodes if requested. Calculate the value
             # of each node - either a sum of its childnodes, or its explicit value if
