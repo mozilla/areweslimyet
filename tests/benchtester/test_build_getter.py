@@ -24,7 +24,7 @@ class BuildGetterTest(mhttpd.MozHttpdBaseTest):
   def test_list_tinderbox_builds(self):
     # expected: all builds
     builds = list_tinderbox_builds(base_url=self.wdir)
-    self.assertEqual(builds, [1422727955, 1422730895, 1422731915])
+    self.assertEqual(builds, [1422727955, 1422727956, 1422730895, 1422731915])
 
     # expected: some builds
     builds = list_tinderbox_builds(starttime=1422730894, endtime=1422731915, base_url=self.wdir)
@@ -55,6 +55,24 @@ class BuildGetterTest(mhttpd.MozHttpdBaseTest):
     tinderbox_build.cleanup()
 
     self.assertFalse(os.path.exists(binary))
+
+    # Test a build that does not exist
+    missing_build_dir = \
+      TinderboxBuild(directory=self.temp_dir,
+                     base_ftp_url=self.wdir,
+                     base_hg_url=self.hgdir,
+                     timestamp="1422727957")
+
+    self.assertFalse(missing_build_dir.get_valid())
+
+    # Test a build that started but does not have an archive
+    missing_build_archive = \
+      TinderboxBuild(directory=self.temp_dir,
+                     base_ftp_url=self.wdir,
+                     base_hg_url=self.hgdir,
+                     timestamp="1422727956")
+
+    self.assertFalse(missing_build_archive.get_valid())
 
   def test_nightly(self):
     nightly_build = \

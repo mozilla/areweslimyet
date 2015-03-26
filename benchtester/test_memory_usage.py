@@ -7,7 +7,7 @@ import os
 import sys
 
 from marionette import MarionetteTestCase
-from marionette.errors import JavascriptException, ScriptTimeoutException
+from marionette_driver.errors import JavascriptException, ScriptTimeoutException
 import mozlog.structured
 
 # Talos TP5
@@ -168,10 +168,11 @@ class TestMemoryUsage(MarionetteTestCase):
         # Close all tabs except one
         for x in range(len(self.marionette.window_handles) - 1):
             self.logger.debug("closing window")
-            self.marionette.close()
+            self.marionette.execute_script("gBrowser.removeCurrentTab();")
             time.sleep(0.25)
 
         self._tabs = self.marionette.window_handles
+        self.marionette.switch_to_window(self._tabs[0])
 
     def do_full_gc(self):
         """Performs a full garbage collection cycle and returns when it is finished.
