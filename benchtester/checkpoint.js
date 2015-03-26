@@ -13,7 +13,7 @@ function createCheckpoint(aLabel) {
   var result = {
     label: aLabel,
     timestamp: new Date(),
-    memory: {},
+    reports: {},
   };
 
   var knownHeap = {};
@@ -26,40 +26,18 @@ function createCheckpoint(aLabel) {
       aProcess = "Main"
     }
 
-    var unitname;
-    switch (aUnits) {
-      // Old builds had no units field and assumed bytes
-      case undefined:
-      case Ci.nsIMemoryReporter.UNITS_BYTES:
-        break;
-      case Ci.nsIMemoryReporter.UNITS_COUNT:
-        unitname = "cnt";
-        break;
-      case Ci.nsIMemoryReporter.UNITS_PERCENTAGE:
-        unitname = "pct";
-        break;
-      default:
-        // Unhandled
-        return;
+    if (!result['reports'][aProcess]) {
+      result['reports'][aProcess] = {}
     }
 
-    // For types with non-bytes units the value is
-    //   { 'unit': 'percent', 'val': 1234 }
-    // For bytes it is just a number, so as not to bloat output (we end up
-    // exporting 11k+ reporters on newer builds)
-    if (!result['memory'][aProcess]) {
-      result['memory'][aProcess] = {}
-    }
-
-    if (result['memory'][aProcess][aPath]) {
-      if (unitname)
-        result['memory'][aProcess][aPath]['val'] += aAmount;
-      else
-        result['memory'][aProcess][aPath] += aAmount;
-    } else if (unitname) {
-      result['memory'][aProcess][aPath] = { 'unit': unitname, 'val': aAmount };
+    if (result['reports'][aProcess][aPath]) {
+      result['reports'][aProcess][aPath]['val'] += aAmount;
     } else {
-      result['memory'][aProcess][aPath] = aAmount;
+      result['reports'][aProcess][aPath] = {
+        'unit': aUnits,
+        'val': aAmount,
+        'kind': aKind
+      };
     }
 
     if (aKind !== undefined && aKind == Ci.nsIMemoryReporter.KIND_HEAP
@@ -78,11 +56,11 @@ function createCheckpoint(aLabel) {
    */
   function onFinish(aClosure) {
     // Calculate heap-unclassified for each process
-    var keys = Object.keys(result['memory']);
+    var keys = Object.keys(result['reports']);
     for (var idx = 0; idx < keys.length; idx++) {
       let proc = keys[idx];
-      result['memory'][proc]['explicit/heap-unclassified'] = 
-          result['memory'][proc]['heap-allocated'] - knownHeap[proc];
+      result['reports'][proc]['explicit/heap-unclassified'] =
+          result['reports'][proc]['heap-allocated'] - knownHeap[proc];
     }
 
     marionetteScriptFinished(result);
@@ -92,6 +70,8 @@ function createCheckpoint(aLabel) {
   var memMgr = Cc["@mozilla.org/memory-reporter-manager;1"].
       getService(Ci.nsIMemoryReporterManager);
 
+  // NB: |memMgr.getReports| was added in Fx28, we do not support releases
+  //     prior to that.
   memMgr.getReports(addReport, null, onFinish, null, /* anonymize */ false);
 }
 
