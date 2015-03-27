@@ -59,8 +59,11 @@ function createCheckpoint(aLabel) {
     var keys = Object.keys(result['reports']);
     for (var idx = 0; idx < keys.length; idx++) {
       let proc = keys[idx];
-      result['reports'][proc]['explicit/heap-unclassified'] =
-          result['reports'][proc]['heap-allocated'] - knownHeap[proc];
+      result['reports'][proc]['explicit/heap-unclassified'] = {
+        'unit': Ci.nsIMemoryReporter.UNITS_BYTES,
+        'val': result['reports'][proc]['heap-allocated']['val'] - knownHeap[proc],
+        'kind': Ci.nsIMemoryReporter.KIND_HEAP
+      };
     }
 
     marionetteScriptFinished(result);
