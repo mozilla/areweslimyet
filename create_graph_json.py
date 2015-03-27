@@ -303,28 +303,25 @@ for build in builds:
                                                  AND p.id = d.proc_id
                             ''', [testdata[testname]['id']])
 
-            # NB: For now kind is ignored, anything but the Main process is ignored
+            # NB: For now kind is ignored
 
             # Sort data, splitting it up into nodes if requested. Calculate the value
             # of each node - either a sum of its childnodes, or its explicit value if
             # given. The idea is to reduce the amount of data juggling the frontend
             # needs to do.
             for row in allrows:
-                if row['process'] != 'Main':
-                    continue
-
                 datapoint = row['datapoint']
                 units = unit_map.get(row['units'])
                 if not units:
                     print("skipping unhandled unit %s for %s" % (row['units'], datapoint))
                     continue
 
-                # Prefix the reporter name, e.g. "Iteration 1/MaxMem/<reporter>" so
+                # Prefix the reporter name, e.g. "Iteration 1/StartSettled/Main/<reporter>" so
                 # that it fits nicely into a tree.
-                datapoint = "Iteration %u/%s/%s" % (row['iteration'], row['checkpoint'], datapoint)
+                datapoint = "Iteration %u/%s/%s/%s" % (row['iteration'], row['checkpoint'], row['process'], datapoint)
 
                 if nodeize:
-                    # Note that we perserve null values as 'none', to differentiate missing
+                    # Note that we preserve null values as 'none', to differentiate missing
                     # data from values of 0
                     cursor = testdata[testname]['nodes']
                     thisnode = datapoint.split(nodeize)
