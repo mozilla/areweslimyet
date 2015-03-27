@@ -523,7 +523,7 @@ var gReleaseLookup = function() {
 // /data/areweslimyet.json and comments below. These are exported from the full
 // test database by create_graph_json.py
 var gSeries = {
-  "Resident Memory" : {
+  "Main Resident Memory" : {
     'StartMemoryResidentV2':         "RSS: Fresh start",
     'StartMemoryResidentSettledV2':  "RSS: Fresh start [+30s]",
     'MaxMemoryResidentV2':           "RSS: After TP5",
@@ -533,7 +533,7 @@ var gSeries = {
     'EndMemoryResidentSettledV2':    "RSS: After TP5, tabs closed [+30s]",
     'EndMemoryResidentForceGCV2':    "RSS: After TP5, tabs closed [+30s, forced GC]"
   },
-  "Explicit Memory" : {
+  "Main Explicit Memory" : {
     'StartMemoryV2':         "Explicit: Fresh start",
     'StartMemorySettledV2':  "Explicit: Fresh start [+30s]",
     'MaxMemoryV2':           "Explicit: After TP5",
@@ -543,10 +543,35 @@ var gSeries = {
     'EndMemorySettledV2':    "Explicit: After TP5, tabs closed [+30s]",
     'EndMemoryForceGCV2':    "Explicit: After TP5, tabs closed [+30s, forced GC]"
   },
-  "Miscellaneous Measurements" : {
+  "Main Miscellaneous Measurements" : {
     'MaxHeapUnclassifiedV2':  "Heap Unclassified: After TP5 [+30s]",
     'MaxJSV2':                "JS: After TP5 [+30s]",
     'MaxImagesV2':            "Images: After TP5 [+30s]"
+  },
+  "Web Content Resident Memory" : {
+    'Web Content StartMemoryResidentV2':         "RSS: Fresh start",
+    'Web Content StartMemoryResidentSettledV2':  "RSS: Fresh start [+30s]",
+    'Web Content MaxMemoryResidentV2':           "RSS: After TP5",
+    'Web Content MaxMemoryResidentSettledV2':    "RSS: After TP5 [+30s]",
+    'Web Content MaxMemoryResidentForceGCV2':    "RSS: After TP5 [+30s, forced GC]",
+    'Web Content EndMemoryResidentV2':           "RSS: After TP5, tabs closed",
+    'Web Content EndMemoryResidentSettledV2':    "RSS: After TP5, tabs closed [+30s]",
+    'Web Content EndMemoryResidentForceGCV2':    "RSS: After TP5, tabs closed [+30s, forced GC]"
+  },
+  "Web Content Explicit Memory" : {
+    'Web Content StartMemoryV2':         "Explicit: Fresh start",
+    'Web Content StartMemorySettledV2':  "Explicit: Fresh start [+30s]",
+    'Web Content MaxMemoryV2':           "Explicit: After TP5",
+    'Web Content MaxMemorySettledV2':    "Explicit: After TP5 [+30s]",
+    'Web Content MaxMemoryForceGCV2':    "Explicit: After TP5 [+30s, forced GC]",
+    'Web Content EndMemoryV2':           "Explicit: After TP5, tabs closed",
+    'Web Content EndMemorySettledV2':    "Explicit: After TP5, tabs closed [+30s]",
+    'Web Content EndMemoryForceGCV2':    "Explicit: After TP5, tabs closed [+30s, forced GC]"
+  },
+  "Web Content Miscellaneous Measurements" : {
+    'Web Content MaxHeapUnclassifiedV2':  "Heap Unclassified: After TP5 [+30s]",
+    'Web Content MaxJSV2':                "JS: After TP5 [+30s]",
+    'Web Content MaxImagesV2':            "Images: After TP5 [+30s]"
   }
 };
 
@@ -556,6 +581,9 @@ var gHgBaseUrl = 'https://hg.mozilla.org/integration/mozilla-inbound';
 // prepend 'Android' to series names.
 if (gQueryVars['mobile']) {
   for (var series in gSeries) {
+    if (series.startswith('Web Content'))
+      continue;
+
     for (var dp in gSeries[series]) {
       gSeries[series]['Android'+dp] = gSeries[series][dp].replace("After TP5", "After tabs");
       delete gSeries[series][dp];
@@ -817,8 +845,8 @@ function memoryTreeNode(target, data, select, path, depth) {
 
   // TODO Use 'mixed' units as an indicator of container nodes instead of hard
   //      coding.
-  var showVal = depth >= 2;
-  var showPct = depth >= 3;
+  var showVal = depth >= 3;
+  var showPct = depth >= 4;
 
   // if select is passed as "a/b/c", split it so it is an array
   if (typeof(select) == "string") {
