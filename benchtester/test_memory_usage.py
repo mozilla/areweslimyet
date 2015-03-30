@@ -253,8 +253,7 @@ class TestMemoryUsage(MarionetteTestCase):
                                                           {'anonid': 'tabs-newtab-button'}))
             newtab_button.click()
 
-            # Janky workaround to make sure the tab is loaded
-            time.sleep(0.25)
+            self.wait_for_condition(lambda mn: len(mn.window_handles) == tabs_loaded + 1)
 
             # NB: The tab list isn't sorted, so we do a set diff to determine
             #     which is the new tab
