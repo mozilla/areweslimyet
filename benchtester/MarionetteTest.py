@@ -61,6 +61,13 @@ class MarionetteTest(BenchTester.BenchTest):
       "browser.tabs.remote.autostart": e10s,
       "browser.tabs.remote.autostart.1": e10s,
       "browser.tabs.remote.autostart.2": e10s,
+      "browser.tabs.remote.autostart.3": e10s,
+      "browser.tabs.remote.autostart.4": e10s,
+      "browser.tabs.remote.autostart.5": e10s,
+      "browser.tabs.remote.autostart.6": e10s,
+
+      # prevent "You're using e10s!" dialog from showing up
+      "browser.displayedE10SNotice": 1000,
 
       # We're not testing flash memory usage. Also: it likes to crash in VNC sessions.
       "plugin.disable": True,
