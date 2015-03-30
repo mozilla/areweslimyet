@@ -51,7 +51,8 @@ onmessage = function(aEvent) {
 // @param {aPath} The node path.
 // @param {aData} The data node.
 // @param {aReports} The array of report entries that is being built.
-function checkpointToAboutMemory(aPath, aData, aReports) {
+// @param {aProcess} The process this report is for.
+function checkpointToAboutMemory(aPath, aData, aReports, aProcess) {
   function defval(aObj) {
     if (typeof(aObj) == 'number') {
       return aObj;
@@ -99,7 +100,7 @@ function checkpointToAboutMemory(aPath, aData, aReports) {
     // This is a leaf node.
     var report = {
       description: "",
-      process: "Main Process",
+      process: aProcess + " Process",
       amount: defval(aData),
       units: units(aData),
       path: aPath,
@@ -113,7 +114,12 @@ function checkpointToAboutMemory(aPath, aData, aReports) {
   var node;
   while (node = childern.shift()) {
     var nodePath = aPath != "" ? aPath + '/' + node : node;
-    checkpointToAboutMemory(nodePath, aData[node], aReports);
+    var process = aProcess;
+    if (!process) {
+      process = nodePath;
+      nodePath = "";
+    }
+    checkpointToAboutMemory(nodePath, aData[node], aReports, process);
   }
 }
 

@@ -41,25 +41,111 @@ gTests = {
         "nodeize": "/",
         "dump": True,
         "series": {
-            "MaxMemoryV2": {"datapoint": "Iteration 5/TabsOpen/explicit"},
-            "MaxMemorySettledV2": {"datapoint": "Iteration 5/TabsOpenSettled/explicit"},
-            "MaxMemoryForceGCV2": {"datapoint": "Iteration 5/TabsOpenForceGC/explicit"},
-            "MaxMemoryResidentV2": {"datapoint": "Iteration 5/TabsOpen/resident"},
-            "MaxMemoryResidentSettledV2": {"datapoint": "Iteration 5/TabsOpenSettled/resident"},
-            "MaxMemoryResidentForceGCV2": {"datapoint": "Iteration 5/TabsOpenForceGC/resident"},
-            "StartMemoryV2": {"datapoint": "Iteration 1/Start/explicit"},
-            "StartMemoryResidentV2": {"datapoint": "Iteration 1/Start/resident"},
-            "StartMemorySettledV2": {"datapoint": "Iteration 1/StartSettled/explicit"},
-            "StartMemoryResidentSettledV2": {"datapoint": "Iteration 1/StartSettled/resident"},
-            "EndMemoryV2": {"datapoint": "Iteration 5/TabsClosed/explicit"},
-            "EndMemoryResidentV2": {"datapoint": "Iteration 5/TabsClosed/resident"},
-            "EndMemorySettledV2": {"datapoint": "Iteration 5/TabsClosedSettled/explicit"},
-            "EndMemoryForceGCV2": {"datapoint": "Iteration 5/TabsClosedForceGC/explicit"},
-            "EndMemoryResidentSettledV2": {"datapoint": "Iteration 5/TabsClosedSettled/resident"},
-            "EndMemoryResidentForceGCV2": {"datapoint": "Iteration 5/TabsClosedForceGC/resident"},
-            "MaxHeapUnclassifiedV2": {"datapoint": "Iteration 5/TabsOpenSettled/explicit/heap-unclassified"},
+            "MaxMemoryV2": {
+                "datapoint": [
+                    "Iteration 5/TabsOpen/Main/explicit",
+                    "Iteration 5/TabsOpen/explicit",
+                ]
+            },
+            "MaxMemorySettledV2": {
+                "datapoint": [
+                    "Iteration 5/TabsOpenSettled/Main/explicit",
+                    "Iteration 5/TabsOpenSettled/explicit",
+                ]
+            },
+            "MaxMemoryForceGCV2": {
+                "datapoint": [
+                    "Iteration 5/TabsOpenForceGC/Main/explicit",
+                    "Iteration 5/TabsOpenForceGC/explicit",
+                ]
+            },
+            "MaxMemoryResidentV2": {
+                "datapoint": [
+                    "Iteration 5/TabsOpen/Main/resident",
+                    "Iteration 5/TabsOpen/resident",
+                ]
+            },
+            "MaxMemoryResidentSettledV2": {
+                "datapoint": [
+                    "Iteration 5/TabsOpenSettled/Main/resident",
+                    "Iteration 5/TabsOpenSettled/resident",
+                ]
+            },
+            "MaxMemoryResidentForceGCV2": {
+                "datapoint": [
+                    "Iteration 5/TabsOpenForceGC/Main/resident",
+                    "Iteration 5/TabsOpenForceGC/resident",
+                ]
+            },
+            "StartMemoryV2": {
+                "datapoint": [
+                    "Iteration 1/Start/Main/explicit",
+                    "Iteration 1/Start/explicit",
+                ]
+            },
+            "StartMemoryResidentV2": {
+                "datapoint": [
+                    "Iteration 1/Start/Main/resident",
+                    "Iteration 1/Start/resident",
+                ]
+            },
+            "StartMemorySettledV2": {
+                "datapoint": [
+                    "Iteration 1/StartSettled/Main/explicit",
+                    "Iteration 1/StartSettled/explicit",
+                ]
+            },
+            "StartMemoryResidentSettledV2": {
+                "datapoint": [
+                    "Iteration 1/StartSettled/Main/resident",
+                    "Iteration 1/StartSettled/resident",
+                ]
+            },
+            "EndMemoryV2": {
+                "datapoint": [
+                    "Iteration 5/TabsClosed/Main/explicit",
+                    "Iteration 5/TabsClosed/explicit",
+                ]
+            },
+            "EndMemoryResidentV2": {
+                "datapoint": [
+                    "Iteration 5/TabsClosed/Main/resident",
+                    "Iteration 5/TabsClosed/resident",
+                ]
+            },
+            "EndMemorySettledV2": {
+                "datapoint": [
+                    "Iteration 5/TabsClosedSettled/Main/explicit",
+                    "Iteration 5/TabsClosedSettled/explicit",
+                ]
+            },
+            "EndMemoryForceGCV2": {
+                "datapoint": [
+                    "Iteration 5/TabsClosedForceGC/Main/explicit",
+                    "Iteration 5/TabsClosedForceGC/explicit",
+                ]
+            },
+            "EndMemoryResidentSettledV2": {
+                "datapoint": [
+                    "Iteration 5/TabsClosedSettled/Main/resident",
+                    "Iteration 5/TabsClosedSettled/resident",
+                ]
+            },
+            "EndMemoryResidentForceGCV2": {
+                "datapoint": [
+                    "Iteration 5/TabsClosedForceGC/Main/resident",
+                    "Iteration 5/TabsClosedForceGC/resident",
+                ]
+            },
+            "MaxHeapUnclassifiedV2": {
+                "datapoint": [
+                    "Iteration 5/TabsOpenSettled/Main/explicit/heap-unclassified",
+                    "Iteration 5/TabsOpenSettled/explicit/heap-unclassified",
+                ]
+            },
             "MaxJSV2": {
                 "datapoint": [
+                    "Iteration 5/TabsOpenSettled/Main/js-main-runtime",
                     # As of Jul 2012
                     "Iteration 5/TabsOpenSettled/js-main-runtime",
                     # Pre-Jul 2012
@@ -72,13 +158,34 @@ gTests = {
             },
             "MaxImagesV2": {
                 "datapoint": [
+                    "Iteration 5/TabsOpenSettled/Main/explicit/images",
                     "Iteration 5/TabsOpenSettled/explicit/images",
                     # Old ~FF4 reporters
                     "Iteration 5/TabsOpenSettled/images",
                     # Brief period in may 2011 before heap-used became explicit
                     "Iteration 5/TabsOpenSettled/heap-used/images"
                 ]
-            }
+            },
+
+            "Web Content MaxMemoryV2": {"datapoint": "Iteration 5/TabsOpen/Web Content/explicit"},
+            "Web Content MaxMemorySettledV2": {"datapoint": "Iteration 5/TabsOpenSettled/Web Content/explicit"},
+            "Web Content MaxMemoryForceGCV2": {"datapoint": "Iteration 5/TabsOpenForceGC/Web Content/explicit"},
+            "Web Content MaxMemoryResidentV2": {"datapoint": "Iteration 5/TabsOpen/Web Content/resident"},
+            "Web Content MaxMemoryResidentSettledV2": {"datapoint": "Iteration 5/TabsOpenSettled/Web Content/resident"},
+            "Web Content MaxMemoryResidentForceGCV2": {"datapoint": "Iteration 5/TabsOpenForceGC/Web Content/resident"},
+            "Web Content StartMemoryV2": {"datapoint": "Iteration 1/Start/Web Content/explicit"},
+            "Web Content StartMemoryResidentV2": {"datapoint": "Iteration 1/Start/Web Content/resident"},
+            "Web Content StartMemorySettledV2": {"datapoint": "Iteration 1/StartSettled/Web Content/explicit"},
+            "Web Content StartMemoryResidentSettledV2": {"datapoint": "Iteration 1/StartSettled/Web Content/resident"},
+            "Web Content EndMemoryV2": {"datapoint": "Iteration 5/TabsClosed/Web Content/explicit"},
+            "Web Content EndMemoryResidentV2": {"datapoint": "Iteration 5/TabsClosed/Web Content/resident"},
+            "Web Content EndMemorySettledV2": {"datapoint": "Iteration 5/TabsClosedSettled/Web Content/explicit"},
+            "Web Content EndMemoryForceGCV2": {"datapoint": "Iteration 5/TabsClosedForceGC/Web Content/explicit"},
+            "Web Content EndMemoryResidentSettledV2": {"datapoint": "Iteration 5/TabsClosedSettled/Web Content/resident"},
+            "Web Content EndMemoryResidentForceGCV2": {"datapoint": "Iteration 5/TabsClosedForceGC/Web Content/resident"},
+            "Web Content MaxHeapUnclassifiedV2": {"datapoint": "Iteration 5/TabsOpenSettled/Web Content/explicit/heap-unclassified"},
+            "Web Content MaxJSV2": {"datapoint": "Iteration 5/TabsOpenSettled/Web Content/js-main-runtime"},
+            "Web Content MaxImagesV2": {"datapoint": "Iteration 5/TabsOpenSettled/Web Content/explicit/images"}
         }
     },
     "Android-ARMv6": {
@@ -99,6 +206,10 @@ unit_map = {
 
 # Reuse default tests for android, but s/Iteration 5/Iteration 1/
 for k, v in gTests['Slimtest-TalosTP5-Slow']['series'].iteritems():
+    # Only use the "Main" entries as a template
+    if "Web Content" in k:
+        continue
+
     if type(v['datapoint']) is list:
         out = []
         for x in v['datapoint']:
@@ -303,28 +414,25 @@ for build in builds:
                                                  AND p.id = d.proc_id
                             ''', [testdata[testname]['id']])
 
-            # NB: For now kind is ignored, anything but the Main process is ignored
+            # NB: For now kind is ignored
 
             # Sort data, splitting it up into nodes if requested. Calculate the value
             # of each node - either a sum of its childnodes, or its explicit value if
             # given. The idea is to reduce the amount of data juggling the frontend
             # needs to do.
             for row in allrows:
-                if row['process'] != 'Main':
-                    continue
-
                 datapoint = row['datapoint']
                 units = unit_map.get(row['units'])
                 if not units:
                     print("skipping unhandled unit %s for %s" % (row['units'], datapoint))
                     continue
 
-                # Prefix the reporter name, e.g. "Iteration 1/MaxMem/<reporter>" so
+                # Prefix the reporter name, e.g. "Iteration 1/StartSettled/Main/<reporter>" so
                 # that it fits nicely into a tree.
-                datapoint = "Iteration %u/%s/%s" % (row['iteration'], row['checkpoint'], datapoint)
+                datapoint = "Iteration %u/%s/%s/%s" % (row['iteration'], row['checkpoint'], row['process'], datapoint)
 
                 if nodeize:
-                    # Note that we perserve null values as 'none', to differentiate missing
+                    # Note that we preserve null values as 'none', to differentiate missing
                     # data from values of 0
                     cursor = testdata[testname]['nodes']
                     thisnode = datapoint.split(nodeize)
