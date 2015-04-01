@@ -4,8 +4,8 @@ set -e
 
 cd "$(dirname "$0")"/..
 
-# This is a virtualenv with mozmill 1.5
-source mozmill-1.5-env/bin/activate
+# This is a virtualenv with marionette
+source marionette-env/bin/activate
 
 echo ":: Activated mozmill-1.5-env"
 

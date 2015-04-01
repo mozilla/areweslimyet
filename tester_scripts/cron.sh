@@ -4,8 +4,8 @@
 set -e
 cd "$(dirname "$0")"/..
 
-# This is a virtualenv with mozmill 1.5
-source py2env/bin/activate
+# This is a virtualenv with marionette
+source marionette-env/bin/activate
 
 # Update git
 git pull && git submodule update
