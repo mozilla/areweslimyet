@@ -3,9 +3,6 @@ set -e
 
 cd "$(dirname "$0")"/..
 
-# This is a virtualenv with mozmill 1.5
-source py2env/bin/activate
-
 killall thttpd nginx || true
 
 # we use a small thttpd compile to handle cgi requests to /status/request.cgi
