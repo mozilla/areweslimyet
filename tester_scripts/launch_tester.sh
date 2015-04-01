@@ -17,7 +17,7 @@ clean() {
 }
 run() {
   echo >&2 ":: Launching tester"
-  python benchtester/BatchTester.py -p 8 --batch html/status/batch \
+  python benchtester/BatchTester.py --batch html/status/batch \
     --hook slimtest_batchtester_hook.py -l logs --repo mozilla-inbound \
     --mozconfig slimtest.mozconfig --objdir slimtest-objdir \
     --status-file html/status/status.json \
