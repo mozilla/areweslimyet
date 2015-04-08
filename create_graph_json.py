@@ -118,7 +118,7 @@ gSeriesName = sys.argv[2]
 gOutDir = os.path.normpath(sys.argv[3])
 
 if not os.path.isfile(gDatabase):
-    error("Database '%s' not found")
+    error("Database '%s' not found" % gDatabase)
 
 if not os.path.isdir(gOutDir):
     if os.path.exists(gOutDir):
