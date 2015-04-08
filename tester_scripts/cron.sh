@@ -36,17 +36,25 @@ for x in db/areweslimyet-*.sqlite db/custom-*.sqlite; do
   fi
   s="$(basename "${x%.sqlite}")"
   s="${s#custom-}"
-  ./create_graph_json.py "$x" "$s" html/data
+  if [ -e "$x" ]; then
+    ./create_graph_json.py "$x" "$s" html/data
+  fi
 done
 
 for x in db/custom-*.sqlite; do
   s="$(basename "${x%.sqlite}")"
   s="${s#custom-}"
-  ./merge_graph_json.py "${s%-x}" html/data
+  if [ -e "$x" ]; then
+    ./merge_graph_json.py "${s%-x}" html/data
+  fi
 done
 
 ./merge_graph_json.py areweslimyet html/data
 
 # Sync with mirror
 # To turn off data sync add: --exclude=data
-rsync --timeout=60 -ve "ssh -i ./slimuploader_rsa_key" -a --delete-after --delay-updates html/ slimyet@nemu.pointysoftware.net:/www/areweslimyet.com/html/
+if [ -e "./slimuploader_rsa_key" ]; then
+  rsync --timeout=60 -ve "ssh -i ./slimuploader_rsa_key" -a --delete-after --delay-updates html/ slimyet@nemu.pointysoftware.net:/www/areweslimyet.com/html/
+else
+  echo ":: missing key file, not rsyncing"
+fi
