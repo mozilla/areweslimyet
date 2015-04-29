@@ -43,6 +43,7 @@ class BuildGetterTest(mhttpd.MozHttpdBaseTest):
 
     self.assertTrue(tinderbox_build.get_valid())
     self.assertEqual(tinderbox_build.get_tinderbox_timestamp(), 1422727955)
+    self.assertEqual(tinderbox_build.get_branch(), "mozilla-inbound")
 
     tinderbox_build.prepare()
 
