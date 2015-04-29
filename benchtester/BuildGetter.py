@@ -320,6 +320,9 @@ class TinderboxBuild(DownloadedBuild):
   """A tinderbox build from ftp.m.o. Initialized with a timestamp to build"""
 
   def __init__(self, timestamp, branch = "mozilla-inbound", *args, **kwargs):
+    if not branch:
+      branch = "mozilla-inbound"
+
     self._branch_name = branch
     self._tinderbox_timestamp = int(timestamp)
 
