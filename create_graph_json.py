@@ -237,7 +237,7 @@ gSeriesName = sys.argv[2]
 gOutDir = os.path.normpath(sys.argv[3])
 
 if not os.path.isfile(gDatabase):
-    error("Database '%s' not found")
+    error("Database '%s' not found" % gDatabase)
 
 if not os.path.isdir(gOutDir):
     if os.path.exists(gOutDir):
@@ -262,8 +262,6 @@ cur.execute('''SELECT `id`, `name`, `time` FROM `benchtester_builds`''')
 builds = cur.fetchall()
 hg_ui = None
 hg_repo = None
-
-
 def build_sort(build_a, build_b):
     global hg_repo, hg_ui
     if build_a['time'] != build_b['time']:

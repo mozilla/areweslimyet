@@ -596,7 +596,7 @@ class BatchTestCLI(BatchTest):
     self.parser.add_argument('--batch', help='Batch mode -- given a folder name, treat each file within as containing a set of arguments to this script, deleting each file as it is processed.')
     self.parser.add_argument('--firstbuild', help='For nightly, the date (YYYY-MM-DD) of the first build to test. For tinderbox, the timestamp to start testing builds at. For build, the first revision to build.')
     self.parser.add_argument('--lastbuild', help='[optional] For nightly builds, the last date to test. For tinderbox, the timestamp to stop testing builds at. For build, the last revision to build If omitted, first_build is the only build tested.')
-    self.parser.add_argument('-p', '--processes', help='Number of tests to run in parallel.', default=1, type=int)
+    self.parser.add_argument('-p', '--processes', help='Number of tests to run in parallel.', default=multiprocessing.cpu_count(), type=int)
     self.parser.add_argument('--hook', help='Name of a python file to import for each test. The test will call should_test(BatchBuild), run_tests(BatchBuild), and cli_hook(argparser) in this file.')
     self.parser.add_argument('--logdir', '-l', help="Directory to log progress to. Doesn't make sense for batched processes. Creates 'tester.log', 'buildname.test.log' and 'buildname.build.log' (for compile builds).")
     self.parser.add_argument('--repo', help="For build mode, the checked out FF repo to use")
