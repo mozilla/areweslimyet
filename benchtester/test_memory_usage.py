@@ -7,8 +7,10 @@ import os
 import sys
 
 from marionette import MarionetteTestCase
+from marionette_driver import Actions
 from marionette_driver.errors import JavascriptException, ScriptTimeoutException
 import mozlog.structured
+from marionette_driver.keys import Keys
 
 # Talos TP5
 TEST_SITES = [
@@ -285,6 +287,28 @@ class TestMemoryUsage(MarionetteTestCase):
 
         self._pages_loaded += 1
 
+    def signal_user_active(self):
+        """Signal to the browser that the user is active.
+
+        Normally when being driven by marionette the browser thinks the
+        user is inactive the whole time because user activity is
+        detected by looking at key and mouse events.
+
+        This would be a problem for this test because user inactivity is
+        used to schedule some GCs (in particular shrinking GCs), so it
+        would make this unrepresentative of real use.
+
+        Instead we manually cause some inconsequential activity (a press
+        and release of the shift key) to make the browser think the user
+        is active.  Then when we sleep to allow things to settle the
+        browser will see the user as becoming inactive and trigger
+        appropriate GCs, as would have happened in real use.
+        """
+        action = Actions(self.marionette)
+        action.key_down(Keys.SHIFT)
+        action.key_up(Keys.SHIFT)
+        action.perform()
+
     def test_open_tabs(self):
         """Marionette test entry that returns an array of checkoint arrays.
 
@@ -309,6 +333,7 @@ class TestMemoryUsage(MarionetteTestCase):
         for itr in range(self._iterations):
             for x in range(self._pages_to_load):
                 self.open_and_focus()
+                self.signal_user_active()
 
             create_checkpoint("TabsOpen", itr)
             time.sleep(self._settleWaitTime)
@@ -326,6 +351,7 @@ class TestMemoryUsage(MarionetteTestCase):
                 self.logger.info("navigating to about:blank")
                 self.marionette.navigate("about:blank")
                 self.logger.debug("navigated to about:blank")
+            self.signal_user_active()
 
             create_checkpoint("TabsClosed", itr)
             time.sleep(self._settleWaitTime)
