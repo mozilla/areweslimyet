@@ -63,7 +63,7 @@ def get_build_info(url):
   # and a url-of-revision-lookin' line
   m = re.search('^[0-9]{14}$', raw, re.MULTILINE)
   timestamp = int(time.mktime(time.strptime(m.group(0), '%Y%m%d%H%M%S')))
-  m = re.search('^https?://hg.mozilla.org/(.+)/rev/([0-9a-z]{12})$', raw, re.MULTILINE)
+  m = re.search('^https?://hg.mozilla.org/(.+)/rev/([0-9a-z]+)$', raw, re.MULTILINE)
   rev = m.group(2)
   branch = m.group(1)
 
