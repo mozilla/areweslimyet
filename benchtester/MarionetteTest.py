@@ -87,7 +87,8 @@ class MarionetteTest(BenchTester.BenchTest):
                     profile=profile,
                     logger=logger,
                     address="localhost:%d" % self.port,
-                    gecko_log=self.gecko_log)
+                    gecko_log=self.gecko_log,
+                    startup_timeout=60)
 
     # Add test
     testpath = os.path.join(*testvars['test'])
