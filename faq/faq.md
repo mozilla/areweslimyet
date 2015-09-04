@@ -219,7 +219,7 @@ If you don't want to file a bug, find us on IRC (irc.mozilla.org, \#memshrink),
 send smoke signals...do something!  We need your help, particularly in this
 case.
 
-[tinderbox builds]: ftp://ftp.mozilla.org/pub/mozilla.org/firefox/tinderbox-builds/mozilla-inbound-linux64/
+[tinderbox builds]: https://ftp.mozilla.org/pub/mozilla.org/firefox/tinderbox-builds/mozilla-inbound-linux64/
 [nightly builds]: http://nightly.mozilla.org/
 [IRC]: https://wiki.mozilla.org/IRC
 [tbpl]: https://tbpl.mozilla.org/
