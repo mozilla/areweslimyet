@@ -33,6 +33,7 @@ AreWeSlimYetTests = {
     'vars':
       {
         'test': [ 'benchtester', 'test_memory_usage.py' ],
+        'proxyPort': 3128,
       }
   },
 };

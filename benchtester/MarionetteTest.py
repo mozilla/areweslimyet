@@ -48,7 +48,7 @@ class MarionetteTest(BenchTester.BenchTest):
     prefs = {
       # disable network access
       "network.proxy.socks": "localhost",
-      "network.proxy.socks_port": 90000, # Invalid port
+      "network.proxy.socks_port": testvars.get("proxyPort", 90000),
       "network.proxy.socks_remote_dns": True,
       "network.proxy.type": 1, # Socks
 
