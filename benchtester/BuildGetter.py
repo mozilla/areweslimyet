@@ -168,7 +168,6 @@ class DownloadedBuild(Build):
 
     # FIXME: platform hard coded to linux64
     default_args = {
-        'version': "",
         'destination': self._extracted,
         'platform': 'linux64',
         'base_url': base_ftp_url,
@@ -182,8 +181,8 @@ class DownloadedBuild(Build):
 
     try:
       self._scraper = scraper_args['type'](**default_args)
-      url = self._scraper.final_url
-    except mozdownload.scraper.NotFoundError:
+      url = self._scraper.url
+    except mozdownload.errors.NotFoundError:
       _stat("ERR: Build not found")
       return
 
@@ -226,10 +225,10 @@ class DownloadedBuild(Build):
       raise Exception("Attempted to prepare() invalid build")
 
     self._scraper.download()
-    self._scraperTarget = self._scraper.target
+    self._scraperTarget = self._scraper.filename
 
     _stat("Extracting build")
-    self.extract_build(self._scraper.target, self._extracted)
+    self.extract_build(self._scraper.filename, self._extracted)
 
     self._prepared = True
     self._scraper = None
