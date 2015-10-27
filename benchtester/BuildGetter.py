@@ -29,7 +29,7 @@ PUSHLOG_BRANCH_MAP = {
   'fx-team': 'integration/fx-team'
 }
 
-BASE_FTP_URL = 'http://ftp-origin-scl3.mozilla.org/pub/mozilla.org'
+BASE_FTP_URL = 'https://archive.mozilla.org/pub'
 BASE_HG_URL = 'https://hg.mozilla.org'
 
 gDefaultBranch = 'mozilla-inbound'
