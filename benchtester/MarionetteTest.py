@@ -25,6 +25,9 @@ class MarionetteTest(BenchTester.BenchTest):
     parent.add_argument('--gecko_log',
                         help="Logfile for gecko output. Defaults to 'gecko.log'",
                         default=None)
+    parent.add_argument('--process_count',
+                         help="Number of e10s processes to use",
+                         default=1)
     self.name = "MarionetteTest"
     self.parent = parent
 
@@ -34,6 +37,8 @@ class MarionetteTest(BenchTester.BenchTest):
     self.endurance_results = None
     self.port = int(self.parent.args['marionette_port'])
     self.gecko_log = self.parent.args['gecko_log']
+    self.process_count = int(self.parent.args['process_count'])
+    self.info("Process Count: %d " % self.process_count)
 
     return True
 
@@ -65,6 +70,7 @@ class MarionetteTest(BenchTester.BenchTest):
       "browser.tabs.remote.autostart.4": e10s,
       "browser.tabs.remote.autostart.5": e10s,
       "browser.tabs.remote.autostart.6": e10s,
+      "dom.ipc.processCount": self.process_count,
 
       # prevent "You're using e10s!" dialog from showing up
       "browser.displayedE10SNotice": 1000,
