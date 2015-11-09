@@ -161,6 +161,36 @@ class BenchTester():
 
     return True
 
+  @staticmethod
+  def map_process_names(process_names):
+    # Normalize the process names.
+    # Given: [ "Main", "Web Content (123)", "Web Content (345)", "Web Content (678)" ]
+    # Mapping: [ "Main" => "Main",
+    #            "Web Content (123)" => "Web Content",
+    #            "Web Content (345)" => "Web Content 2",
+    #            "Web Content (678)" => "Web Content 3"
+    #          ]
+    proc_name_counts = {}
+    proc_name_mapping = {}
+
+    for full_process_name in process_names:
+      # Drop the pid portion of process name
+      process_re = r'(.*)\s+\(\d+\)'
+      m = re.match(process_re, full_process_name)
+      if m:
+        proc_name = m.group(1)
+        if proc_name in proc_name_counts:
+          proc_name_counts[proc_name] += 1
+          proc_name_mapping[full_process_name] = "%s %d" % (proc_name, proc_name_counts[proc_name])
+        else:
+          # Leave the first entry w/o a number
+          proc_name_counts[proc_name] = 1
+          proc_name_mapping[full_process_name] = proc_name
+      else:
+        proc_name_mapping[full_process_name] = full_process_name
+
+    return proc_name_mapping
+
   def insert_results(self, test_id, results):
     # - results is an array of iterations
     # - iterations is an array of checkpoints
@@ -181,14 +211,10 @@ class BenchTester():
           cur.execute("INSERT INTO benchtester_checkpoints(name) VALUES (?)", (label, ))
           checkpoint_id = cur.lastrowid
 
+        proc_name_mapping = self.map_process_names(checkpoint['reports'])
         for process_name, reports in checkpoint['reports'].iteritems():
           # reports is a dictionary of datapoint_name: { val, unit, kind }
-
-          # Strip pid portion of process name
-          process_re = r'(.*)\s+\(.*\)'
-          m = re.match(process_re, process_name)
-          if m:
-            process_name = m.group(1)
+          process_name = proc_name_mapping[process_name]
 
           # insert process name, get process_id
           cur.execute("SELECT id FROM benchtester_procs WHERE name = ?", (process_name, ))
