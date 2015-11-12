@@ -22,6 +22,7 @@ import json
 import urllib2
 
 import mozdownload
+import mozinstall
 
 PUSHLOG_BRANCH_MAP = {
   'mozilla-inbound': 'integration/mozilla-inbound',
@@ -152,6 +153,7 @@ class DownloadedBuild(Build):
 
     self._branch = None
     self._extracted = directory
+    self._install_dir = None
     self._cleanup_dir = False
     self._prepared = False
     self._revision = None
@@ -202,14 +204,6 @@ class DownloadedBuild(Build):
     
     self._valid = True
 
-  @staticmethod
-  def extract_build(src, dstdir):
-    """Extracts the given build to the given directory."""
-
-    # cross-platform FIXME, this is hardcoded to tar at the moment
-    with tarfile.open(src, mode='r:*') as tar:
-      tar.extractall(path=dstdir)
- 
   def prepare(self):
     """
     Prepares the build for testing.
@@ -228,7 +222,7 @@ class DownloadedBuild(Build):
     self._scraperTarget = self._scraper.filename
 
     _stat("Extracting build")
-    self.extract_build(self._scraper.filename, self._extracted)
+    self._install_dir = mozinstall.install(self._scraper.filename, self._extracted)
 
     self._prepared = True
     self._scraper = None
@@ -242,7 +236,7 @@ class DownloadedBuild(Build):
       os.remove(self._scraperTarget)
 
       # remove the extracted archive
-      shutil.rmtree(os.path.join(self._extracted, "firefox"))
+      mozinstall.uninstall(self._install_dir)
 
     # remove the temp directory that was created
     if self._cleanup_dir:
@@ -259,8 +253,7 @@ class DownloadedBuild(Build):
   def get_binary(self):
     if not self._prepared:
       raise Exception("Build is not prepared")
-    # FIXME More hard-coded linux stuff
-    return os.path.join(self._extracted, "firefox", "firefox")
+    return mozinstall.get_binary(self._install_dir, "firefox")
 
   def get_buildtime(self):
     return self._timestamp
