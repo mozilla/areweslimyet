@@ -41,20 +41,34 @@ def get_node_value(datapoint, nodes):
     """
     Retrieves a nested value from the nodes dictionary.
 
-    :param nodes: A dictionary of nested value nodes.
+    :param nodes: A dictionary of nested value nodes. Each node either has a
+                 '_val' entry which is the sum of its child nodes, or if it is
+                 a leaf node the entry itself is the value.
+
+                 Example structure:
+                  {
+                      'explicit': {
+                          '_val': 678,
+                          'images': {
+                              '_val': 678,
+                              'image 1': 400,
+                              'image 2': 278
+                          }
+                      },
+                      'js-main-runtime': 897
+                  }
     :param datapoint: A path to the desired value.
     """
-    node = nodes
     for branch in datapoint.split('/'):
-        if node and branch in node:
-            node = node[branch]
+        if nodes and branch in nodes:
+            nodes = nodes[branch]
         else:
             raise KeyError("Datapoint not found: %s" % datapoint)
 
-    if type(node) in [int, long]:
-        return node
+    if type(nodes) in [int, long]:
+        return nodes
     else:
-        return node.get('_val')
+        return nodes.get('_val')
 
 
 def create_suite(name, node, data):
@@ -70,7 +84,8 @@ def create_suite(name, node, data):
     suite = {
         'name': name,
         'subtests': [],
-        'lowerIsBetter': True
+        'lowerIsBetter': True,
+        'units': 'bytes'
     }
 
     total = 0
