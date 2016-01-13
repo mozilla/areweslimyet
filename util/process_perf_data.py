@@ -28,7 +28,7 @@ CHECKPOINTS = [
     { 'name': "Tabs closed [+30s, forced GC]", 'path': "Iteration 5/TabsClosedForceGC" }
 ]
 
-# A description of each perfherder suite and the path to it's values.
+# A description of each perfherder suite and the path to its values.
 PERF_SUITES = [
     { 'name': "Resident Memory", 'node': "resident" },
     { 'name': "Explicit Memory", 'node': "explicit" },
@@ -84,7 +84,8 @@ def create_suite(name, node, data):
         suite['subtests'].append(subtest);
         total += math.log(subtest['value'])
 
-    # Add the geometric mean.
+    # Add the geometric mean. For more details on the calculation see:
+    #   https://en.wikipedia.org/wiki/Geometric_mean#Relationship_with_arithmetic_mean_of_logarithms
     suite['value'] = math.exp(total / len(CHECKPOINTS))
 
     return suite
