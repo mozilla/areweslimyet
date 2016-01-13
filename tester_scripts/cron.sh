@@ -41,6 +41,11 @@ for x in db/areweslimyet-*.sqlite db/custom-*.sqlite; do
   fi
 done
 
+# Push any new data to treeherder
+# Somewhat simplistic logic, just find any file created w/in the last 5 minutes
+# that has a filename length of 58 chars, aka html/data/<hg_rev>.json.gz
+find html/data/ -name *json.gz -cmin -5 | grep -e '.\{58\}' | xargs util/process_perf_data.py awsy.cfg
+
 for x in db/custom-*.sqlite; do
   s="$(basename "${x%.sqlite}")"
   s="${s#custom-}"
