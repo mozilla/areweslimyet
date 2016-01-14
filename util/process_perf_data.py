@@ -199,7 +199,7 @@ def post_treeherder_jobs(client, fileNames):
 
 
 def process_datasets(host, client_id, secret, fileNames):
-    client = TreeherderClient(protocol='http', host=host, client_id=client_id, secret=secret)
+    client = TreeherderClient(protocol='https', host=host, client_id=client_id, secret=secret)
     post_treeherder_jobs(client, fileNames)
 
 
