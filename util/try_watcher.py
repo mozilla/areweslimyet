@@ -120,7 +120,7 @@ def queue_try_job(rev, series):
     """
     params = {
         'mode': 'try',
-        'startbuild': rev[:12],
+        'startbuild': rev,
         'series': series,
         'prioritize': True
     }
@@ -139,7 +139,7 @@ def write_try_job(rev, series, batch_dir):
     """Writes the try job to the given directory"""
     params = {
         'mode': 'try',
-        'firstbuild': rev[:12],
+        'firstbuild': rev,
         'series': series,
         'prioritize': True
     }

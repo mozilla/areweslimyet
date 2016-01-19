@@ -100,7 +100,7 @@ class BuildGetterTest(mhttpd.MozHttpdBaseTest):
       TryBuild(directory=self.temp_dir,
                base_ftp_url=self.wdir,
                base_hg_url=self.hgdir,
-               changeset="98567ca569b")
+               changeset="a7d50e410ced2f0335bab09c7cc65ff2d2733b97")
 
     self.assertTrue(try_build.get_valid())
 
@@ -108,7 +108,27 @@ class BuildGetterTest(mhttpd.MozHttpdBaseTest):
 
     binary = try_build.get_binary()
     self.assertTrue(os.path.exists(binary))
-    self.assertEqual(try_build.get_revision(), "798567ca569b")
+    self.assertEqual(try_build.get_revision(), "a7d50e410ced2f0335bab09c7cc65ff2d2733b97")
+    self.assertEqual(try_build.get_buildtime(), 1422654729)
+
+    try_build.cleanup()
+
+    self.assertFalse(os.path.exists(binary))
+
+  def test_try_short(self):
+    try_build = \
+      TryBuild(directory=self.temp_dir,
+               base_ftp_url=self.wdir,
+               base_hg_url=self.hgdir,
+               changeset="a7d50e410ced")
+
+    self.assertTrue(try_build.get_valid())
+
+    try_build.prepare()
+
+    binary = try_build.get_binary()
+    self.assertTrue(os.path.exists(binary))
+    self.assertEqual(try_build.get_revision(), "a7d50e410ced2f0335bab09c7cc65ff2d2733b97")
     self.assertEqual(try_build.get_buildtime(), 1422654729)
 
     try_build.cleanup()
@@ -120,7 +140,7 @@ class BuildGetterTest(mhttpd.MozHttpdBaseTest):
       FTPBuild(directory=self.temp_dir,
                base_ftp_url=self.wdir,
                base_hg_url=self.hgdir,
-               path="%s/firefox/try-builds/erahm@mozilla.com-98567ca569b/"
+               path="%s/firefox/try-builds/erahm@mozilla.com-a7d50e410ced2f0335bab09c7cc65ff2d2733b97/"
                     "try-linux64/firefox-38.0a1.en-US.linux-x86_64.tar.bz2" % self.wdir)
 
     self.assertTrue(ftp_build.get_valid())
@@ -129,7 +149,7 @@ class BuildGetterTest(mhttpd.MozHttpdBaseTest):
 
     binary = ftp_build.get_binary()
     self.assertTrue(os.path.exists(binary))
-    self.assertEqual(ftp_build.get_revision(), "798567ca569b")
+    self.assertEqual(ftp_build.get_revision(), "a7d50e410ced2f0335bab09c7cc65ff2d2733b97")
     self.assertEqual(ftp_build.get_buildtime(), 1422654729)
 
     ftp_build.cleanup()

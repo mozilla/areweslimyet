@@ -332,8 +332,8 @@ $(function () {
           alert("The try changeset ID should only contain a-f, 0-9");
           return false;
         }
-        if (start.length != 12) {
-          alert("The try changeset ID must be exactly 12 characters");
+        if (start.length < 12) {
+          alert("The try changeset ID must be at least 12 characters");
           return false;
         }
 

@@ -293,6 +293,10 @@ class TryBuild(DownloadedBuild):
   """A try build from ftp.m.o. Initialized with a 12-digit try changeset."""
 
   def __init__(self, changeset, *args, **kwargs):
+    # mozdownload requires the full revision, look it up if necessary.
+    if len(changeset) != 40:
+      (changeset, _) = pushlog_lookup(changeset, branch='try', base_url=kwargs.get('base_hg_url', BASE_HG_URL))
+
     self._changeset = changeset
     scraper_info = {
       'type': mozdownload.scraper.TryScraper,

@@ -18,6 +18,10 @@ WDIR = 'data'
 HERE = os.path.dirname(os.path.abspath(__file__))
 
 
+SHORT_CHANGESET_MAPPING = {
+    "a7d50e410ced": "a7d50e410ced2f0335bab09c7cc65ff2d2733b97",
+}
+
 @mozhttpd.handlers.json_response
 def resource_get(request, path):
     changeset = request.query.split("=")[1]
@@ -25,7 +29,7 @@ def resource_get(request, path):
     # TODO(ER): Create a better response, this is good enough for now
     return (200, {
       "1234": {
-        "changesets": [ changeset, "..." ],
+        "changesets": [ SHORT_CHANGESET_MAPPING.get(changeset, changeset), "..." ],
         "date": 1422654729,
         "user": "erahm@mozilla.com"
         }
