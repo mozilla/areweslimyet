@@ -162,13 +162,24 @@ def create_treeherder_job(repo, revision, client, nodes):
     return tj
 
 
-def post_treeherder_jobs(client, fileNames):
+def post_treeherder_jobs(client, fileNames, perf_history_file='last_perf.json'):
     """
     Processes each file and submits a treeherder job with the data from each file.
 
     :param client: The TreeherderClient to use.
     :param fileNames: The files to process.
+    :param perf_history_file: The file that contains the last revisions
+     submitted.
     """
+
+    try:
+        with open(perf_history_file, 'r') as f:
+            known_builds_list = json.load(f)
+    except:
+        known_builds_list = []
+
+    known_builds = set(known_builds_list)
+
     for name in fileNames:
         with gzip.open(name) as f:
             data = json.load(f)
@@ -180,9 +191,14 @@ def post_treeherder_jobs(client, fileNames):
         # Attempt to retrieve the revision from the metadata, otherwise parse
         # it from the file name which has the form <revision>.json.gz
         if 'revision' in test_set:
-            revsion = test_set['revision']
+            revision = test_set['revision']
         else:
             revision = os.path.basename(name).split('.')[0]
+
+        # Check if we've already processed this build.
+        if revision in known_builds:
+            print "Skipping known revision %s" % revision
+            continue
 
         tjc = TreeherderJobCollection()
         try:
@@ -196,6 +212,15 @@ def post_treeherder_jobs(client, fileNames):
         #     dataset.
         client.post_collection(repo, tjc)
         #print tjc.to_json()
+
+        known_builds_list.append(revision)
+
+    try:
+        with open(perf_history_file, 'w') as f:
+            # Write out the last 100 revisions
+            json.dump(known_builds_list[-100:], f)
+    except:
+        pass
 
 
 def process_datasets(host, client_id, secret, fileNames):
