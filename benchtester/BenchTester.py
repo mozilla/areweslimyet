@@ -15,6 +15,8 @@ import subprocess
 import mercurial, mercurial.ui, mercurial.hg, mercurial.commands
 import time
 
+from mozlog.structured import commandline
+
 gTableSchemas = [
   # Builds - info on builds we have tests for
   '''CREATE TABLE IF NOT EXISTS
@@ -83,31 +85,16 @@ class BenchTest():
 class BenchTester():
 
   def info(self, msg):
-    self.log('info', msg)
+    self.logger.info(msg)
 
   def error(self, msg):
     self.errors.append(msg)
-    self.log('error', msg)
+    self.logger.error(msg)
     return False
 
   def warn(self, msg):
     self.warnings.append(msg)
-    self.log('warning', msg)
-
-  def log(self, type, msg, timestamp = None, noprint = False):
-    if not timestamp:
-      timestamp = time.clock() - self.starttime
-
-    if self.logfile:
-      self.logfile.write("%.2f :: %s :: %s\n" % (timestamp, type.upper(), msg))
-      self.logfile.flush()
-    elif not self.ready:
-      # Cache lines until setup is called to open the logfile
-      if not hasattr(self, 'logcache'): self.logcache = []
-      self.logcache.append((type, msg, timestamp))
-
-    if not noprint:
-      self.out.write("[%.2f] %s: %s\n" % (timestamp, type.upper(), msg))
+    self.logger.warning(msg)
 
   def run_test(self, testname, testtype, testvars={}):
     if not self.ready:
@@ -190,7 +177,7 @@ class BenchTester():
         return False
     return True
 
-  def __init__(self, out=sys.stdout):
+  def __init__(self, logfile=None, out=sys.stdout):
     self.starttime = time.clock()
     self.ready = False
     self.args = {}
@@ -204,6 +191,15 @@ class BenchTester():
     self.sqlite = False
     self.errors = []
     self.warnings = []
+
+    # Default to outputing 'mach' style to stdout.
+    log_args = { 'log_mach': ['-'] }
+    if logfile:
+      # If a logfile is requested we also output in a raw structured log
+      # format to the requested file.
+      log_args.update({ 'log_raw': [ logfile ] })
+
+    self.logger = commandline.setup_logging("AwsyTest", log_args)
 
     # These can be passed to setup() like so:
     #   mytester.setup({'binary': 'blah', 'buildname': 'blee'})
@@ -299,23 +295,6 @@ class BenchTester():
 
     # args will already contain defaults from add_argument calls
     self.args.update(args)
-
-    # Open logfile
-    if self.args['logfile']:
-      self.logfile_path = None
-      try:
-        self.logfile_path = os.path.abspath(self.args['logfile'])
-        self.logfile = open(self.logfile_path, 'w')
-      except Exception, e:
-        return self.error("Unable to open logfile '%s' (%s)" % (self.args['logfile'], self.logfile_path))
-      # Print any lines that occured before the logfile opened
-      if hasattr(self, 'logcache'):
-        self.logcache.reverse()
-        while len(self.logcache):
-          time, msg, timestamp = self.logcache.pop()
-          self.log(time, msg, timestamp, True)
-        self.logcache = None
-    self.info("Opened logfile")
 
     # Check that binary is set
     if not self.args['binary']:

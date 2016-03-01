@@ -83,18 +83,18 @@ def should_test(build, args):
 def run_tests(build, args):
   import BenchTester
 
-  tester = BenchTester.BenchTester()
-  # Load modules for tests we have
-  for test in AreWeSlimYetTests.values():
-    if not tester.load_module(test['type']):
-      raise Exception("Could not load module %s" % (test['type'],))
-
   if args.get('logdir'):
     logfile = os.path.join(args.get('logdir'), "%s.test.log" % (build.revision,))
     gecko_logfile = os.path.join(args.get('logdir'), "%s.gecko.log" % (build.revision,))
   else:
     logfile = None
     gecko_logfile = None
+
+  tester = BenchTester.BenchTester(logfile)
+  # Load modules for tests we have
+  for test in AreWeSlimYetTests.values():
+    if not tester.load_module(test['type']):
+      raise Exception("Could not load module %s" % (test['type'],))
 
   tester.setup({
     'buildname': build.revision,

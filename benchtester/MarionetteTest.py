@@ -72,20 +72,15 @@ class MarionetteTest(BenchTester.BenchTest):
       "image.mem.surfacecache.min_expiration_ms": 10000
     }
 
-    # Setup a test runner with our prefs and a default logger.
+    # Setup a test runner with our prefs and our logger.
     # TODO(ER): We might want to use a larger set of "automation" preferences
     #           until marionette sets them for us. See bug 1123683.
     profile = mozprofile.FirefoxProfile(preferences=prefs)
 
-    debug = testvars.get("debug", False)
-    if debug:
-      commandline.formatter_option_defaults['level'] = 'debug'
-
-    logger = commandline.setup_logging("MarionetteTest", {})
     runner = MarionetteTestRunner(
                     binary=self.tester.binary,
                     profile=profile,
-                    logger=logger,
+                    logger=self.parent.logger,
                     address="localhost:%d" % self.port,
                     gecko_log=self.gecko_log,
                     startup_timeout=60)
