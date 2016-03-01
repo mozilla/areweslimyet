@@ -162,43 +162,17 @@ def create_treeherder_job(repo, revision, client, nodes):
     return tj
 
 
-def post_treeherder_jobs(client, fileNames, perf_history_file='last_perf.json'):
+def post_treeherder_jobs(client, revisions):
     """
     Processes each file and submits a treeherder job with the data from each file.
 
     :param client: The TreeherderClient to use.
-    :param fileNames: The files to process.
-    :param perf_history_file: The file that contains the last revisions
-     submitted.
+    :param revisions: A dictionary of revisions and their associated data.
     """
 
-    try:
-        with open(perf_history_file, 'r') as f:
-            known_builds_list = json.load(f)
-    except:
-        known_builds_list = []
-
-    known_builds = set(known_builds_list)
-
-    for name in fileNames:
-        with gzip.open(name) as f:
-            data = json.load(f)
-
-        test_set = data['Slimtest-TalosTP5-Slow']
-
+    for (revision, test_set) in revisions.iteritems():
         nodes = test_set['nodes']
         repo = test_set.get('repo', 'mozilla-inbound')
-        # Attempt to retrieve the revision from the metadata, otherwise parse
-        # it from the file name which has the form <revision>.json.gz
-        if 'revision' in test_set:
-            revision = test_set['revision']
-        else:
-            revision = os.path.basename(name).split('.')[0]
-
-        # Check if we've already processed this build.
-        if revision in known_builds:
-            print "Skipping known revision %s" % revision
-            continue
 
         tjc = TreeherderJobCollection()
         try:
@@ -213,7 +187,47 @@ def post_treeherder_jobs(client, fileNames, perf_history_file='last_perf.json'):
         client.post_collection(repo, tjc)
         #print tjc.to_json()
 
+
+def filter_datasets(file_names, perf_history_file='last_perf.json'):
+    """
+    Retrieves a dictionary of datasets that should be processed. Filters out
+    revisions that have already been posted.
+
+    :param file_names: List of potential json files to process.
+    :param perf_history_file: The file that contains the last revisions
+     submitted.
+    """
+
+    try:
+        with open(perf_history_file, 'r') as f:
+            known_builds_list = json.load(f)
+    except:
+        known_builds_list = []
+
+    known_builds = set(known_builds_list)
+
+    revisions = {}
+
+    for name in file_names:
+        with gzip.open(name) as f:
+            data = json.load(f)
+
+        test_set = data['Slimtest-TalosTP5-Slow']
+
+        # Attempt to retrieve the revision from the metadata, otherwise parse
+        # it from the file name which has the form <revision>.json.gz
+        if 'revision' in test_set:
+            revision = test_set['revision']
+        else:
+            revision = os.path.basename(name).split('.')[0]
+
+        # Check if we've already processed this build.
+        if revision in known_builds:
+            print "Skipping known revision %s" % revision
+            continue
+
         known_builds_list.append(revision)
+        revisions[revision] = test_set
 
     try:
         with open(perf_history_file, 'w') as f:
@@ -222,10 +236,12 @@ def post_treeherder_jobs(client, fileNames, perf_history_file='last_perf.json'):
     except:
         pass
 
+    return revisions
 
-def process_datasets(host, client_id, secret, fileNames):
+
+def process_datasets(host, client_id, secret, revisions):
     client = TreeherderClient(protocol='https', host=host, client_id=client_id, secret=secret)
-    post_treeherder_jobs(client, fileNames)
+    post_treeherder_jobs(client, revisions)
 
 
 if __name__ == '__main__':
@@ -239,6 +255,23 @@ if __name__ == '__main__':
     host = cfg.get('treeherder', 'host')
     client_id = cfg.get('treeherder', 'client_id')
     secret = cfg.get('treeherder', 'client_secret')
-    fileNames = args[1:]
 
-    process_datasets(host, client_id, secret, fileNames)
+    file_names = args[1:]
+    revisions = filter_datasets(file_names)
+    if not revisions:
+        print "No new revisions to process."
+        sys.exit(0)
+
+    process_datasets(host, client_id, secret, revisions)
+
+    # Try to push data to staging as well.
+    try:
+        host = cfg.get('treeherder_staging', 'host')
+        client_id = cfg.get('treeherder_staging', 'client_id')
+        secret = cfg.get('treeherder_staging', 'client_secret')
+
+        process_datasets(host, client_id, secret, revisions)
+    except:
+        pass
+
+    sys.exit(0)
