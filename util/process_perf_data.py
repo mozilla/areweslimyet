@@ -179,6 +179,8 @@ def post_treeherder_jobs(client, revisions):
             tjc.add(create_treeherder_job(repo, revision, client, nodes))
         except KeyError as e:
             print "Failed to generate data for %s: %s" % (revision, e)
+            # NB: This is a run with no data, we want to skip it next time.
+            successful.append(revision)
             continue
 
         # NB: In theory we could batch these, but each collection has to be from
