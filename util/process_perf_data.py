@@ -214,6 +214,12 @@ def filter_datasets(file_names, perf_history_file='last_perf.json'):
     revisions = {}
 
     for name in file_names:
+        # Attempt to filter prior to unarchiving.
+        revision = os.path.basename(name).split('.')[0]
+        if len(revision) == 40 and revision in known_builds:
+            print "Skipping known revision %s" % revision
+            continue
+
         with gzip.open(name) as f:
             data = json.load(f)
 
@@ -223,8 +229,6 @@ def filter_datasets(file_names, perf_history_file='last_perf.json'):
         # it from the file name which has the form <revision>.json.gz
         if 'revision' in test_set:
             revision = test_set['revision']
-        else:
-            revision = os.path.basename(name).split('.')[0]
 
         # Check if we've already processed this build.
         if revision in known_builds:
