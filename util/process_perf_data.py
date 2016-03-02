@@ -169,7 +169,7 @@ def post_treeherder_jobs(client, revisions):
     :param client: The TreeherderClient to use.
     :param revisions: A dictionary of revisions and their associated data.
     """
-
+    successful = []
     for (revision, test_set) in revisions.iteritems():
         nodes = test_set['nodes']
         repo = test_set.get('repo', 'mozilla-inbound')
@@ -186,6 +186,11 @@ def post_treeherder_jobs(client, revisions):
         #     dataset.
         client.post_collection(repo, tjc)
         #print tjc.to_json()
+
+        successful.append(revision)
+        print "Submitted perf data for %s to %s" % (revision, client.host)
+
+    return successful
 
 
 def filter_datasets(file_names, perf_history_file='last_perf.json'):
@@ -229,19 +234,32 @@ def filter_datasets(file_names, perf_history_file='last_perf.json'):
         known_builds_list.append(revision)
         revisions[revision] = test_set
 
-    try:
-        with open(perf_history_file, 'w') as f:
-            # Write out the last 100 revisions
-            json.dump(known_builds_list[-100:], f)
-    except:
-        pass
-
     return revisions
 
 
 def process_datasets(host, client_id, secret, revisions):
     client = TreeherderClient(protocol='https', host=host, client_id=client_id, secret=secret)
-    post_treeherder_jobs(client, revisions)
+    return post_treeherder_jobs(client, revisions)
+
+
+def update_known_revisions(new_revisions, perf_history_file='last_perf.json'):
+    """
+    Update the list of known revisions.
+    """
+    try:
+        with open(perf_history_file, 'r') as f:
+            known_builds_list = json.load(f)
+    except:
+        known_builds_list = []
+
+    known_builds_list += new_revisions
+
+    try:
+        with open(perf_history_file, 'w') as f:
+            # Write out the last 100 revisions
+            json.dump(known_builds_list[-100:], f)
+    except Exception, e:
+      print "WARNING: Unable to write revision file: %s" % e
 
 
 if __name__ == '__main__':
@@ -262,7 +280,8 @@ if __name__ == '__main__':
         print "No new revisions to process."
         sys.exit(0)
 
-    process_datasets(host, client_id, secret, revisions)
+    successful = process_datasets(host, client_id, secret, revisions)
+    update_known_revisions(successful)
 
     # Try to push data to staging as well.
     try:
