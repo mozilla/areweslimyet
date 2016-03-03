@@ -10,8 +10,12 @@ import math
 import os
 import socket
 import sys
+import tempfile
 import time
 import uuid
+
+import boto
+import boto.s3.connection
 
 from thclient import (TreeherderClient, TreeherderJob,
                       TreeherderJobCollection, TreeherderArtifactCollection)
@@ -36,6 +40,45 @@ PERF_SUITES = [
     { 'name': "JS", 'node': "js-main-runtime" },
     { 'name': "Images", 'node': "explicit/images" }
 ]
+
+
+# Based on autophone implementation
+class S3:
+    def __init__(self, bucket_name, access_key_id, access_secret_key):
+        """
+        Opens an S3 connection to the given bucket.
+        Can raise KeyError, boto.exception.NoAuthHandlerFound, boto.exception.S3ResponseError.
+        """
+        conn = boto.s3.connection.S3Connection(access_key_id, access_secret_key)
+        if not conn.lookup(bucket_name):
+            raise KeyError('bucket %s not found' % bucket_name)
+        self.bucket = conn.get_bucket(bucket_name)
+
+    def upload(self, path, destination):
+        """
+        Uploads a file to the S3 bucket.
+        Can raise boto.exception.S3ResponseError.
+        """
+
+        key = self.bucket.get_key(destination)
+        if not key:
+            key = self.bucket.new_key(destination)
+
+        ext = os.path.splitext(path)[-1]
+        if ext in ('.log', '.txt'):
+            key.set_metadata('Content-Type', 'text/plain')
+
+        with tempfile.NamedTemporaryFile('w+b', suffix=ext) as tf:
+            with gzip.GzipFile(path, 'wb', fileobj=tf) as gz:
+                with open(path, 'rb') as f:
+                    gz.writelines(f)
+            tf.flush()
+            tf.seek(0)
+            key.set_metadata('Content-Encoding', 'gzip')
+            key.set_contents_from_file(tf)
+
+        return key.generate_url(expires_in=0, query_auth=False)
+
 
 def get_node_value(datapoint, nodes):
     """
@@ -121,7 +164,34 @@ def create_perf_data(nodes):
     return perf_blob
 
 
-def create_treeherder_job(repo, revision, client, nodes):
+def upload_artifact(s3, fname, key, lname):
+    """
+    Uploads an artifact to S3 and returns a job description entry for it.
+
+    :param s3: The S3 instance to use to upload.
+    :param fname: The path to the file to be uploaded.
+    :param key: The key for the uploaded file in S3.
+    :param lname: The name to use for the link in the job description.
+    """
+    try:
+        url = s3.upload(fname, key)
+        return {
+            'url': url,
+            'value': lname,
+            'content_type': 'link',
+            'title': 'artifact uploaded'
+        }
+    except Exception, e:
+        err_str = 'Failed to upload artifact %s: %s' % (fname, e)
+        print err_str
+        return {
+            'value': err_str,
+            'content_type': 'text',
+            'title': 'Error'
+        }
+
+
+def create_treeherder_job(repo, revision, client, nodes, s3=None):
     """
     Creates a treeherder job for the given set of data.
 
@@ -129,6 +199,7 @@ def create_treeherder_job(repo, revision, client, nodes):
     :param revision: The mercurial revision of the build.
     :param client: The TreeherderClient to use.
     :param nodes: The dataset for this build.
+    :param s3: Optional Amazon S3 bucket to upload logs to.
     """
     rev_hash = client.get_resultsets(repo, revision=revision)[0]['revision_hash']
 
@@ -136,7 +207,8 @@ def create_treeherder_job(repo, revision, client, nodes):
     tj.add_tier(2)
     tj.add_revision_hash(rev_hash)
     tj.add_project(repo)
-    tj.add_job_guid(str(uuid.uuid4()))
+    job_guid = str(uuid.uuid4())
+    tj.add_job_guid(job_guid)
 
     tj.add_job_name('awsy 1')
     tj.add_job_symbol('a1')
@@ -159,15 +231,44 @@ def create_treeherder_job(repo, revision, client, nodes):
     perf_blob = create_perf_data(nodes)
     tj.add_artifact('performance_data', 'json', json.dumps({ 'performance_data': perf_blob }))
 
+    # If an S3 connection is provided the logs for this revision are uploaded.
+    # Addtionally a 'Job Info' blob is built up with links to the logs that
+    # will be displayed in the 'Job details' pane in treeherder.
+    if s3:
+        job_details = []
+
+        # To avoid overwriting existing data (perhaps if a job is retriggered)
+        # the job guid is included in the key.
+        log_prefix = "%s/%s/%s" % (repo, revision, job_guid)
+
+        # Add the test log.
+        log_id = '%s/%s' % (log_prefix, 'awsy_test_raw.log')
+        job_detail = upload_artifact(s3, 'logs/%s.test.log' % revision,
+                                     log_id, 'awsy_test.log')
+        if 'url' in job_detail:
+            # The test log is the main log and will be linked to the log
+            # viewer and raw log icons in treeherder.
+            tj.add_log_reference('test.log', job_detail['url'])
+        job_details.append(job_detail)
+
+        # Add the gecko log.
+        log_id = '%s/%s' % (log_prefix, 'gecko.log')
+        job_detail = upload_artifact(s3, "logs/%s.gecko.log" % revision,
+                                     log_id, 'gecko.log')
+        job_details.append(job_detail)
+
+        tj.add_artifact('Job Info', 'json', { 'job_details': job_details })
+
     return tj
 
 
-def post_treeherder_jobs(client, revisions):
+def post_treeherder_jobs(client, revisions, s3=None):
     """
     Processes each file and submits a treeherder job with the data from each file.
 
     :param client: The TreeherderClient to use.
     :param revisions: A dictionary of revisions and their associated data.
+    :param s3: Optional Amazon S3 bucket to upload logs to.
     """
     successful = []
     for (revision, test_set) in revisions.iteritems():
@@ -176,7 +277,7 @@ def post_treeherder_jobs(client, revisions):
 
         tjc = TreeherderJobCollection()
         try:
-            tjc.add(create_treeherder_job(repo, revision, client, nodes))
+            tjc.add(create_treeherder_job(repo, revision, client, nodes, s3))
         except KeyError as e:
             print "Failed to generate data for %s: %s, probably still running" % (revision, e)
             continue
@@ -241,9 +342,15 @@ def filter_datasets(file_names, perf_history_file='last_perf.json'):
     return revisions
 
 
-def process_datasets(host, client_id, secret, revisions):
-    client = TreeherderClient(protocol='https', host=host, client_id=client_id, secret=secret)
-    return post_treeherder_jobs(client, revisions)
+def process_datasets(host, client_id, secret, revisions, s3):
+    # For local testing just http is used, otherwise https is required.
+    if host != 'local.treeherder.mozilla.org':
+        protocol = 'https'
+    else:
+        protocol = 'http'
+
+    client = TreeherderClient(protocol=protocol, host=host, client_id=client_id, secret=secret)
+    return post_treeherder_jobs(client, revisions, s3)
 
 
 def update_known_revisions(new_revisions, perf_history_file='last_perf.json'):
@@ -272,19 +379,32 @@ if __name__ == '__main__':
         print "Usage: process_perf_data.py config_file files..."
         sys.exit(1)
 
-    cfg = ConfigParser.ConfigParser()
-    cfg.read(args[0])
-    host = cfg.get('treeherder', 'host')
-    client_id = cfg.get('treeherder', 'client_id')
-    secret = cfg.get('treeherder', 'client_secret')
-
+    # Determine which revisions we need to process.
     file_names = args[1:]
     revisions = filter_datasets(file_names)
     if not revisions:
         print "No new revisions to process."
         sys.exit(0)
 
-    successful = process_datasets(host, client_id, secret, revisions)
+    # Load the config.
+    cfg = ConfigParser.ConfigParser()
+    cfg.read(args[0])
+    host = cfg.get('treeherder', 'host')
+    client_id = cfg.get('treeherder', 'client_id')
+    secret = cfg.get('treeherder', 'client_secret')
+
+    # Attempt to load the S3 module if credentials are provided.
+    s3 = None
+    try:
+        s3_bucket = cfg.get('S3', 'bucket')
+        s3_access_key_id = cfg.get('S3', 'access_key_id')
+        s3_access_secret_key = cfg.get('S3', 'access_secret_key')
+        s3 = S3(s3_bucket, s3_access_key_id, s3_access_secret_key)
+    except Exception, e:
+        print "S3 Failed: %s" % e
+
+    # Push the data to the production treeherder instance.
+    successful = process_datasets(host, client_id, secret, revisions, s3)
     update_known_revisions(successful)
 
     # Try to push data to staging as well.
@@ -293,7 +413,7 @@ if __name__ == '__main__':
         client_id = cfg.get('treeherder_staging', 'client_id')
         secret = cfg.get('treeherder_staging', 'client_secret')
 
-        process_datasets(host, client_id, secret, revisions)
+        process_datasets(host, client_id, secret, revisions, s3)
     except:
         pass
 
