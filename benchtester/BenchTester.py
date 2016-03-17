@@ -30,7 +30,8 @@ gTableSchemas = [
   '''CREATE TABLE IF NOT EXISTS
       "benchtester_builds" ("id" INTEGER PRIMARY KEY NOT NULL,
                            "name" VARCHAR NOT NULL UNIQUE,
-                           "time" DATETIME NOT NULL)''',
+                           "time" DATETIME NOT NULL,
+                           "repo_id" INTEGER NOT NULL)''',
 
   # Tests - tests that have been run and against which build
   '''CREATE TABLE IF NOT EXISTS
@@ -48,6 +49,11 @@ gTableSchemas = [
   # Procs - names of processes
   '''CREATE TABLE IF NOT EXISTS
       "benchtester_procs" ("id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                           "name" VARCHAR NOT NULL UNIQUE)''',
+
+  # Repos - names of source repositories
+  '''CREATE TABLE IF NOT EXISTS
+      "benchtester_repos" ("id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
                            "name" VARCHAR NOT NULL UNIQUE)''',
 
   # Checkpoints - names of checkpoints
@@ -162,7 +168,7 @@ class BenchTester():
 
     for full_process_name in process_names:
       # Drop the pid portion of process name
-      process_re = r'(.*)\s+\(\d+\)'
+      process_re = r'(.*)\s+\(.+\)'
       m = re.match(process_re, full_process_name)
       if m:
         proc_name = m.group(1)
@@ -377,6 +383,15 @@ class BenchTester():
       if not db_exists:
         cur.execute("INSERT INTO `benchtester_version` (`version`) VALUES (?)", [ gVersion ])
 
+      # Create/update the repo
+      cur.execute("SELECT `id` FROM `benchtester_repos` WHERE `name` = ?", [ self.repo ])
+      row = cur.fetchone()
+      if row:
+        repo_id = int(row[0])
+      else:
+        cur.execute("INSERT INTO benchtester_repos(name) VALUES (?)", (self.repo, ))
+        repo_id = cur.lastrowid
+
       # Create/update build ID
       cur.execute("SELECT `time`, `id` FROM `benchtester_builds` WHERE `name` = ?", [ self.buildname ])
       buildrow = cur.fetchone()
@@ -387,7 +402,9 @@ class BenchTester():
         self.build_id = buildrow[1]
       elif not buildrow:
         self.info("Creating new build record")
-        cur.execute("INSERT INTO `benchtester_builds` (`name`, `time`) VALUES (?, ?)", (self.buildname, int(self.buildtime)))
+        cur.execute("INSERT INTO `benchtester_builds` (`name`, `time`, `repo_id`) "
+                    "VALUES (?, ?, ?)",
+                    (self.buildname, int(self.buildtime), repo_id))
         cur.execute("SELECT last_insert_rowid()")
         self.build_id = cur.fetchone()[0]
       else:
@@ -424,6 +441,12 @@ class BenchTester():
     if (self.args['buildtime']):
       self.buildtime = str(self.args['buildtime']).strip()
 
+    if 'repo' in self.args and self.args['repo']:
+      self.repo = self.args['repo']
+      self.info('Using provided repo: %s' % self.repo)
+    else:
+      self.repo = 'mozilla-inbound'
+      self.info('Using default repo: mozilla-inbound')
 
     # Try to autodetect commitname/time if given a binary in a repo
     if not self.buildname or not self.buildtime:

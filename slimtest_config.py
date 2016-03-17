@@ -35,6 +35,7 @@ AreWeSlimYetTests = {
         'test': [ 'benchtester', 'test_memory_usage.py' ],
         'proxyPort': 3128,
         'e10s': True,
+        'entities': 1, 'perTabPause': 0, 'settleWaitTime': 0, 'iterations': 1
       }
   },
 };

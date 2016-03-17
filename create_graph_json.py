@@ -258,7 +258,10 @@ cur = sql.cursor()
 
 # Fetch and sort the builds by timestamp. For builds with identical push dates,
 # lookup the revision number from hg
-cur.execute('''SELECT `id`, `name`, `time` FROM `benchtester_builds`''')
+cur.execute('''SELECT build.id as `id`, build.name as `name`, build.time as `time`, repo.name as `repo_name`
+               FROM `benchtester_builds` as build, `benchtester_repos` as repo
+               WHERE build.repo_id = repo.id''')
+
 builds = cur.fetchall()
 hg_ui = None
 hg_repo = None
@@ -528,6 +531,10 @@ for build in builds:
             if not testname in gTests.keys() or \
                not gTests[testname].get('dump'):
                 del testdata[testname]
+            else:
+              # Add test metadata.
+              testdata[testname]['repo'] = build['repo_name']
+              testdata[testname]['revision'] = build['name']
 
         #
         # Write out the test data for this build into <buildname>.json.gz

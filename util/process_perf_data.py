@@ -22,14 +22,14 @@ from thclient import (TreeherderClient, TreeherderJob,
 
 # A description of each checkpoint and the root path to it.
 CHECKPOINTS = [
-    { 'name': "Fresh start", 'path': "Iteration 1/Start" },
-    { 'name': "Fresh start [+30s]", 'path': "Iteration 1/StartSettled" },
-    { 'name': "After tabs open", 'path': "Iteration 5/TabsOpen" },
-    { 'name': "After tabs open [+30s]", 'path': "Iteration 5/TabsOpenSettled" },
-    { 'name': "After tabs open [+30s, forced GC]", 'path': "Iteration 5/TabsOpenForceGC" },
-    { 'name': "Tabs closed", 'path': "Iteration 5/TabsClosed" },
-    { 'name': "Tabs closed [+30s]", 'path': "Iteration 5/TabsClosedSettled" },
-    { 'name': "Tabs closed [+30s, forced GC]", 'path': "Iteration 5/TabsClosedForceGC" }
+    { 'name': "Fresh start", 'path': "Iteration 1/Start/Main" },
+    { 'name': "Fresh start [+30s]", 'path': "Iteration 1/StartSettled/Main" },
+    { 'name': "After tabs open", 'path': "Iteration 5/TabsOpen/Main" },
+    { 'name': "After tabs open [+30s]", 'path': "Iteration 5/TabsOpenSettled/Main" },
+    { 'name': "After tabs open [+30s, forced GC]", 'path': "Iteration 5/TabsOpenForceGC/Main" },
+    { 'name': "Tabs closed", 'path': "Iteration 5/TabsClosed/Main" },
+    { 'name': "Tabs closed [+30s]", 'path': "Iteration 5/TabsClosedSettled/Main" },
+    { 'name': "Tabs closed [+30s, forced GC]", 'path': "Iteration 5/TabsClosedForceGC/Main" }
 ]
 
 # A description of each perfherder suite and the path to its values.

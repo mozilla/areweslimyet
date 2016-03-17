@@ -46,6 +46,25 @@ class BenchTesterTest(unittest.TestCase):
     proc_name_mappings = BenchTester.map_process_names(proc_names_list)
     self.assertEqual(expected_mappings, proc_name_mappings)
 
+    # Test multiple of one type with pid prefix
+    proc_names_list = [
+        "Main",
+        "Web Content (pid 1234)",
+        "Web Content (pid 2345)",
+        "Web Content (pid 3456)"
+        ]
+
+    expected_mappings = {
+        "Main": "Main",
+        "Web Content (pid 1234)": "Web Content",
+        "Web Content (pid 2345)": "Web Content 2",
+        "Web Content (pid 3456)": "Web Content 3"
+        }
+
+    proc_name_mappings = BenchTester.map_process_names(proc_names_list)
+    self.assertEqual(expected_mappings, proc_name_mappings)
+
+
     # Test multiple of several types
     proc_names_list = [
         "Main",

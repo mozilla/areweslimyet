@@ -110,6 +110,9 @@ print("[%.02fs] Inserted %d checkpoints" % ((time.time() - starttime), len(check
 # Add an entry for Main in benchtester_procs
 cur.execute('INSERT INTO benchtester_procs(name) VALUES ( ? )', ('Main', ))
 
+# Add an entry for mozilla-inbound in benchtester_repos
+cur.execute('INSERT INTO benchtester_repos(name) VALUES ( ? )', ('mozilla-inbound', ))
+
 # Fill in the datapoints table
 cur.execute('SELECT DISTINCT name AS datapoint '
             'FROM old.benchtester_datapoints d ')
@@ -137,8 +140,8 @@ cur.executemany('INSERT OR IGNORE INTO benchtester_datapoints(name) '
 print("[%.02fs] Inserted %d datapoints" % ((time.time() - starttime), len(datapoints)))
 
 # Copy the builds table
-cur.execute('INSERT INTO benchtester_builds(id, name, time) '
-            'SELECT id, name, time from old.benchtester_builds ')
+cur.execute('INSERT INTO benchtester_builds(id, name, time, repo_id) '
+            'SELECT id, name, time, 1 from old.benchtester_builds')
 
 print("[%.02fs] Copied benchtester_builds" % (time.time() - starttime))
 

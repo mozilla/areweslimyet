@@ -100,6 +100,20 @@ class BatchBuild():
     # honor this in should_test as well
     self.force = None
 
+  def build_type(self):
+    if isinstance(self.build, BuildGetter.CompileBuild):
+      return 'compile'
+    elif isinstance(self.build, BuildGetter.TryBuild):
+      return 'try'
+    elif isinstance(self.build, BuildGetter.FTPBuild):
+      return 'ftp'
+    elif isinstance(self.build, BuildGetter.TinderboxBuild):
+      return 'tinderbox'
+    elif isinstance(self.build, BuildGetter.NightlyBuild):
+      return 'nightly'
+    else:
+      raise Exception("Unknown build type %s" % (self.build,))
+
   @staticmethod
   def deserialize(buildobj, args):
     if buildobj['type'] == 'compile':
@@ -139,26 +153,22 @@ class BatchBuild():
       'series': self.series
     }
 
-    if isinstance(self.build, BuildGetter.CompileBuild):
-      ret['type'] = 'compile'
-    elif isinstance(self.build, BuildGetter.TryBuild):
-      ret['type'] = 'try'
+    build_type = self.build_type()
+    ret['type'] = build_type
+
+    if build_type == 'try':
       ret['changeset'] = self.build._changeset
-    elif isinstance(self.build, BuildGetter.FTPBuild):
-      ret['type'] = 'ftp'
+    elif build_type == 'ftp':
       ret['path'] = self.build._path
-    elif isinstance(self.build, BuildGetter.TinderboxBuild):
+    elif build_type == 'tinderbox':
       # When deserializing we need to look this up by it's tinderbox timestamp,
       # even if we use the push timestamp internally
       ret['timestamp'] = self.build.get_tinderbox_timestamp()
-      ret['type'] = 'tinderbox'
       ret['branch'] = self.build.get_branch()
-    elif isinstance(self.build, BuildGetter.NightlyBuild):
+    elif build_type == 'nightly':
       # Date of nightly might not correspond to build timestamp
       ret['for'] = '%u-%u-%u' % (self.build._date.year, self.build._date.month, self.build._date.day)
-      ret['type'] = 'nightly'
-    else:
-      raise Exception("Unknown build type %s" % (build,))
+
     return ret
 
 # Work around multiprocessing.Pool() quirkiness. We can't give it
@@ -486,6 +496,8 @@ class BatchTest(object):
         mod = None
       ret = BatchTest._process_batch_inner(globalargs, batchargs, mod)
     except Exception, e:
+      import traceback
+      traceback.print_exc()
       ret = "An exception occured while processing batch -- %s: %s" % (type(e), e)
 
     if type(ret) == str:

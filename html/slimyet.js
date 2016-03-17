@@ -548,6 +548,10 @@ var gSeries = {
     'MaxJSV2':                "JS: After TP5 [+30s]",
     'MaxImagesV2':            "Images: After TP5 [+30s]"
   },
+};
+
+// Once we enable e10s we'll want to add this to gSeries.
+var gSeriesE10S = {
   "Web Content Resident Memory" : {
     'Web Content StartMemoryResidentV2':         "RSS: Fresh start",
     'Web Content StartMemoryResidentSettledV2':  "RSS: Fresh start [+30s]",

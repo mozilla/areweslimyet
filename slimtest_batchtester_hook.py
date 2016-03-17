@@ -96,6 +96,12 @@ def run_tests(build, args):
     if not tester.load_module(test['type']):
       raise Exception("Could not load module %s" % (test['type'],))
 
+  REPO_MAP = {
+      'nightly': 'mozilla-central',
+      'tinderbox': 'mozilla-inbound',
+      'try': 'try'
+  }
+
   tester.setup({
     'buildname': build.revision,
     'binary': build.build.get_binary(),
@@ -103,7 +109,8 @@ def run_tests(build, args):
     'sqlitedb': database_for_build(build),
     'logfile': logfile,
     'gecko_log': gecko_logfile,
-    'marionette_port': 24242 + build.num # Use different marionette ports so as not to collide
+    'marionette_port': 24242 + build.num, # Use different marionette ports so as not to collide
+    'repo': REPO_MAP.get(build.build_type(), None),
   })
 
   display = ":%u" % (build.num + 9,)
