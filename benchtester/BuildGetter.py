@@ -300,7 +300,7 @@ class TryBuild(DownloadedBuild):
     self._changeset = changeset
     scraper_info = {
       'type': mozdownload.scraper.TryScraper,
-      'args': { 'changeset': changeset }
+      'args': { 'revision': changeset }
     }
 
     DownloadedBuild.__init__(self, scraper_info, *args, **kwargs)
@@ -310,7 +310,7 @@ class NightlyBuild(DownloadedBuild):
   """A nightly build. Initialized with a date() object or a YYYY-MM-DD string"""
 
   def __init__(self, date, *args, **kwargs):
-    self._date = date if isinstance(date, datetime.datetime) else datetime.datetime.strptime(date, "%Y-%m-%d")
+    self._date = date if isinstance(date, datetime.date) else datetime.datetime.strptime(date, "%Y-%m-%d")
     scraper_info = { 
       'type': mozdownload.scraper.DailyScraper,
       'args': { 'date': self._date.strftime("%Y-%m-%d") }
