@@ -245,7 +245,7 @@ def create_treeherder_job(repo, revision, client, nodes, s3=None):
 
         # To avoid overwriting existing data (perhaps if a job is retriggered)
         # the job guid is included in the key.
-        log_prefix = "%s/%s/%s" % (repo, revision, str(uuid.uuid4()))
+        log_prefix = "%s/%s/%s" % (repo, revision, job_guid.hexdigest())
 
         # Add the test log.
         log_id = '%s/%s' % (log_prefix, 'awsy_test_raw.log')
