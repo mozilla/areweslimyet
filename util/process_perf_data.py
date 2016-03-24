@@ -229,13 +229,15 @@ def create_treeherder_job(repo, revision, client, nodes, s3=None):
 
     perf_blob = create_perf_data(nodes)
     perf_data = json.dumps({ 'performance_data': perf_blob })
-    tj.add_artifact('performance_data', 'json', perf_data)
 
     # Set the job guid to a combination of the revision and the job data. This
     # gives us a reasonably unique guid, but is also reproducible for the same
     # set of data.
     job_guid = hashlib.sha1(revision + perf_data)
     tj.add_job_guid(job_guid.hexdigest())
+
+    # NB: The job guid must be set prior to adding artifacts.
+    tj.add_artifact('performance_data', 'json', perf_data)
 
     # If an S3 connection is provided the logs for this revision are uploaded.
     # Addtionally a 'Job Info' blob is built up with links to the logs that
