@@ -29,17 +29,16 @@
 <li><a href="#how-is-this-data-generated">How is this data generated?</a></li>
 <li><a href="#whats-the-difference-between-resident-memory-and-explicit">What's the difference between "resident memory" and "explicit"?</a></li>
 <li><a href="#why-are-there-gaps-in-the-graphs">Why are there gaps in the graphs?</a></li>
-<li><a href="#rss-after-tp5-tabs-closed-30s-is-almost-twice-as-high-as-rss-fresh-start-mdash-doesnt-that-mean-firefox-leaks-a-ton-of-memory">"RSS: After TP5, tabs closed [+30s]" is almost twice as high as "RSS: Fresh start" &mdash; doesn't that mean Firefox leaks a ton of memory?</a></li>
+<li><a href="#rss-after-tp5-tabs-closed-30s-is-almost-twice-as-high-as-rss-fresh-start-doesnt-that-mean-firefox-leaks-a-ton-of-memory">"RSS: After TP5, tabs closed [+30s]" is almost twice as high as "RSS: Fresh start" &mdash; doesn't that mean Firefox leaks a ton of memory?</a></li>
 <li><a href="#how-can-i-request-additional-awsy-tests-on-specific-changesets-or-try-pushes">How can I request additional AWSY tests on specific changesets or try pushes?</a><ul>
 <li><a href="#but-i-dont-have-access-to-your-fancy-network">But... I don't have access to your fancy network!</a></li>
+<li><a href="#how-to-use-trywatcher">How to use trywatcher?</a></li>
 </ul>
 </li>
 <li><a href="#this-is-all-well-and-good-but-my-firefox-still-leaks-like-a-sieve">This is all well and good, but my Firefox still leaks like a sieve.</a><ul>
-<li><a href="#check-your-version">Check your version</a><ul>
+<li><a href="#check-your-version">Check your version</a></li>
 <li><a href="#check-for-add-on-leaks">Check for add-on leaks</a></li>
 <li><a href="#if-firefox-still-leaks-even-in-safe-mode-file-a-bug">If Firefox still leaks, even in safe mode, file a bug!</a></li>
-</ul>
-</li>
 </ul>
 </li>
 </ul>
@@ -126,7 +125,7 @@ test framework (yikes!).</p>
 <p>Much of the code for generating the <em>explicit</em> numbers was not stable until
 around July 2011.  This explains the lack of earlier data as well as the rather
 sporadic data points for the first few months.</p>
-<h2 id="rss-after-tp5-tabs-closed-30s-is-almost-twice-as-high-as-rss-fresh-start-mdash-doesnt-that-mean-firefox-leaks-a-ton-of-memory">"RSS: After TP5, tabs closed [+30s]" is almost twice as high as "RSS: Fresh start" &mdash; doesn't that mean Firefox leaks a ton of memory?</h2>
+<h2 id="rss-after-tp5-tabs-closed-30s-is-almost-twice-as-high-as-rss-fresh-start-doesnt-that-mean-firefox-leaks-a-ton-of-memory">"RSS: After TP5, tabs closed [+30s]" is almost twice as high as "RSS: Fresh start" &mdash; doesn't that mean Firefox leaks a ton of memory?</h2>
 <p>Well, not exactly.</p>
 <p>If you look at the equivalent <em>explicit</em> numbers, you'll see that the <em>after
 TP5, tabs closed [+30s]</em> measure is very close to the <em>fresh start</em> measure.
@@ -156,6 +155,23 @@ mozilla-inbound and don't make sense to include in the main plot.</p>
 <h4 id="but-i-dont-have-access-to-your-fancy-network">But... I don't have access to your fancy network!</h4>
 <p>Never fear! The valiant memory knights in <a href="https://wiki.mozilla.org/IRC">IRC</a> (irc.mozilla.org, #memshrink)
 can queue additional tests on your behalf.</p>
+<h3 id="how-to-use-trywatcher">How to use trywatcher?</h3>
+<p>AWSY now has try integration for 64-bit linux opt builds.
+Just add -awsy series_name to your try commit message and a run will be
+scheduled for your custom series once the build completes.
+A full example might look like:
+<code>try: -b o -p linux64 -u mochitests -t none -awsy erahm_bug_12345</code></p>
+<p>If you'd like to perform a comparison of how your changes impact memory usage
+we would suggest the following workflow.</p>
+<ul>
+<li>Choose a series name. A good option is <code>&lt;user_name&gt;_&lt;bug_number&gt;</code>.</li>
+<li>Push a baseline build, A, to try.</li>
+<li>Apply a patch with your changes, B, push that to try.</li>
+<li>Apply a patch with even more changes, C, push that to try as well.</li>
+</ul>
+<p>That will end up with a graph w/ points for a A, B, C available at:
+<code>https://areweslimyet.com/?series=&lt;user_name&gt;&lt;bug_number?</code>.
+where you will have to complete the link with <em>your</em> <code>&lt;user_name&gt;_&lt;bug_number&gt;</code>.</p>
 <h2 id="this-is-all-well-and-good-but-my-firefox-still-leaks-like-a-sieve">This is all well and good, but my Firefox still leaks like a sieve.</h2>
 <p>We're sorry to hear that, and we'd like to help.  Here are some diagnostics you
 can try.</p>
