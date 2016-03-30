@@ -5,6 +5,7 @@
 
 import ConfigParser
 import gzip
+import hashlib
 import json
 import math
 import os
@@ -40,6 +41,13 @@ PERF_SUITES = [
     { 'name': "JS", 'node': "js-main-runtime" },
     { 'name': "Images", 'node': "explicit/images" }
 ]
+
+
+class RevisionNotFoundError(Exception):
+    """
+    Indicates the given revision was not found in the given repo.
+    """
+    pass
 
 
 # Based on autophone implementation
@@ -201,14 +209,15 @@ def create_treeherder_job(repo, revision, client, nodes, s3=None):
     :param nodes: The dataset for this build.
     :param s3: Optional Amazon S3 bucket to upload logs to.
     """
-    rev_hash = client.get_resultsets(repo, revision=revision)[0]['revision_hash']
+    try:
+        rev_hash = client.get_resultsets(repo, revision=revision)[0]['revision_hash']
+    except IndexError:
+        raise RevisionNotFoundError("Revision %s was not found in %s" % (revision, repo))
 
     tj = TreeherderJob()
     tj.add_tier(2)
     tj.add_revision_hash(rev_hash)
     tj.add_project(repo)
-    job_guid = str(uuid.uuid4())
-    tj.add_job_guid(job_guid)
 
     tj.add_job_name('awsy 1')
     tj.add_job_symbol('a1')
@@ -229,7 +238,16 @@ def create_treeherder_job(repo, revision, client, nodes, s3=None):
     tj.add_option_collection({'opt': True})
 
     perf_blob = create_perf_data(nodes)
-    tj.add_artifact('performance_data', 'json', json.dumps({ 'performance_data': perf_blob }))
+    perf_data = json.dumps({ 'performance_data': perf_blob })
+
+    # Set the job guid to a combination of the revision and the job data. This
+    # gives us a reasonably unique guid, but is also reproducible for the same
+    # set of data.
+    job_guid = hashlib.sha1(revision + perf_data)
+    tj.add_job_guid(job_guid.hexdigest())
+
+    # NB: The job guid must be set prior to adding artifacts.
+    tj.add_artifact('performance_data', 'json', perf_data)
 
     # If an S3 connection is provided the logs for this revision are uploaded.
     # Addtionally a 'Job Info' blob is built up with links to the logs that
@@ -239,7 +257,7 @@ def create_treeherder_job(repo, revision, client, nodes, s3=None):
 
         # To avoid overwriting existing data (perhaps if a job is retriggered)
         # the job guid is included in the key.
-        log_prefix = "%s/%s/%s" % (repo, revision, job_guid)
+        log_prefix = "%s/%s/%s" % (repo, revision, job_guid.hexdigest())
 
         # Add the test log.
         log_id = '%s/%s' % (log_prefix, 'awsy_test_raw.log')
@@ -281,15 +299,22 @@ def post_treeherder_jobs(client, revisions, s3=None):
         except KeyError as e:
             print "Failed to generate data for %s: %s, probably still running" % (revision, e)
             continue
+        except RevisionNotFoundError as e:
+            print "%s, skipping" % e
+            successful.append(revision)
+            continue
 
-        # NB: In theory we could batch these, but each collection has to be from
-        #     the same repo and it's possible we have different repos in our
-        #     dataset.
-        client.post_collection(repo, tjc)
-        #print tjc.to_json()
+        try:
+            # NB: In theory we could batch these, but each collection has to be from
+            #     the same repo and it's possible we have different repos in our
+            #     dataset.
+            client.post_collection(repo, tjc)
+            #print tjc.to_json()
 
-        successful.append(revision)
-        print "Submitted perf data for %s to %s" % (revision, client.host)
+            successful.append(revision)
+            print "Submitted perf data for %s to %s" % (revision, client.host)
+        except Exception as e:
+            print "Failed to submit data for %s: %s" % (revision, e)
 
     return successful
 
