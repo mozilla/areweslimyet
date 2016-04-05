@@ -16,12 +16,11 @@ This provides BenchTester.py, a framework for running a bench test module, and
 providing it a add_test_results callback that inserts tests into sqlite
 databases it manages.
 
-The EnduranceTest.py file is such a module, which launches a marionette
+The MarionetteTest.py file is such a module, which launches a marionette
 test, waits for the test to finish.
 
-BuildGetter.py is a helper that has functions for scanning ftp.mozilla.org for
-available builds, and fetching them. It also has a deprecated feature to compile
-things, which is awful.
+BuildGetter.py is a helper that has functions for scanning archive.mozilla.org for
+available builds, and fetching them.
 
 BatchTester.py is a runner for BenchTester that runs a long-lived daemon,
 running multithreaded tests side-by-side. It requires a 'hook' file that
@@ -39,13 +38,13 @@ The `benchtester` folder has a marionette test that is fairly simple:
 - Close all the tabs.
 - Repeat.
 - At various points, call the memory reporter subsystem and fire an event with a
-  memory snapshot as data that the EnduranceTest.py module will forward to the
+  memory snapshot as data that the MarionetteTest.py module will forward to the
   database.
 
 `slimtest_config.py` holds the values we configure the endurance test
 with. Sourced by run_slimtest.py and slimtest_batchtester_hook.py
 
-`run_slimtest.py` uses BenchTester to load the EnduranceTest module with our
+`run_slimtest.py` uses BenchTester to load the MarionetteTest module with our
 endurance test, and run it against a specific firefox build.
 
 `slimtest_batchtester_hook.py` is a hook that the BatchTester.py daemon requires
