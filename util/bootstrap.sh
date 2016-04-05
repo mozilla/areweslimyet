@@ -10,6 +10,9 @@
 # this directory.
 INSTALL_DIR="${PWD}/areweslimyet"
 
+# Capture the full script path for use later.
+SCRIPT_PATH=$(readlink -f $0)
+
 # User to run AWSY under. Set this to $USER if you want to run as yourself.
 AWSY_USER="awsy"
 
@@ -17,7 +20,7 @@ AWSY_USER="awsy"
 # NB: This assumes a debian/ubuntu system. On Fedora/Cent we could switch out:
 #     python-dev=>python-devel, sqlite3=>sqlite, tightvncserver=>tigervnc-server
 #     and use |yum install|.
-PACKAGES="mercurial git nginx python-dev python-virtualenv python-pip sqlite3 tightvncserver curl"
+PACKAGES="git nginx python-dev python-virtualenv python-pip sqlite3 tightvncserver curl"
 sudo apt-get -q install $PACKAGES
 
 if [ $? -ne 0 ]; then
@@ -60,10 +63,10 @@ if [ ! -d "$INSTALL_DIR" ]; then
 fi
 
 cd "$INSTALL_DIR"
-sudo chown ${AWSY_USER}:${AWSY_USER} "$INSTALL_DIR"
+sudo chown ${AWSY_USER}:${AWSY_USER} .
 
 # Perform the rest as the awsy user
-tail -n +$[LINENO+2] $0 | exec sudo -H -u $AWSY_USER bash
+tail -n +$[LINENO+2] "$SCRIPT_PATH" | exec sudo -H -u $AWSY_USER bash
 exit $?
 function setup_as_awsy() {
   # Password used for VNC sessions, these sessions are internal only so this
