@@ -28,7 +28,15 @@ var KIND_OTHER = 2;
 onmessage = function(aEvent) {
   // oEvent.data = { filename: name, checkpoint: object }
   var reports = [];
-  checkpointToAboutMemory("", aEvent.data.checkpoint, reports);
+
+  // Workaround to handle non-e10s capable memory reports:
+  // - Just check if there's an explicit entry in the root of the checkpoint.
+  if (aEvent.data.checkpoint.hasOwnProperty("explicit")) {
+    checkpointToAboutMemory("", aEvent.data.checkpoint, reports, "Main");
+  }
+  else {
+    checkpointToAboutMemory("", aEvent.data.checkpoint, reports);
+  }
 
   var memoryReport = {
     version: ABOUT_MEMORY_VERSION,
@@ -46,8 +54,8 @@ onmessage = function(aEvent) {
   postMessage(blob);
 }
 
-// Converts a checkopoint entry to an about:memory compatible reports array.
-// 
+// Converts a checkpoint entry to an about:memory compatible reports array.
+//
 // @param {aPath} The node path.
 // @param {aData} The data node.
 // @param {aReports} The array of report entries that is being built.
@@ -59,7 +67,7 @@ function checkpointToAboutMemory(aPath, aData, aReports, aProcess) {
     }
     return aObj['_val'] == undefined ? null : aObj['_val'];
   }
-  
+
   function units(aObj) {
     if (aObj instanceof Object && '_units' in aObj) {
       var units = aObj['_units'];
@@ -84,19 +92,19 @@ function checkpointToAboutMemory(aPath, aData, aReports, aProcess) {
       // NB: If the units are bytes we just say the memory is heap memory.
       //     The distinction of heap and non-heap memory only matters for the
       //     calculation of heap-unclassified, which we already calculated.
-      return units(aObj) != UNITS_BYTES ? KIND_OTHER : KIND_HEAP; 
+      return units(aObj) != UNITS_BYTES ? KIND_OTHER : KIND_HEAP;
     }
   }
 
-  var childern = [];
+  var children = [];
   for (var node in aData) {
     // Nodes starting with _ are not children (_val, _sum, _units).
     if (node[0] != '_') {
-      childern.push(node);
+      children.push(node);
     }
   }
 
-  if (childern.length == 0) {
+  if (children.length == 0) {
     // This is a leaf node.
     var report = {
       description: "",
@@ -106,13 +114,13 @@ function checkpointToAboutMemory(aPath, aData, aReports, aProcess) {
       path: aPath,
       kind: kind(aData)
     };
-    
+
     aReports.push(report);
     return;
   }
 
   var node;
-  while (node = childern.shift()) {
+  while (node = children.shift()) {
     var nodePath = aPath != "" ? aPath + '/' + node : node;
     var process = aProcess;
     if (!process) {
@@ -122,4 +130,3 @@ function checkpointToAboutMemory(aPath, aData, aReports, aProcess) {
     checkpointToAboutMemory(nodePath, aData[node], aReports, process);
   }
 }
-
