@@ -156,6 +156,19 @@ mozilla-inbound and don't make sense to include in the main plot.</p>
 <h4 id="but-i-dont-have-access-to-your-fancy-network">But... I don't have access to your fancy network!</h4>
 <p>Never fear! The valiant memory knights in <a href="https://wiki.mozilla.org/IRC">IRC</a> (irc.mozilla.org, #memshrink)
 can queue additional tests on your behalf.</p>
+<h2 id="how-to-use-trywatcher">How to use trywatcher?</h2>
+<p>AWSY now has try integration for 64-bit linux opt builds. Just add <strong>-awsy&lt;series_name&gt;</strong>
+to your try commit message and a run will be scheduled for your custom series once the build completes.</p>
+<p>A full example might look like: <strong>try: -b o -p linux64 -u mochitests -t none -awsy erahm_bug_12345</strong></p>
+<p>If you'd like to perform a comparison of how your changes impact memory usage we would suggest the following workflow.</p>
+<ol>
+  <li>Choose a series name. A good option is &lt;user_name&gt;&lt;bug_number&gt;.</li>
+  <li>Push a baseline build, A, to try</li>
+  <li>Apply a patch with your changes, B, push that to try</li>
+  <li>Apply a patch with even more changes, C, push that to try as well</li>
+</ol>
+<p>That will end up with a graph w/ points for a A, B, C available at: <a href=" https://areweslimyet.com/?series">areweslimyet.com/?series= <strong>&lt;user_name&gt;&lt;bug_number&gt;</strong></a>
+  <br>Where <em>you</em> will have to complete the link with your <strong>&lt;user_name&gt; &lt;bug_number&gt;</strong>.
 <h2 id="this-is-all-well-and-good-but-my-firefox-still-leaks-like-a-sieve">This is all well and good, but my Firefox still leaks like a sieve.</h2>
 <p>We're sorry to hear that, and we'd like to help.  Here are some diagnostics you
 can try.</p>

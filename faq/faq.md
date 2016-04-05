@@ -141,6 +141,26 @@ visible at http://areweslimyet.com/?series=foo rather than the main
 dataset. This is useful for try builds or other builds that aren't part of
 mozilla-inbound and don't make sense to include in the main plot.
 
+## How to use trywatcher?
+
+AWSY now has try integration for 64-bit linux opt builds.
+Just add -awsy series_name to your try commit message and a run will be
+scheduled for your custom series once the build completes.
+A full example might look like:
+try: -b o -p linux64 -u mochitests -t none -awsy erahm_bug_12345
+
+If you'd like to perform a comparison of how your changes impact memory usage
+we would suggest the following workflow.
+
+  * Choose a series name. A good option is user_name bug_number.
+  * Push a baseline build, A, to try.
+  * Apply a patch with your changes, B, push that to try.
+  * Apply a patch with even more changes, C, push that to try as well.
+
+That will end up with a graph w/ points for a A, B, C available at:
+https://areweslimyet.com/?series=user_namebug_number
+Where *you* will have to complete the link with *your* user_name bug_number.
+
 #### But... I don't have access to your fancy network!
 
 Never fear! The valiant memory knights in [IRC][] (irc.mozilla.org, \#memshrink)
