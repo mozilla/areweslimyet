@@ -13,7 +13,7 @@ import json
 
 import mozfile
 
-sys.path.insert(0, "../../util")
+sys.path.insert(0, "util")
 import try_watcher
 
 
@@ -56,8 +56,8 @@ class TryWatcherTest(unittest.TestCase):
         self.assertEqual(len(files), 3)
 
         expected = {
-            'mode': 'ftp',
-            'firstbuild': 'try:dc44b0582aff',
+            'mode': 'try',
+            'firstbuild': revision,
             'series': series,
             'prioritize': True
         }

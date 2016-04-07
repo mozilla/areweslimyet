@@ -7,9 +7,7 @@
 import sys
 import unittest
 
-# Janky hack to work around not having modules setup
-sys.path.insert(0, "../../benchtester")
-from BenchTester import BenchTester
+from benchtester.BenchTester import BenchTester
 
 class BenchTesterTest(unittest.TestCase):
 
@@ -97,18 +95,29 @@ class BenchTesterTest(unittest.TestCase):
         "GMP (2345)": []
         }
 
+    # We can't guarantee the order of the entries in the dictionary so we just
+    # verify the write values are present.
+    expected_values = [
+        "Main",
+        "Web Content",
+        "Web Content 2",
+        "Web Content 3",
+        "GMP",
+        "GMP 2"
+        ]
+
     proc_name_mappings = BenchTester.map_process_names(proc_names_dict)
-    self.assertEqual(expected_mappings, proc_name_mappings)
+    self.assertEqual(sorted(expected_values), sorted(proc_name_mappings.values()))
 
     # Test with different pid orderings
-    proc_names_dict = {
-        "Main": [],
-        "Web Content (2345)": [],
-        "Web Content (1234)": [],
-        "Web Content (3456)": [],
-        "GMP (2345)": [],
-        "GMP (1234)": []
-        }
+    proc_names_list = [
+        "Main",
+        "Web Content (2345)",
+        "Web Content (1234)",
+        "Web Content (3456)",
+        "GMP (2345)",
+        "GMP (1234)"
+        ]
 
     expected_mappings = {
         "Main": "Main",
@@ -119,7 +128,7 @@ class BenchTesterTest(unittest.TestCase):
         "GMP (1234)": "GMP 2"
         }
 
-    proc_name_mappings = BenchTester.map_process_names(proc_names_dict)
+    proc_name_mappings = BenchTester.map_process_names(proc_names_list)
     self.assertEqual(expected_mappings, proc_name_mappings)
 
 

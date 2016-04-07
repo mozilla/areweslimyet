@@ -9,15 +9,13 @@ import sys
 import unittest
 import urllib
 
+from mock import patch
+
 from mozdownload.utils import urljoin
 
-sys.path.insert(0, "../")
 import mozhttpd_base_test as mhttpd
-
-
-# Janky hack to work around not having modules setup
-sys.path.insert(0, "../../benchtester")
-from BuildGetter import TinderboxBuild, NightlyBuild, TryBuild, FTPBuild, list_tinderbox_builds
+from benchtester.BuildGetter import (TinderboxBuild, NightlyBuild, TryBuild,
+                                     FTPBuild, list_tinderbox_builds)
 
 class BuildGetterTest(mhttpd.MozHttpdBaseTest):
 
@@ -95,7 +93,14 @@ class BuildGetterTest(mhttpd.MozHttpdBaseTest):
 
     self.assertFalse(os.path.exists(binary))
 
-  def test_try(self):
+  # NB: Patching code lifted from mozdownload tests. Will probably drift
+  #     eventualy.
+  @patch('mozdownload.treeherder.Treeherder.query_builds_by_revision')
+  def test_try(self, query_builds_by_revision):
+    query_builds_by_revision.return_value = [
+        '/firefox/try-builds/erahm@mozilla.com-a7d50e410ced2f0335bab09c7cc65ff2d2733b97/try-linux64/'
+        ]
+
     try_build = \
       TryBuild(directory=self.temp_dir,
                base_ftp_url=self.wdir,
@@ -115,7 +120,12 @@ class BuildGetterTest(mhttpd.MozHttpdBaseTest):
 
     self.assertFalse(os.path.exists(binary))
 
-  def test_try_short(self):
+  @patch('mozdownload.treeherder.Treeherder.query_builds_by_revision')
+  def test_try_short(self, query_builds_by_revision):
+    query_builds_by_revision.return_value = [
+        '/firefox/try-builds/erahm@mozilla.com-a7d50e410ced2f0335bab09c7cc65ff2d2733b97/try-linux64/'
+        ]
+
     try_build = \
       TryBuild(directory=self.temp_dir,
                base_ftp_url=self.wdir,
