@@ -24,9 +24,9 @@ import urllib2
 import mozdownload
 
 PUSHLOG_BRANCH_MAP = {
-  'mozilla-inbound': 'integration/mozilla-inbound',
-  'b2g-inbound': 'integration/b2g-inbound',
-  'fx-team': 'integration/fx-team'
+    'mozilla-inbound': 'integration/mozilla-inbound',
+    'b2g-inbound': 'integration/b2g-inbound',
+    'fx-team': 'integration/fx-team'
 }
 
 BASE_FTP_URL = 'https://archive.mozilla.org/pub'
@@ -41,306 +41,317 @@ output = sys.stdout
 # This currently selects the linux-64 (non-pgo) build
 # hardcoded at a few spots. This will need to be changed for non-linux testing
 
+
 def _stat(msg):
-  output.write("[BuildGetter] %s\n" % msg);
+    output.write("[BuildGetter] %s\n" % msg)
 
 
 def get_build_info(url):
-  """Retrieves the build info file and parses out relevant information"""
-  # cross-platform FIXME, this is hardcoded to linux
-  # trim off the extension, replace w/ .txt
-  info_url = url[:-len(".tar.bz2")] + ".txt"
+    """Retrieves the build info file and parses out relevant information"""
+    # cross-platform FIXME, this is hardcoded to linux
+    # trim off the extension, replace w/ .txt
+    info_url = url[:-len(".tar.bz2")] + ".txt"
 
-  try:
-    raw = urllib2.urlopen(info_url, timeout=30).read()
-  except (IOError, urllib2.URLError) as e:
-    _stat("ERR: Failed to query server for %s %s %s" % (url, type(e), e))
-    return None
+    try:
+        raw = urllib2.urlopen(info_url, timeout=30).read()
+    except (IOError, urllib2.URLError) as e:
+        _stat("ERR: Failed to query server for %s %s %s" % (url, type(e), e))
+        return None
 
-  _stat("Got build info: %s" % raw)
+    _stat("Got build info: %s" % raw)
 
-  # This file has had lines changed in the past, just find a numeric line
-  # and a url-of-revision-lookin' line
-  m = re.search('^[0-9]{14}$', raw, re.MULTILINE)
-  timestamp = int(time.mktime(time.strptime(m.group(0), '%Y%m%d%H%M%S')))
-  m = re.search('^https?://hg.mozilla.org/(.+)/rev/([0-9a-z]+)$', raw, re.MULTILINE)
-  rev = m.group(2)
-  branch = m.group(1)
+    # This file has had lines changed in the past, just find a numeric line
+    # and a url-of-revision-lookin' line
+    m = re.search('^[0-9]{14}$', raw, re.MULTILINE)
+    timestamp = int(time.mktime(time.strptime(m.group(0), '%Y%m%d%H%M%S')))
+    m = re.search(
+        '^https?://hg.mozilla.org/(.+)/rev/([0-9a-z]+)$', raw, re.MULTILINE)
+    rev = m.group(2)
+    branch = m.group(1)
 
-  return (timestamp, rev, branch)
+    return (timestamp, rev, branch)
 
 
 def pushlog_lookup(rev, branch=gDefaultBranch, base_url=BASE_HG_URL):
-  """hg.m.o pushlog query"""
-  pushlog_branch = PUSHLOG_BRANCH_MAP.get(branch, branch)
-  pushlog = gPushlogUrl % (base_url, pushlog_branch)
-  url = "%s?changeset=%s" % (pushlog, rev)
-  try:
-    raw = urllib2.urlopen(url, timeout=30).read()
-  except (IOError, urllib2.URLError) as e:
-    _stat("ERR: Failed to query pushlog for changeset %s on %s at %s: %s - %s" % (rev, branch, url, type(e), e))
-    return False
-  try:
-    pushlog = json.loads(raw)
-    if len(pushlog) != 1:
-      raise ValueError("Pushlog returned %u items, expected 1" % len(pushlog))
-    for cset in pushlog[pushlog.keys()[0]]['changesets']:
-      if cset.startswith(rev):
-        break
-    else:
-      raise ValueError("Pushlog returned a push that does not contain this revision?")
+    """hg.m.o pushlog query"""
+    pushlog_branch = PUSHLOG_BRANCH_MAP.get(branch, branch)
+    pushlog = gPushlogUrl % (base_url, pushlog_branch)
+    url = "%s?changeset=%s" % (pushlog, rev)
+    try:
+        raw = urllib2.urlopen(url, timeout=30).read()
+    except (IOError, urllib2.URLError) as e:
+        _stat("ERR: Failed to query pushlog for changeset %s on %s at %s: %s - %s" %
+              (rev, branch, url, type(e), e))
+        return False
+    try:
+        pushlog = json.loads(raw)
+        if len(pushlog) != 1:
+            raise ValueError(
+                "Pushlog returned %u items, expected 1" % len(pushlog))
+        for cset in pushlog[pushlog.keys()[0]]['changesets']:
+            if cset.startswith(rev):
+                break
+        else:
+            raise ValueError(
+                "Pushlog returned a push that does not contain this revision?")
 
-  except ValueError as e:
-    _stat("ERR: pushlog returned invalid JSON for changeset %s\n  Error was:\n    %s - %s\n  JSON:\     %s" % (rev, type(e), e, raw))
-    return False
+    except ValueError as e:
+        _stat("ERR: pushlog returned invalid JSON for changeset %s\n"
+              "  Error was:\n    %s - %s\n  JSON:\     %s" %
+              (rev, type(e), e, raw))
+        return False
 
-  push = pushlog[pushlog.keys()[0]]
-  _stat("For rev %s on branch %s got push by %s at %u with %u changesets" % (cset, branch, push['user'], push['date'], len(push['changesets'])))
-  return cset, push['date']
+    push = pushlog[pushlog.keys()[0]]
+    _stat("For rev %s on branch %s got push by %s at %u with %u changesets" %
+          (cset, branch, push['user'], push['date'], len(push['changesets'])))
+    return cset, push['date']
 
 
 def list_tinderbox_builds(starttime=0, endtime=int(time.time()),
                           branch=gDefaultBranch, base_url=BASE_FTP_URL):
-  """
-  Gets a list of TinderboxBuild objects for all builds on ftp.m.o within
-  specified date range.
-  """
-  parser = mozdownload.parser.DirectoryParser(gTinderboxUrl % (base_url, branch))
-  entries = parser.filter(r'^\d+$') # only entries that are all digits
-  return sorted([int(x) for x in entries if int(x) >= starttime and int(x) <= endtime])
+    """
+    Gets a list of TinderboxBuild objects for all builds on ftp.m.o within
+    specified date range.
+    """
+    parser = mozdownload.parser.DirectoryParser(
+        gTinderboxUrl % (base_url, branch))
+    entries = parser.filter(r'^\d+$')  # only entries that are all digits
+    return sorted([int(x) for x in entries if int(x) >= starttime and int(x) <= endtime])
 
 
 class Build():
-  """Abstract base class for builds."""
+    """Abstract base class for builds."""
 
-  def prepare(self):
-    """Downloads or builds and extracts the build to a temporary directory"""
-    raise NotImplementedError()
+    def prepare(self):
+        """Downloads or builds and extracts the build to a temporary directory"""
+        raise NotImplementedError()
 
-  def cleanup(self):
-    raise NotImplementedError()
+    def cleanup(self):
+        raise NotImplementedError()
 
-  def get_revision(self):
-    raise NotImplementedError()
+    def get_revision(self):
+        raise NotImplementedError()
 
-  def get_buildtime(self):
-    raise NotImplementedError()
+    def get_buildtime(self):
+        raise NotImplementedError()
 
-  def get_valid(self):
-    raise NotImplementedError()
+    def get_valid(self):
+        raise NotImplementedError()
 
-  def get_binary(self):
-    """Requires prepare()'d"""
-    raise NotImplementedError()
+    def get_binary(self):
+        """Requires prepare()'d"""
+        raise NotImplementedError()
 
 
 class DownloadedBuild(Build):
-  """Base class with shared helpers for Tinderbox, Nightly, and Try builds"""
+    """Base class with shared helpers for Tinderbox, Nightly, and Try builds"""
 
-  def __init__(self, scraper_args, directory=None,
-               base_ftp_url=BASE_FTP_URL, base_hg_url=BASE_HG_URL):
-    """
-    Sets up the build for downloading.
+    def __init__(self, scraper_args, directory=None,
+                 base_ftp_url=BASE_FTP_URL, base_hg_url=BASE_HG_URL):
+        """
+        Sets up the build for downloading.
 
-    Creates a mozdownloader.scraper instance and then queries the server for
-    more build details such as revision, branch, and timestamp.
+        Creates a mozdownloader.scraper instance and then queries the server for
+        more build details such as revision, branch, and timestamp.
 
-    :param scraper_args: Specifies the |mozdownload.scraper| type to use and
-      arguments that should be passed to it. Format:
-      { 'type': <class_type>, 'args': { ... } }
-    """
+        :param scraper_args: Specifies the |mozdownload.scraper| type to use and
+          arguments that should be passed to it. Format:
+          { 'type': <class_type>, 'args': { ... } }
+        """
 
-    self._branch = None
-    self._extracted = directory
-    self._cleanup_dir = False
-    self._prepared = False
-    self._revision = None
-    self._scraper = None
-    self._scraperTarget = None
-    self._timestamp = None
-    self._valid = False
-    self._base_ftp_url = base_ftp_url
-    self._base_hg_url = base_hg_url
+        self._branch = None
+        self._extracted = directory
+        self._cleanup_dir = False
+        self._prepared = False
+        self._revision = None
+        self._scraper = None
+        self._scraperTarget = None
+        self._timestamp = None
+        self._valid = False
+        self._base_ftp_url = base_ftp_url
+        self._base_hg_url = base_hg_url
 
-    if not directory:
-      self._extracted = tempfile.mkdtemp("BuildGetter_firefox")
-      self._cleanup_dir = True
+        if not directory:
+            self._extracted = tempfile.mkdtemp("BuildGetter_firefox")
+            self._cleanup_dir = True
 
-    # FIXME: platform hard coded to linux64
-    default_args = {
-        'destination': self._extracted,
-        'platform': 'linux64',
-        'base_url': base_ftp_url,
-    }
+        # FIXME: platform hard coded to linux64
+        default_args = {
+            'destination': self._extracted,
+            'platform': 'linux64',
+            'base_url': base_ftp_url,
+        }
 
-    default_args.update(scraper_args['args'])
+        default_args.update(scraper_args['args'])
 
-    # cache scraper details to support serialization
-    self._scraper_type = scraper_args['type']
-    self._scraper_args = default_args
+        # cache scraper details to support serialization
+        self._scraper_type = scraper_args['type']
+        self._scraper_args = default_args
 
-    try:
-      self._scraper = scraper_args['type'](**default_args)
-      url = self._scraper.url
-    except mozdownload.errors.NotFoundError:
-      _stat("ERR: Build not found")
-      return
+        try:
+            self._scraper = scraper_args['type'](**default_args)
+            url = self._scraper.url
+        except mozdownload.errors.NotFoundError:
+            _stat("ERR: Build not found")
+            return
 
-    ret = get_build_info(url)
-    if not ret:
-      _stat("ERR: Failed to lookup information about the build")
-      return
+        ret = get_build_info(url)
+        if not ret:
+            _stat("ERR: Failed to lookup information about the build")
+            return
 
-    (self._timestamp, self._revision, self._branch) = ret
+        (self._timestamp, self._revision, self._branch) = ret
 
-    ret = pushlog_lookup(self._revision, self._branch, self._base_hg_url)
-    if not ret:
-      _stat("ERR: Failed to lookup the build in the pushlog")
-      return
+        ret = pushlog_lookup(self._revision, self._branch, self._base_hg_url)
+        if not ret:
+            _stat("ERR: Failed to lookup the build in the pushlog")
+            return
 
-    (self._revision, self._timestamp) = ret
-    
-    self._valid = True
+        (self._revision, self._timestamp) = ret
 
-  @staticmethod
-  def extract_build(src, dstdir):
-    """Extracts the given build to the given directory."""
+        self._valid = True
 
-    # cross-platform FIXME, this is hardcoded to tar at the moment
-    with tarfile.open(src, mode='r:*') as tar:
-      tar.extractall(path=dstdir)
- 
-  def prepare(self):
-    """
-    Prepares the build for testing.
+    @staticmethod
+    def extract_build(src, dstdir):
+        """Extracts the given build to the given directory."""
 
-    Downloads the build and extracts it to a temporary directory.
-    """
+        # cross-platform FIXME, this is hardcoded to tar at the moment
+        with tarfile.open(src, mode='r:*') as tar:
+            tar.extractall(path=dstdir)
 
-    if not self._scraper:
-      # recreate it
-      self._scraper = self._scraper_type(**self._scraper_args)
+    def prepare(self):
+        """
+        Prepares the build for testing.
 
-    if not self._valid:
-      raise Exception("Attempted to prepare() invalid build")
+        Downloads the build and extracts it to a temporary directory.
+        """
 
-    self._scraper.download()
-    self._scraperTarget = self._scraper.filename
+        if not self._scraper:
+            # recreate it
+            self._scraper = self._scraper_type(**self._scraper_args)
 
-    _stat("Extracting build")
-    self.extract_build(self._scraper.filename, self._extracted)
+        if not self._valid:
+            raise Exception("Attempted to prepare() invalid build")
 
-    self._prepared = True
-    self._scraper = None
-    return True
+        self._scraper.download()
+        self._scraperTarget = self._scraper.filename
 
-  def cleanup(self):
-    if self._prepared:
-      self._prepared = False
+        _stat("Extracting build")
+        self.extract_build(self._scraper.filename, self._extracted)
 
-      # remove the downloaded archive
-      os.remove(self._scraperTarget)
+        self._prepared = True
+        self._scraper = None
+        return True
 
-      # remove the extracted archive
-      shutil.rmtree(os.path.join(self._extracted, "firefox"))
+    def cleanup(self):
+        if self._prepared:
+            self._prepared = False
 
-    # remove the temp directory that was created
-    if self._cleanup_dir:
-      shutil.rmtree(self._extracted)
+            # remove the downloaded archive
+            os.remove(self._scraperTarget)
 
-    return True
+            # remove the extracted archive
+            shutil.rmtree(os.path.join(self._extracted, "firefox"))
 
-  def get_revision(self):
-    return self._revision
+        # remove the temp directory that was created
+        if self._cleanup_dir:
+            shutil.rmtree(self._extracted)
 
-  def get_valid(self):
-    return self._valid
+        return True
 
-  def get_binary(self):
-    if not self._prepared:
-      raise Exception("Build is not prepared")
-    # FIXME More hard-coded linux stuff
-    return os.path.join(self._extracted, "firefox", "firefox")
+    def get_revision(self):
+        return self._revision
 
-  def get_buildtime(self):
-    return self._timestamp
+    def get_valid(self):
+        return self._valid
+
+    def get_binary(self):
+        if not self._prepared:
+            raise Exception("Build is not prepared")
+        # FIXME More hard-coded linux stuff
+        return os.path.join(self._extracted, "firefox", "firefox")
+
+    def get_buildtime(self):
+        return self._timestamp
 
 
 class CompileBuild(Build):
-  """
-  A build that needs to be compiled
+    """
+    A build that needs to be compiled
 
-  This is currently unsupported, see:
-    https://github.com/mozilla/areweslimyet/issues/47
-  """
-  pass
+    This is currently unsupported, see:
+      https://github.com/mozilla/areweslimyet/issues/47
+    """
+    pass
 
 
 class FTPBuild(DownloadedBuild):
-  """A build that simply points to a full path on ftp.m.o"""
+    """A build that simply points to a full path on ftp.m.o"""
 
-  def __init__(self, path, *args, **kwargs):
-    self._path = path
-    scraper_info = {
-      'type': mozdownload.DirectScraper,
-      'args': { 'url': path }
-    }
+    def __init__(self, path, *args, **kwargs):
+        self._path = path
+        scraper_info = {
+            'type': mozdownload.DirectScraper,
+            'args': {'url': path}
+        }
 
-    DownloadedBuild.__init__(self, scraper_info, *args, **kwargs)
+        DownloadedBuild.__init__(self, scraper_info, *args, **kwargs)
 
 
 class TryBuild(DownloadedBuild):
-  """A try build from ftp.m.o. Initialized with a 12-digit try changeset."""
+    """A try build from ftp.m.o. Initialized with a 12-digit try changeset."""
 
-  def __init__(self, changeset, *args, **kwargs):
-    # mozdownload requires the full revision, look it up if necessary.
-    if len(changeset) != 40:
-      (changeset, _) = pushlog_lookup(changeset, branch='try', base_url=kwargs.get('base_hg_url', BASE_HG_URL))
+    def __init__(self, changeset, *args, **kwargs):
+        # mozdownload requires the full revision, look it up if necessary.
+        if len(changeset) != 40:
+            (changeset, _) = pushlog_lookup(changeset, branch='try',
+                                            base_url=kwargs.get('base_hg_url', BASE_HG_URL))
 
-    self._changeset = changeset
-    scraper_info = {
-      'type': mozdownload.scraper.TryScraper,
-      'args': { 'revision': changeset }
-    }
+        self._changeset = changeset
+        scraper_info = {
+            'type': mozdownload.scraper.TryScraper,
+            'args': {'revision': changeset}
+        }
 
-    DownloadedBuild.__init__(self, scraper_info, *args, **kwargs)
+        DownloadedBuild.__init__(self, scraper_info, *args, **kwargs)
 
 
 class NightlyBuild(DownloadedBuild):
-  """A nightly build. Initialized with a date() object or a YYYY-MM-DD string"""
+    """A nightly build. Initialized with a date() object or a YYYY-MM-DD string"""
 
-  def __init__(self, date, *args, **kwargs):
-    self._date = date if isinstance(date, datetime.date) else datetime.datetime.strptime(date, "%Y-%m-%d")
-    scraper_info = { 
-      'type': mozdownload.scraper.DailyScraper,
-      'args': { 'date': self._date.strftime("%Y-%m-%d") }
-    }
+    def __init__(self, date, *args, **kwargs):
+        self._date = date if isinstance(
+            date, datetime.date) else datetime.datetime.strptime(date, "%Y-%m-%d")
+        scraper_info = {
+            'type': mozdownload.scraper.DailyScraper,
+            'args': {'date': self._date.strftime("%Y-%m-%d")}
+        }
 
-    DownloadedBuild.__init__(self, scraper_info, *args, **kwargs)
+        DownloadedBuild.__init__(self, scraper_info, *args, **kwargs)
 
 
 class TinderboxBuild(DownloadedBuild):
-  """A tinderbox build from ftp.m.o. Initialized with a timestamp to build"""
+    """A tinderbox build from ftp.m.o. Initialized with a timestamp to build"""
 
-  def __init__(self, timestamp, branch = "mozilla-inbound", *args, **kwargs):
-    if not branch:
-      branch = "mozilla-inbound"
+    def __init__(self, timestamp, branch="mozilla-inbound", *args, **kwargs):
+        if not branch:
+            branch = "mozilla-inbound"
 
-    self._branch_name = branch
-    self._tinderbox_timestamp = int(timestamp)
+        self._branch_name = branch
+        self._tinderbox_timestamp = int(timestamp)
 
-    # Use this as the timestamp if finding the build fails
-    self._timestamp = self._tinderbox_timestamp
+        # Use this as the timestamp if finding the build fails
+        self._timestamp = self._tinderbox_timestamp
 
-    scraper_info = { 
-      'type': mozdownload.scraper.TinderboxScraper,
-      'args': { 'branch': branch, 'date': str(self._tinderbox_timestamp) }
-    }
+        scraper_info = {
+            'type': mozdownload.scraper.TinderboxScraper,
+            'args': {'branch': branch, 'date': str(self._tinderbox_timestamp)}
+        }
 
-    DownloadedBuild.__init__(self, scraper_info, *args, **kwargs)
+        DownloadedBuild.__init__(self, scraper_info, *args, **kwargs)
 
-  def get_tinderbox_timestamp(self):
-    return self._tinderbox_timestamp
+    def get_tinderbox_timestamp(self):
+        return self._tinderbox_timestamp
 
-  def get_branch(self):
-    return self._branch_name
+    def get_branch(self):
+        return self._branch_name
