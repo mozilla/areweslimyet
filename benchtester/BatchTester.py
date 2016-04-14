@@ -15,7 +15,6 @@ import datetime
 import multiprocessing
 import socket
 import platform
-import sqlite3
 import json
 import pickle
 
@@ -470,7 +469,7 @@ class BatchTest(object):
                 rcmd = None
                 try:
                     rcmd = get_queued_job(batchmode)
-                except Exception, e:
+                except Exception:
                     note = "Invalid batch file"
                     self.stat(note)
                     self.processedbatches.append(

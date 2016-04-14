@@ -13,7 +13,6 @@ import shutil
 
 import mozprofile
 from marionette.runtests import MarionetteTestRunner
-from mozlog.structured import commandline
 
 
 class MarionetteTest(BenchTester.BenchTest):

@@ -375,7 +375,7 @@ class BenchTester():
                     self.load_module(m)
             args = vars(self.argparser.parse_args(rawargs))
             return args
-        except SystemExit, e:
+        except SystemExit:
             return False
 
     def __del__(self):
