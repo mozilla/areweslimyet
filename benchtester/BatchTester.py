@@ -505,9 +505,9 @@ class BatchTest(object):
             self.write_status()
 
             in_progress = sum(
-                len(self.builds['pending']),
-                len(self.builds['prepared']),
-                len(self.builds['running']))
+                [ len(self.builds['pending']),
+                  len(self.builds['prepared']),
+                  len(self.builds['running']) ])
 
             if not self.builder and not self.builds['building'] and in_progress == 0:
                 # Out of things to do
