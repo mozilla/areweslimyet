@@ -312,7 +312,7 @@ def post_treeherder_jobs(client, revisions, s3=None):
             #print tjc.to_json()
 
             successful.append(revision)
-            print "Submitted perf data for %s to %s" % (revision, client.host)
+            print "Submitted perf data for %s to %s" % (revision, client.server_url)
         except Exception as e:
             print "Failed to submit data for %s: %s" % (revision, e)
 
@@ -367,14 +367,8 @@ def filter_datasets(file_names, perf_history_file='last_perf.json'):
     return revisions
 
 
-def process_datasets(host, client_id, secret, revisions, s3):
-    # For local testing just http is used, otherwise https is required.
-    if host != 'local.treeherder.mozilla.org':
-        protocol = 'https'
-    else:
-        protocol = 'http'
-
-    client = TreeherderClient(protocol=protocol, host=host, client_id=client_id, secret=secret)
+def process_datasets(server_url, client_id, secret, revisions, s3):
+    client = TreeherderClient(server_url=server_url, client_id=client_id, secret=secret)
     return post_treeherder_jobs(client, revisions, s3)
 
 
@@ -414,7 +408,7 @@ if __name__ == '__main__':
     # Load the config.
     cfg = ConfigParser.ConfigParser()
     cfg.read(args[0])
-    host = cfg.get('treeherder', 'host')
+    server_url = cfg.get('treeherder', 'server_url')
     client_id = cfg.get('treeherder', 'client_id')
     secret = cfg.get('treeherder', 'client_secret')
 
@@ -429,16 +423,16 @@ if __name__ == '__main__':
         print "S3 Failed: %s" % e
 
     # Push the data to the production treeherder instance.
-    successful = process_datasets(host, client_id, secret, revisions, s3)
+    successful = process_datasets(server_url, client_id, secret, revisions, s3)
     update_known_revisions(successful)
 
     # Try to push data to staging as well.
     try:
-        host = cfg.get('treeherder_staging', 'host')
+        server_url = cfg.get('treeherder_staging', 'server_url')
         client_id = cfg.get('treeherder_staging', 'client_id')
         secret = cfg.get('treeherder_staging', 'client_secret')
 
-        process_datasets(host, client_id, secret, revisions, s3)
+        process_datasets(server_url, client_id, secret, revisions, s3)
     except:
         pass
 
