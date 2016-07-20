@@ -23,6 +23,6 @@ setup(
       "mercurial",
       "mozdownload",
       "MozillaPulse",
-      "treeherder-client"
+      "treeherder-client>=3.0.0"
     ],
 )
