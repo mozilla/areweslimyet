@@ -43,13 +43,6 @@ PERF_SUITES = [
 ]
 
 
-class RevisionNotFoundError(Exception):
-    """
-    Indicates the given revision was not found in the given repo.
-    """
-    pass
-
-
 # Based on autophone implementation
 class S3:
     def __init__(self, bucket_name, access_key_id, access_secret_key):
@@ -209,14 +202,9 @@ def create_treeherder_job(repo, revision, client, nodes, s3=None):
     :param nodes: The dataset for this build.
     :param s3: Optional Amazon S3 bucket to upload logs to.
     """
-    try:
-        rev_hash = client.get_resultsets(repo, revision=revision)[0]['revision_hash']
-    except IndexError:
-        raise RevisionNotFoundError("Revision %s was not found in %s" % (revision, repo))
-
     tj = TreeherderJob()
     tj.add_tier(2)
-    tj.add_revision_hash(rev_hash)
+    tj.add_revision(revision)
     tj.add_project(repo)
 
     tj.add_job_name('awsy 1')
@@ -298,10 +286,6 @@ def post_treeherder_jobs(client, revisions, s3=None):
             tjc.add(create_treeherder_job(repo, revision, client, nodes, s3))
         except KeyError as e:
             print "Failed to generate data for %s: %s, probably still running" % (revision, e)
-            continue
-        except RevisionNotFoundError as e:
-            print "%s, skipping" % e
-            successful.append(revision)
             continue
 
         try:
