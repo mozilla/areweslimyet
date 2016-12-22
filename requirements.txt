@@ -1,5 +1,5 @@
 boto==2.39.0
-marionette-harness=4.0.0
+marionette-harness==4.0.0
 mercurial==3.2.4
 mozdownload==1.20.2
 MozillaPulse==1.0.1
