@@ -54,7 +54,6 @@ def queue_request(start_date, end_date, force, batch_dir, verbose=False):
         import pprint
         pprint.pprint(request)
 
-    return
     with tempfile.NamedTemporaryFile(
             mode='w', suffix='.backfill',
             dir=batch_dir, delete=False) as f:
