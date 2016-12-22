@@ -19,7 +19,7 @@ setup(
     packages=["benchtester"],
     install_requires=[
       "boto",
-      "marionette-client",
+      "marionette-harness",
       "mercurial",
       "mozdownload",
       "MozillaPulse",
