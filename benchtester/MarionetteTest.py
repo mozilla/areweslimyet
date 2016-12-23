@@ -12,7 +12,7 @@ import os
 import shutil
 
 import mozprofile
-from marionette_harness.runtests import MarionetteTestRunner
+from marionette.runtests import MarionetteTestRunner
 
 
 class MarionetteTest(BenchTester.BenchTest):
