@@ -3,6 +3,10 @@ MozAreWeSlimYet
 
 Code behind areweslimyet.com
 
+**Please note: this project has been moved [in tree](https://hg.mozilla.org/mozilla-central/file/tip/testing/awsy)**
+
+This page has been left up for posterity.
+
 ## Regression tracking
 
 Regressions seen on areweslimyet.com should be filed on Mozilla's
